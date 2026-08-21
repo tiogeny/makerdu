@@ -22,10 +22,12 @@ Route::get('/student-login', [StudentAuthController::class, 'showLogin'])->name(
 Route::post('/student-login', [StudentAuthController::class, 'login'])->name('student.login.post');
 Route::post('/student-logout', [StudentAuthController::class, 'logout'])->name('student.logout');
 
-// HUD de la Escuadra (Regla de 1-PC)
+// HUD de la Escuadra (Regla de 1-PC) y Operaciones Maker
 Route::middleware(['auth'])->group(function () {
     Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud');
     Route::post('/squad/{squad}/switch-role', [SquadController::class, 'switchRole'])->name('squad.switch-role');
+    Route::post('/squad/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('squad.preflight');
+    Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');
     Route::post('/squad/{squad}/level/{level}/bitacora', [SquadController::class, 'submitBitacora'])->name('squad.bitacora.submit');
 
     // Dashboard Docente / General
@@ -37,5 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Endpoint API REST según PRD v2.6 (Módulo C)
+Route::post('/api/squads/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('api.squad.preflight');
 
 require __DIR__.'/auth.php';

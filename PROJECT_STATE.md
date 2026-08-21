@@ -21,7 +21,7 @@
 ## 2. Reglas Arquitectónicas Inquebrantables
 1. **Regla de 1-PC (Equipo en 1 Computadora):** La interfaz del estudiante permite alternar el *Rol Activo* (`Architect`, `Quality`, `Finance`, `Relator`) dentro de la misma pantalla sin destruir la sesión de Laravel.
 2. **Separación Económica:** 
-   - `FabCoins (FC)` = Insumos Físicos Reales (filamento, corte láser, placas). No se regalan con trivias.
+   - `FabCoins (FC)` = Insumos Físicos Reales (filamento, corte láser, placas). No se regalan con trivias. La IA de validación protege este balance.
    - `XP Points` = Puntos Pedagógicos de reputación virtual (bitácoras, rotación de rol, colaboración).
 3. **Internacionalización (`i18n`):** Todo texto en vistas debe usar traducción (`es` base, `en` preparado).
 4. **Deploy en BanaHosting (cPanel):** Nunca compilar en el cPanel. El workflow de deploy usa `npm run build` en local/GitHub Actions para subir `public/build/`.
@@ -35,8 +35,8 @@
 | **Fase 0** | Scaffold Laravel 11 + Vue 3 + Inertia + Tailwind + Git | ✅ Completado |
 | **Fase 1** | Migraciones de Base de Datos y Modelos Eloquent | ✅ Completado |
 | **Fase 2** | Autenticación (Código Clase + PIN 4 dígitos) y HUD Escuadra (1-PC) | ✅ Completado |
-| **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG) | ⏳ Siguiente Sprint |
-| **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ⏳ Pendiente |
+| **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG + Gemini API) | ✅ Completado |
+| **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ⏳ Siguiente Sprint |
 
 ---
 

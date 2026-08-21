@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectLevel;
 use App\Models\Squad;
 use App\Models\User;
+use App\Services\AiPreflightService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -39,7 +40,7 @@ class SquadController extends Controller
             return redirect()->route('student.login')->withErrors(['general' => 'No tienes escuadra asignada.']);
         }
 
-        // Obtener proyecto activo (primer proyecto para la demo o proyecto del aula)
+        // Obtener proyecto activo
         $project = Project::with('levels')->first();
 
         // Obtener bitácoras de la escuadra
@@ -52,7 +53,7 @@ class SquadController extends Controller
         $activeStudentId = session('active_student_id', $user->id);
         $activeStudent = $squad->members->firstWhere('id', $activeStudentId) ?? $user;
 
-        // Calcular progreso por niveles
+        // Progreso por niveles
         $completedLevelIds = $bitacoras->where('status', 'approved')->pluck('level_id')->unique()->toArray();
 
         return Inertia::render('Student/SquadHud', [
@@ -103,11 +104,14 @@ class SquadController extends Controller
                 }),
             ],
             'bitacoras' => $bitacoras,
+            'flash' => [
+                'preflight_result' => session('preflight_result'),
+            ],
         ]);
     }
 
     /**
-     * Regla de 1-PC: Cambiar el alumno/rol activo en la misma computadora sin desloguear.
+     * Regla de 1-PC: Cambiar el alumno/rol activo en la misma computadora.
      */
     public function switchRole(Request $request, Squad $squad)
     {
@@ -121,27 +125,95 @@ class SquadController extends Controller
             return back()->withErrors(['general' => 'El alumno no pertenece a esta escuadra.']);
         }
 
-        // Si se cambia el rol en la tabla pivote
         if ($request->filled('new_role')) {
             $squad->members()->updateExistingPivot($request->student_id, [
                 'current_role' => $request->new_role,
             ]);
         }
 
-        // Establecer el alumno activo en la sesión del navegador
         session(['active_student_id' => $targetUser->id]);
 
         return back()->with('success', "Rol activo cambiado a {$targetUser->name} ({$targetUser->pivot->current_role})");
     }
 
     /**
-     * Enviar evidencia a la bitácora del nivel
+     * Engine de Pre-flight Check con IA (POST /api/squads/{id}/pre-flight)
+     */
+    public function preflight(Request $request, Squad $squad, AiPreflightService $preflightService)
+    {
+        $request->validate([
+            'level_id' => ['required', 'exists:project_levels,id'],
+            'file' => ['required', 'file', 'max:25600'], // Max 25MB (.stl, .svg, .obj)
+        ]);
+
+        $level = ProjectLevel::findOrFail($request->level_id);
+        $file = $request->file('file');
+
+        // Guardar archivo temporal de validación
+        $storedPath = $file->store('preflights', 'public');
+        $fullPath = Storage::disk('public')->path($storedPath);
+
+        // Ejecutar análisis y consulta IA
+        $result = $preflightService->analyzeFile($fullPath, $file->getClientOriginalName(), $level->validation_rules_json);
+        $result['file_url'] = Storage::url($storedPath);
+        $result['level_id'] = $level->id;
+
+        // Registrar entrada en Bitácora con el resultado del diagnóstico
+        $activeStudentId = session('active_student_id', Auth::id());
+        $bitacora = BitacoraEntry::create([
+            'squad_id' => $squad->id,
+            'level_id' => $level->id,
+            'active_role_user_id' => $activeStudentId,
+            'content_text' => "Pre-flight Check para '{$file->getClientOriginalName()}': " . ($result['is_valid'] ? "Aprobado (Listo para Fabricación)" : "Requiere corrección de tolerancias."),
+            'file_url' => Storage::url($storedPath),
+            'ai_score' => $result['ai_score'],
+            'ai_feedback' => $result['ai_feedback'],
+            'status' => $result['is_valid'] ? 'approved' : 'rejected',
+        ]);
+
+        // Si es una petición API REST pura
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        }
+
+        // Si es una petición desde el HUD en Inertia
+        return back()->with('preflight_result', $result);
+    }
+
+    /**
+     * Confirmar Fabricación y Descontar FabCoins (Paso 4)
+     */
+    public function confirmFabrication(Request $request, Squad $squad, ProjectLevel $level)
+    {
+        $cost = $level->fabcoins_cost;
+
+        if ($squad->fabcoins_balance < $cost) {
+            return back()->withErrors(['general' => "Balance insuficiente de FabCoins. Requiere {$cost} FC y dispones de {$squad->fabcoins_balance} FC."]);
+        }
+
+        $squad->decrement('fabcoins_balance', $cost);
+
+        // Otorgar XP de logro
+        $activeStudentId = session('active_student_id', Auth::id());
+        $user = User::find($activeStudentId);
+        if ($user) {
+            $user->increment('xp_points', 50);
+        }
+
+        return back()->with('success', "¡Pieza autorizada para fabricación! Se consumieron {$cost} FabCoins y tu equipo ganó +50 XP.");
+    }
+
+    /**
+     * Enviar evidencia general a la bitácora
      */
     public function submitBitacora(Request $request, Squad $squad, ProjectLevel $level)
     {
         $request->validate([
             'content_text' => ['required', 'string', 'min:5'],
-            'file' => ['nullable', 'file', 'max:10240'], // Max 10MB
+            'file' => ['nullable', 'file', 'max:10240'],
         ]);
 
         $activeStudentId = session('active_student_id', Auth::id());
@@ -152,7 +224,7 @@ class SquadController extends Controller
             $fileUrl = Storage::url($path);
         }
 
-        $bitacora = BitacoraEntry::create([
+        BitacoraEntry::create([
             'squad_id' => $squad->id,
             'level_id' => $level->id,
             'active_role_user_id' => $activeStudentId,
@@ -163,7 +235,6 @@ class SquadController extends Controller
             'status' => 'approved',
         ]);
 
-        // Otorgar XP al alumno y al equipo (+25 XP)
         $user = User::find($activeStudentId);
         if ($user) {
             $user->increment('xp_points', 25);

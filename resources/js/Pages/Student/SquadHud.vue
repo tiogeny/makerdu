@@ -1,10 +1,11 @@
 <script setup>
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
 import {
     Sparkles, Coins, Trophy, Users, ShieldCheck, Wrench, CheckCircle2,
     Clock, BookOpen, ExternalLink, Send, FileText, ChevronRight, LogOut,
-    Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop
+    Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop, UploadCloud,
+    Cpu, XCircle, Printer, Hammer, Gauge
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -12,9 +13,12 @@ const props = defineProps({
     activeStudent: Object,
     project: Object,
     bitacoras: Array,
+    flash: Object,
 });
 
-// Nivel seleccionado actualmente en la vista interactiva
+const page = usePage();
+
+// Nivel seleccionado actualmente
 const selectedLevelId = ref(props.project.levels[0]?.id || null);
 
 const selectedLevel = computed(() => {
@@ -26,7 +30,7 @@ const currentLevelBitacoras = computed(() => {
     return props.bitacoras.filter((b) => b.level_id === selectedLevel.value?.id);
 });
 
-// Formulario para envío de bitácora
+// Formulario para envío de bitácora tradicional
 const bitacoraForm = useForm({
     content_text: '',
     file: null,
@@ -45,7 +49,92 @@ const submitBitacora = () => {
     });
 };
 
-// Cambio rápido de Rol / Alumno en la misma computadora (Regla 1-PC)
+// Formulario de Pre-flight Check con IA
+const preflightForm = useForm({
+    level_id: null,
+    file: null,
+});
+
+const preflightResult = ref(props.flash?.preflight_result || null);
+const selectedFileName = ref('');
+const isScanning = ref(false);
+
+watch(() => props.flash?.preflight_result, (newVal) => {
+    if (newVal) {
+        preflightResult.value = newVal;
+    }
+});
+
+const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    selectedFileName.value = file.name;
+    preflightForm.file = file;
+};
+
+const runPreflightCheck = () => {
+    if (!selectedLevel.value || !preflightForm.file) return;
+    isScanning.value = true;
+    preflightForm.level_id = selectedLevel.value.id;
+
+    preflightForm.post(route('squad.preflight', { squad: props.squad.id }), {
+        preserveScroll: true,
+        onFinish: () => {
+            isScanning.value = false;
+        },
+    });
+};
+
+// Creador de archivos demo STL/SVG para probar directamente en el navegador
+const createAndTestDemoFile = (type, isValid = true) => {
+    isScanning.value = true;
+    let fileName = '';
+    let content = '';
+
+    if (type === 'stl') {
+        fileName = isValid ? 'sello_valido_40mm.stl' : 'sello_gigante_75mm.stl';
+        content = isValid 
+            ? 'solid stamp\nfacet normal 0 0 0\nouter loop\nvertex 0 0 0\nvertex 40 0 0\nvertex 0 40 10\nendloop\nendfacet\nendsolid' 
+            : 'solid stamp\nfacet normal 0 0 0\nouter loop\nvertex 0 0 0\nvertex 75 0 0\nvertex 0 75 25\nendloop\nendfacet\nendsolid';
+    } else {
+        fileName = isValid ? 'vector_laser_35mm.svg' : 'vector_laser_sobredimensionado.svg';
+        content = isValid 
+            ? '<svg viewBox="0 0 140 140"><rect width="140" height="140"/></svg>' 
+            : '<svg viewBox="0 0 350 350"><rect width="350" height="350"/></svg>';
+    }
+
+    const blob = new Blob([content], { type: 'application/octet-stream' });
+    const testFile = new File([blob], fileName, { type: 'application/octet-stream' });
+
+    selectedFileName.value = fileName;
+    preflightForm.file = testFile;
+    preflightForm.level_id = selectedLevel.value.id;
+
+    preflightForm.post(route('squad.preflight', { squad: props.squad.id }), {
+        preserveScroll: true,
+        onFinish: () => {
+            isScanning.value = false;
+        },
+    });
+};
+
+// Confirmar y Descontar FabCoins para Fabricación Real
+const isFabricating = ref(false);
+const confirmFabrication = () => {
+    if (!selectedLevel.value) return;
+    isFabricating.value = true;
+    router.post(route('squad.fabricate', {
+        squad: props.squad.id,
+        level: selectedLevel.value.id,
+    }), {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            isFabricating.value = false;
+        },
+    });
+};
+
+// Cambio rápido de Rol (Regla 1-PC)
 const isSwitchingRole = ref(false);
 const switchActiveRole = (studentId, role) => {
     isSwitchingRole.value = true;
@@ -156,6 +245,12 @@ const totalSquadXp = computed(() => {
         <!-- MAIN WORKSPACE -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
             
+            <!-- ALERTA GLOBAL FLASH SI EXISTE -->
+            <div v-if="$page.props.flash?.success" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 class="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>{{ $page.props.flash.success }}</span>
+            </div>
+
             <!-- SECCIÓN 1: REGLA DE 1-PC - ROTACIÓN DE ROLES EN PANTALLA COMPARTIDA -->
             <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 lg:p-6 shadow-xl relative overflow-hidden">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -168,7 +263,7 @@ const totalSquadXp = computed(() => {
                                 Panel de Escuadra: Rol Activo en Dispositivo
                                 <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-normal border border-slate-700">Regla 1-PC</span>
                             </h2>
-                            <p class="text-xs text-slate-400">Haz clic en tu nombre para asumir el control de la bitácora y registro de actividades.</p>
+                            <p class="text-xs text-slate-400">Haz clic en tu tarjeta para tomar el turno activo sin desloguear el equipo.</p>
                         </div>
                     </div>
                 </div>
@@ -186,7 +281,6 @@ const totalSquadXp = computed(() => {
                                 : 'bg-slate-950/50 hover:bg-slate-800/60 border-slate-800/80 opacity-80 hover:opacity-100'
                         ]"
                     >
-                        <!-- Indicador Activo -->
                         <div v-if="member.is_active_device_user" class="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950">
                             <Check class="w-3 h-3 stroke-[3]" /> ACTIVO
                         </div>
@@ -201,7 +295,6 @@ const totalSquadXp = computed(() => {
                             </div>
                         </div>
 
-                        <!-- Badge Rol -->
                         <div class="mt-3">
                             <span :class="['text-[11px] font-bold px-2.5 py-1 rounded-lg border inline-block w-full text-center', getRoleDetails(member.role).color]">
                                 {{ getRoleDetails(member.role).label }}
@@ -271,11 +364,11 @@ const totalSquadXp = computed(() => {
                     </div>
                 </div>
 
-                <!-- COLUMNA DERECHA: WORKSPACE DEL NIVEL & BITÁCORA (7 Cols) -->
+                <!-- COLUMNA DERECHA: WORKSPACE DEL NIVEL, PRE-FLIGHT IA & BITÁCORA (7 Cols) -->
                 <div class="lg:col-span-7 space-y-6">
                     
                     <!-- DETALLE DEL NIVEL SELECCIONADO -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
                             <div>
                                 <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Nivel {{ selectedLevel?.level_number }}</span>
@@ -310,33 +403,130 @@ const totalSquadXp = computed(() => {
                             </div>
                         </div>
 
-                        <!-- Reglas de Validación IA si aplica -->
-                        <div v-if="selectedLevel?.validation_rules" class="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
-                            <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs">
-                                <ShieldCheck class="w-4 h-4" />
-                                Reglas de Pre-flight Check (IA de Fabricación)
+                        <!-- MOTOR DE PRE-FLIGHT CHECK CON IA (MÓDULO C) -->
+                        <div v-if="selectedLevel?.validation_rules" class="p-5 rounded-2xl bg-gradient-to-br from-slate-950 to-cyan-950/30 border border-cyan-500/30 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-cyan-300 font-bold text-sm">
+                                    <Cpu class="w-5 h-5 text-cyan-400 animate-pulse" />
+                                    <span>Laboratorio de Pre-flight Check IA (STL / SVG)</span>
+                                </div>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">Gemini Vision/Rules</span>
                             </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-slate-300">
-                                <div v-if="selectedLevel.validation_rules.max_x_mm" class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                    <p class="text-slate-500">Max X</p>
-                                    <p class="font-bold text-cyan-300">{{ selectedLevel.validation_rules.max_x_mm }} mm</p>
+
+                            <p class="text-xs text-slate-300">
+                                Sube tu diseño 3D o vectorial para validar tolerancias mecánicas antes de enviar a fabricación física.
+                            </p>
+
+                            <!-- Zona de Carga de Archivo -->
+                            <div class="p-4 rounded-xl bg-slate-900/90 border-2 border-dashed border-slate-700 hover:border-cyan-400 text-center space-y-3 transition">
+                                <UploadCloud class="w-8 h-8 text-cyan-400 mx-auto" />
+                                <div>
+                                    <label class="cursor-pointer text-xs font-bold text-cyan-300 hover:underline">
+                                        <span>Seleccionar archivo .STL o .SVG</span>
+                                        <input type="file" @change="handleFileSelect" accept=".stl,.svg,.obj" class="hidden" />
+                                    </label>
+                                    <p v-if="selectedFileName" class="text-xs font-mono text-amber-300 mt-1 font-bold">
+                                        📄 Archivo: {{ selectedFileName }}
+                                    </p>
+                                    <p v-else class="text-[11px] text-slate-500 mt-1">Archivos 3D hasta 25MB (.STL, .SVG)</p>
                                 </div>
-                                <div v-if="selectedLevel.validation_rules.max_y_mm" class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                    <p class="text-slate-500">Max Y</p>
-                                    <p class="font-bold text-cyan-300">{{ selectedLevel.validation_rules.max_y_mm }} mm</p>
+
+                                <div class="flex flex-wrap justify-center gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        @click="runPreflightCheck"
+                                        :disabled="isScanning || !preflightForm.file"
+                                        class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs disabled:opacity-40 transition flex items-center gap-1.5"
+                                    >
+                                        <Sparkles class="w-3.5 h-3.5" />
+                                        <span>{{ isScanning ? 'Analizando archivo...' : 'Ejecutar Pre-flight Check' }}</span>
+                                    </button>
                                 </div>
-                                <div v-if="selectedLevel.validation_rules.max_z_mm" class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                    <p class="text-slate-500">Max Z</p>
-                                    <p class="font-bold text-cyan-300">{{ selectedLevel.validation_rules.max_z_mm }} mm</p>
+                            </div>
+
+                            <!-- Botones Demo para Pruebas Rápidas -->
+                            <div class="pt-2">
+                                <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">⚡ Pruebas rápidas de validación:</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        @click="createAndTestDemoFile('stl', true)"
+                                        :disabled="isScanning"
+                                        class="p-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-600/40 text-emerald-300 text-[11px] font-bold text-left transition"
+                                    >
+                                        ✓ Probar STL Válido (40x40mm)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="createAndTestDemoFile('stl', false)"
+                                        :disabled="isScanning"
+                                        class="p-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/50 border border-rose-600/40 text-rose-300 text-[11px] font-bold text-left transition"
+                                    >
+                                        ✕ Probar STL Excedido (75mm)
+                                    </button>
                                 </div>
-                                <div v-if="selectedLevel.validation_rules.min_wall_thickness_mm" class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                    <p class="text-slate-500">Grosor Mín</p>
-                                    <p class="font-bold text-emerald-400">{{ selectedLevel.validation_rules.min_wall_thickness_mm }} mm</p>
+                            </div>
+
+                            <!-- PANEL DE RESULTADOS PRE-FLIGHT -->
+                            <div v-if="preflightResult" :class="[
+                                'p-4 rounded-xl border space-y-3 transition-all',
+                                preflightResult.is_valid
+                                    ? 'bg-emerald-950/30 border-emerald-500/50'
+                                    : 'bg-rose-950/30 border-rose-500/50'
+                            ]">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <CheckCircle2 v-if="preflightResult.is_valid" class="w-5 h-5 text-emerald-400" />
+                                        <XCircle v-else class="w-5 h-5 text-rose-400" />
+                                        <span class="font-black text-sm text-white">
+                                            {{ preflightResult.is_valid ? 'PRE-FLIGHT APROBADO' : 'CORRECCIÓN REQUERIDA' }}
+                                        </span>
+                                    </div>
+                                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-900 text-slate-300">
+                                        {{ preflightResult.metrics?.x_mm }} x {{ preflightResult.metrics?.y_mm }} x {{ preflightResult.metrics?.z_mm }} mm
+                                    </span>
+                                </div>
+
+                                <!-- Métricas de Fabricación Estimadas -->
+                                <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                                        <p class="text-[10px] text-slate-500">Material</p>
+                                        <p class="font-bold text-cyan-300">{{ preflightResult.metrics?.material_grams }} g</p>
+                                    </div>
+                                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                                        <p class="text-[10px] text-slate-500">Tiempo Impresión</p>
+                                        <p class="font-bold text-purple-300">{{ preflightResult.metrics?.print_time_minutes }} min</p>
+                                    </div>
+                                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800">
+                                        <p class="text-[10px] text-slate-500">Insumo Real</p>
+                                        <p class="font-bold text-amber-400">{{ preflightResult.metrics?.estimated_fc_cost }} FC</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback IA -->
+                                <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800 text-xs space-y-1">
+                                    <p class="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+                                        🤖 Feedback Pedagógico del Copiloto IA:
+                                    </p>
+                                    <p class="text-slate-300 leading-relaxed">{{ preflightResult.ai_feedback }}</p>
+                                </div>
+
+                                <!-- Botón Autorizar Fabricación si es válido -->
+                                <div v-if="preflightResult.is_valid && selectedLevel.fabcoins_cost > 0" class="pt-2">
+                                    <button
+                                        type="button"
+                                        @click="confirmFabrication"
+                                        :disabled="isFabricating || squad.fabcoins_balance < selectedLevel.fabcoins_cost"
+                                        class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-40 transition"
+                                    >
+                                        <Printer class="w-4 h-4" />
+                                        <span>ENVIAR A COLA DE FABRICACIÓN (CONSUMIR {{ selectedLevel.fabcoins_cost }} FC)</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Formulario de Bitácora -->
+                        <!-- Formulario de Bitácora Tradicional -->
                         <form @submit.prevent="submitBitacora" class="space-y-4 pt-2">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
@@ -372,8 +562,13 @@ const totalSquadXp = computed(() => {
                             >
                                 <div class="flex items-center justify-between text-[11px]">
                                     <span class="font-bold text-cyan-300">{{ b.active_role_user?.name || 'Miembro' }}</span>
-                                    <span class="text-emerald-400 flex items-center gap-1 font-semibold">
-                                        <CheckCircle2 class="w-3.5 h-3.5" /> Aprobado
+                                    <span :class="[
+                                        'flex items-center gap-1 font-semibold',
+                                        b.status === 'approved' ? 'text-emerald-400' : 'text-rose-400'
+                                    ]">
+                                        <CheckCircle2 v-if="b.status === 'approved'" class="w-3.5 h-3.5" />
+                                        <XCircle v-else class="w-3.5 h-3.5" />
+                                        {{ b.status === 'approved' ? 'Aprobado' : 'Rechazado' }}
                                     </span>
                                 </div>
                                 <p class="text-slate-300">{{ b.content_text }}</p>
