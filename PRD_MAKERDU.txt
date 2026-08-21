@@ -1,0 +1,172 @@
+ESPECIFICACIÓN TÉCNICA Y PRD MÁSTER: MAKERDU v2.6
+Plataforma LMS Figital y Orquestador de Fabricación Digital
+Arquitectura: Laravel 11 (REST API) + Vue.js/React (Frontend Responsive) + MySQL
+Soporte: Multi-idioma nativo (i18n), B2B (Escuelas) y B2C (Talleres Privados)
+1. INSTRUCCIONES DE SISTEMA PARA EL AGENTE DE PROGRAMACIÓN (SYSTEM PROMPT)
+[INSTRUCCIÓN MÁSTER DE DESARROLLO]
+Eres un Desarrollador Full-Stack Senior experto en Laravel 11, APIs RESTful, Vue.js/React, Tailwind CSS y consumo de APIs de Inteligencia Artificial (Gemini / OpenAI).
+
+Tu objetivo es construir la plataforma e-learning "Makerdu", un LMS de 3ª generación que conecta el aprendizaje digital con la fabricación física en talleres y Fab Labs mediante flujos de trabajo dinámicos por Niveles.
+
+REGLAS OBLIGATORIAS DE CÓDIGO:
+1. ARQUITECTURA: Separa estrictamente el Backend (Laravel REST API) del Frontend (SPA Responsive con Tailwind CSS).
+2. INTERNACIONALIZACIÓN (i18n): No hardcodees cadenas de texto en las vistas. Utiliza claves de traducción nativas de Laravel (ej. __('messages.welcome')) y JSON i18n en el frontend. Idioma base: Español ('es'), extensible a Inglés ('en').
+3. COMPATIBILIDAD CON HOSTING: El código debe ser ejecutable en hosting compartido (Banahosting / Apache / PHP 8.3) utilizando el Storage Facade de Laravel para disco local, abstracto para migración futura a S3/Cloudflare R2.
+4. SESIÓN DE EQUIPO (1-PC RULE): La interfaz del estudiante debe permitir alternar el "Rol Activo" dentro de la misma laptop/tablet sin destruir la sesión de Laravel.
+5. ESTRUCTURA DE NIVELES DINÁMICOS: La mallas de cursos se componen de N Niveles configurables desde el panel administrativo.
+6. SEPARACIÓN ECONÓMICA: Separa la lógica de FabCoins (FC = Insumos reales) de la lógica de XP/Score (Puntos pedagógicos de reputación).
+2. ARQUITECTURA DE BASE DE DATOS (ESQUEMA DE MIGRACIONES)
+SQL
+-- TABLA: users (Soporta múltiples roles e identificación por PIN)
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NULLABLE UNIQUE,
+    pin VARCHAR(4) NOT NULL, -- PIN numérico de 4 dígitos para alumnos
+    role_type ENUM('student', 'teacher', 'fablab_tech', 'parent') NOT NULL,
+    parent_id BIGINT NULLABLE, -- Vinculación familiar
+    xp_points INT DEFAULT 0, -- Experiencia virtual pedagógica
+    language VARCHAR(5) DEFAULT 'es',
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- TABLA: parent_profiles (Información de contacto del apoderado)
+CREATE TABLE parent_profiles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    phone_whatsapp VARCHAR(20) NOT NULL,
+    dni_id VARCHAR(20) NOT NULL,
+    notifications_enabled BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- TABLA: classrooms (Gestión de aulas y talleres)
+CREATE TABLE classrooms (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    access_code VARCHAR(5) UNIQUE NOT NULL, -- Ej: 'MK-402'
+    mode ENUM('school_squads', 'private_workshop') DEFAULT 'school_squads',
+    tinkercad_link VARCHAR(255) NULLABLE,
+    created_at TIMESTAMP NULL,
+    FOREIGN KEY (teacher_id) REFERENCES users(id)
+);
+
+-- TABLA: squads (Escuadras Maker o trabajo individual)
+CREATE TABLE squads (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    classroom_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    fabcoins_balance INT DEFAULT 100, -- Billetera de insumos físicos reales
+    created_at TIMESTAMP NULL,
+    FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE
+);
+
+-- TABLA PIVOTE: squad_user (Gestión de roles activos y rotación)
+CREATE TABLE squad_user (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    squad_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    current_role ENUM('Architect', 'Quality', 'Finance', 'Relator') NOT NULL,
+    active_minutes INT DEFAULT 0,
+    FOREIGN KEY (squad_id) REFERENCES squads(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- TABLAS: projects & project_levels (Estructura dinámica de N Niveles)
+CREATE TABLE projects (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title_json JSON NOT NULL, -- {"es": "Sellos 2.5D", "en": "2.5D Stamps"}
+    description_json JSON NOT NULL,
+    type ENUM('2.5D', '3D', 'Laser') NOT NULL,
+    total_levels INT DEFAULT 5
+);
+
+CREATE TABLE project_levels (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    level_number INT NOT NULL, -- Ej: Nivel 1, Nivel 2...
+    title_json JSON NOT NULL, -- Ej: {"es": "Nivel 1: Reto e Idea"}
+    toolbox_json JSON NOT NULL, -- Links, GIFs, PDFs de apoyo
+    validation_rules_json JSON NULLABLE, -- Reglas para la IA (X, Y, Z, grosor)
+    fabcoins_cost INT DEFAULT 0, -- Costo de insumos en este nivel si aplica
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- TABLA: bitacora_entries (Evidencias y validación por IA)
+CREATE TABLE bitacora_entries (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    squad_id BIGINT NOT NULL,
+    level_id BIGINT NOT NULL,
+    active_role_user_id BIGINT NOT NULL,
+    content_text TEXT NULLABLE,
+    file_url VARCHAR(255) NULLABLE,
+    ai_score BOOLEAN DEFAULT FALSE,
+    ai_feedback TEXT NULLABLE,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP NULL,
+    FOREIGN KEY (squad_id) REFERENCES squads(id),
+    FOREIGN KEY (level_id) REFERENCES project_levels(id),
+    FOREIGN KEY (active_role_user_id) REFERENCES users(id)
+);
+
+-- TABLA: fabrication_batches (Empaquetado y despacho)
+CREATE TABLE fabrication_batches (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    classroom_id BIGINT NOT NULL,
+    zip_file_url VARCHAR(255) NULLABLE,
+    pdf_label_url VARCHAR(255) NULLABLE,
+    shipping_address TEXT NULLABLE,
+    status ENUM('queue', 'printing', 'dispatched', 'delivered') DEFAULT 'queue',
+    created_at TIMESTAMP NULL,
+    FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
+);
+3. ESPECIFICACIÓN MODULAR DEL SISTEMA
+MÓDULO A: Lógica Económica y Gamificación (FabCoins vs. XP)
+FabCoins (FC - Insumos Físicos Reales): Representan presupuesto tangible (filamento, placas de MDF, horas de láser/3D). Se asignan al matricularse. No se pueden ganar gratis respondiendo trivias para proteger el presupuesto del taller. La IA de Validación actúa como un escudo que impide consumir FC en piezas mal diseñadas.
+Puntos de Experiencia (XP - Gamificación Virtual): Moneda pedagógica ilimitada. Se ganan al completar bitácoras, ayudar a compañeros, rotar de rol y aprobar niveles. Sirven para el ranking del aula, insignias y reputación.
+MÓDULO B: Estructura Dinámica de Niveles y Creación en Admin
+El creador del curso (en el panel administrativo tinkiLab / Makerdu) define la cantidad de niveles (total_levels) y sus nombres según el formato del taller.
+Ejemplo de Taller Corto (3 Niveles): Nivel 1: Reto e Idea ➔ Nivel 2: Diseño y Validación ➔ Nivel 3: Fabricación y Entrega.
+Ejemplo de Curso Completo (5 Niveles): Nivel 1: Reto e Idea ➔ Nivel 2: Diseño Digital ➔ Nivel 3: Validación Técnica (IA) ➔ Nivel 4: Fabricación Real ➔ Nivel 5: Proyecto Final y Credencial.
+MÓDULO C: Engine de Pre-flight Check con IA
+Endpoint: POST /api/squads/{squad_id}/pre-flight
+El servidor analiza las propiedades del archivo .STL o .SVG contra las reglas del nivel (validation_rules_json) y realiza la consulta a Gemini 2.0 Flash / GPT-4o-mini para obtener el diagnóstico pedagógico. Si la pieza es válida, marca ai_score = 1 y autoriza el uso de FabCoins para la fabricación.
+MÓDULO D: War Room Docente y Dashboard Familiar
+Mapa de Calor: El docente visualiza el avance del aula en cada nivel dinámico.
+Traducción Dual de Interfaz: La vista del alumno utiliza nombres amigables por Niveles, mientras que la vista docente traduce los indicadores a competencias del currículo oficial (CNEB / MINEDU).
+Seguimiento para Apoderados: Enlace web público seguro enviado por WhatsApp para visualizar el progreso del alumno.
+4. PROTOCOLO DE EJECUCIÓN POR PROMPTS PARA AGENTES DE IA
+Paso
+Prompt de Ejecución
+Paso 1: Base de Datos
+"Actúa como desarrollador Senior en Laravel 11. Lee la sección 2 del PRD Máster v2.6 de Makerdu. Genera todas las migraciones MySQL y los modelos Eloquent con sus relaciones para las tablas: users, parent_profiles, classrooms, squads, squad_user, projects, project_levels, bitacora_entries y fabrication_batches. Soporta i18n, niveles dinámicos por proyecto y puntos XP en el usuario."
+Paso 2: Frontend HUD y Roles
+"Desarrolla la API RESTful y las pantallas en Frontend (Vue/React + Tailwind CSS) para el Módulo A y B. Implementa: 1) Login estudiantil con código de clase + PIN de 4 dígitos. 2) La vista HUD de la Escuadra con el selector de 'Rol Activo' en pantalla compartida. 3) La matriz de niveles dinámicos según project_levels."
+Paso 3: Engine Pre-flight IA
+"Implementa la ruta POST /api/squads/{id}/pre-flight en Laravel. Lee las reglas en validation_rules_json del nivel activo, consulta a la API de Gemini/OpenAI y retorna el diagnóstico en JSON. Marca ai_score = 1 si es válido sin descontar FabCoins hasta la confirmación de fabricación."
+Paso 4: Consumo FC y War Room
+"Crea la lógica para descontar FabCoins (insumos reales) al autorizar fabricación. Implementa la generación de archivos .ZIP y Hojas de Rotulado PDF con DomPDF. Por último, crea la vista 'War Room' docente con mapa de calor del aula."
+5. ECOSISTEMA TECNOLÓGICO RECOMENDADO
+Herramienta
+Función en Makerdu
+Dificultad
+Costo / Licencia
+Bolt.new / Lovable.dev
+Creación del prototipo web y Frontend interactivo
+Baja (Navegador)
+Freemium / Créditos gratis
+Cursor IDE / Cline
+Programación del Backend Laravel y API REST
+Media
+Prueba gratis / $20 USD mes
+v0.dev (Vercel)
+Generación de componentes de interfaz en Tailwind CSS
+Baja
+Freemium
+Gemini 2.0 Flash (API)
+Motor interno de IA para Pre-flight Check y Copiloto
+Integración API
+Micro-pagos por consumo (tokens)
