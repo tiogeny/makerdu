@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiTutorChatController;
 use App\Http\Controllers\ClassroomManagerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectBuilderController;
@@ -32,6 +33,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/squad/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('squad.preflight');
     Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');
     Route::post('/squad/{squad}/level/{level}/bitacora', [SquadController::class, 'submitBitacora'])->name('squad.bitacora.submit');
+
+    // Chatbot Tutor de Fabricación Digital con IA (Gemini 2.0 Flash)
+    Route::post('/squad/{squad}/ai-chat', [AiTutorChatController::class, 'chat'])->name('squad.ai-chat');
 
     // Pasaporte Maker Digital Verificable
     Route::get('/squad/{squad}/passport', [TeacherWarRoomController::class, 'passport'])->name('squad.passport');

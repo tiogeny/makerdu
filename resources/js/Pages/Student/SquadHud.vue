@@ -10,6 +10,7 @@ import {
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
+import AiTutorChatModal from '@/Components/AiTutorChatModal.vue';
 import { t, currentLang, setLanguage } from '@/i18n.js';
 
 const props = defineProps({
@@ -375,8 +376,16 @@ const totalSquadXp = computed(() => {
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">
-                            {{ project.total_levels }} Niveles de Fabricación
+                        <Link
+                            :href="route('squad.passport', { squad: squad.id })"
+                            class="px-3.5 py-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 border border-purple-500/40 text-xs font-bold transition flex items-center gap-1.5"
+                        >
+                            <Award class="w-4 h-4" />
+                            <span>Pasaporte Maker</span>
+                        </Link>
+
+                        <span class="text-xs font-bold px-3 py-2 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">
+                            {{ project.total_levels }} Niveles
                         </span>
                     </div>
                 </div>
@@ -389,7 +398,6 @@ const totalSquadXp = computed(() => {
                         @click="openLevelStudio(lvl.id, 'inspection_3d')"
                         class="p-5 rounded-3xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/60 shadow-xl transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between"
                     >
-                        <!-- Top Level Badge -->
                         <div>
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg bg-slate-950 text-cyan-400 border border-slate-800">
@@ -412,7 +420,6 @@ const totalSquadXp = computed(() => {
                             </p>
                         </div>
 
-                        <!-- Bottom Level Details -->
                         <div class="pt-4 border-t border-slate-800/80 mt-4 flex items-center justify-between">
                             <span class="text-[11px] font-mono text-slate-400">
                                 {{ lvl.fabcoins_cost > 0 ? `Cost: ${lvl.fabcoins_cost} FC` : 'Sin costo FC' }}
@@ -747,5 +754,12 @@ const totalSquadXp = computed(() => {
             </section>
 
         </main>
+
+        <!-- WIDGET FLOTANTE CHATBOT TUTOR IA (GEMINI 2.0 FLASH) -->
+        <AiTutorChatModal
+            :squad="squad"
+            :activeStudent="activeStudent"
+            :selectedLevelId="selectedLevelId"
+        />
     </div>
 </template>
