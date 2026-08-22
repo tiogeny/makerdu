@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentAuthController;
 use App\Http\Controllers\SquadController;
+use App\Http\Controllers\TeacherWarRoomController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,15 +31,23 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');
     Route::post('/squad/{squad}/level/{level}/bitacora', [SquadController::class, 'submitBitacora'])->name('squad.bitacora.submit');
 
-    // Dashboard Docente / General
+    // War Room Docente (Módulo D)
+    Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
+    Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
+    Route::post('/teacher/batch/{batch}/status', [TeacherWarRoomController::class, 'updateBatchStatus'])->name('teacher.batch-status');
+
+    // Dashboard general
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware(['verified'])->name('dashboard');
+        return redirect()->route('teacher.war-room');
+    })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Portal Familiar Seguro (Enlace para Apoderados vía WhatsApp)
+Route::get('/family/{accessCode}/squad/{squad}', [TeacherWarRoomController::class, 'familyPortal'])->name('family.portal');
 
 // Endpoint API REST según PRD v2.6 (Módulo C)
 Route::post('/api/squads/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('api.squad.preflight');

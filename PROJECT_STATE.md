@@ -36,7 +36,7 @@
 | **Fase 1** | Migraciones de Base de Datos y Modelos Eloquent | ✅ Completado |
 | **Fase 2** | Autenticación (Código Clase + PIN 4 dígitos) y HUD Escuadra (1-PC) | ✅ Completado |
 | **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG + Gemini API) | ✅ Completado |
-| **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ⏳ Siguiente Sprint |
+| **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ✅ Completado |
 
 ---
 
@@ -47,4 +47,15 @@
   - Sofía Chang: PIN `5678` (Rol: *Quality*, XP: 150)
   - Lucas Ramos: PIN `9012` (Rol: *Finance*, XP: 95)
   - Camila Díaz: PIN `3456` (Rol: *Relator*, XP: 110)
-* **Docente:** `profesor@makerdu.com` (Password: `password`)
+* **Docente / War Room:** `profesor@makerdu.com` (Password: `password`)
+* **Portal Familiar:** Accesible vía `/family/MK402/squad/1`
+
+---
+
+## 5. Instrucciones para Continuar en Otra Computadora
+1. `git clone https://github.com/tiogeny/makerdu.git`
+2. `composer install && npm install`
+3. `cp .env.example .env && php artisan key:generate`
+4. `php artisan migrate:fresh --seed`
+5. `npm run build`
+6. Decirle a la IA: *"Lee PROJECT_STATE.md y continuemos con el siguiente sprint de Makerdu."*
