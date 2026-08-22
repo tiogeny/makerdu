@@ -1,14 +1,14 @@
 <?php
 
-namespace AppHttpControllers;
+namespace App\Http\Controllers;
 
-use AppModelsClassroom;
-use AppModelsSquad;
-use AppModelsUser;
-use IlluminateHttpRequest;
-use IlluminateSupportFacadesHash;
-use IlluminateSupportStr;
-use InertiaInertia;
+use App\Models\Classroom;
+use App\Models\Squad;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class ClassroomManagerController extends Controller
 {
@@ -63,7 +63,7 @@ class ClassroomManagerController extends Controller
         ]);
 
         $classroom = Classroom::create([
-            'teacher_user_id' => auth()->id() ?? 1,
+            'teacher_id' => auth()->id() ?? 1,
             'name' => $request->name,
             'access_code' => strtoupper(trim($request->access_code)),
             'mode' => $request->mode,
@@ -79,12 +79,11 @@ class ClassroomManagerController extends Controller
     public function enrollStudents(Request $request, Classroom $classroom)
     {
         $request->validate([
-            'students_text' => ['required', 'string'], // Nombres uno por línea
+            'students_text' => ['required', 'string'],
             'squad_prefix' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $lines = explode("
-", $request->students_text);
+        $lines = explode("\n", $request->students_text);
         $names = array_values(array_filter(array_map('trim', $lines)));
 
         if (empty($names)) {
@@ -92,9 +91,8 @@ class ClassroomManagerController extends Controller
         }
 
         $roles = ['Architect', 'Quality', 'Finance', 'Relator'];
-        $prefix = $request->squad_prefix ?: 'Escuadra Maker';
+        $prefix = $request->squad_prefix ?: 'Escuadra Titanes';
 
-        // Dividir alumnos en escuadras de 4
         $chunks = array_chunk($names, 4);
         $squadCount = $classroom->squads()->count();
 
@@ -107,7 +105,6 @@ class ClassroomManagerController extends Controller
             ]);
 
             foreach ($studentNames as $roleIdx => $name) {
-                // Generar PIN de 4 dígitos único
                 $pin = str_pad((string)mt_rand(1000, 9999), 4, '0', STR_PAD_LEFT);
                 $uniqueEmail = Str::slug($name, '.') . '.' . mt_rand(100, 999) . '@estudiante.makerdu.local';
 

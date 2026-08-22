@@ -1,11 +1,11 @@
 <?php
 
-namespace AppHttpControllers;
+namespace App\Http\Controllers;
 
-use AppModelsProject;
-use AppModelsProjectLevel;
-use IlluminateHttpRequest;
-use InertiaInertia;
+use App\Models\Project;
+use App\Models\ProjectLevel;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProjectBuilderController extends Controller
 {
@@ -53,7 +53,7 @@ class ProjectBuilderController extends Controller
             'title_en' => ['nullable', 'string', 'max:255'],
             'description_es' => ['required', 'string'],
             'description_en' => ['nullable', 'string'],
-            'type' => ['required', 'string', 'in:3d_print,laser_cut,phygital_assembly,electronics'],
+            'type' => ['required', 'string', 'in:2.5D,3D,Laser'],
             'levels' => ['required', 'array', 'min:1'],
             'levels.*.level_number' => ['required', 'integer'],
             'levels.*.title_es' => ['required', 'string'],
@@ -146,7 +146,7 @@ class ProjectBuilderController extends Controller
         $request->validate([
             'title_es' => ['required', 'string', 'max:255'],
             'description_es' => ['required', 'string'],
-            'type' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:2.5D,3D,Laser'],
             'levels' => ['required', 'array', 'min:1'],
         ]);
 

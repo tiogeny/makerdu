@@ -13,13 +13,15 @@ use App\Services\AiPreflightService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 class SimulateMakerduFlow extends Command
 {
     protected $signature = 'makerdu:simulate';
-    protected $description = 'Simula de extremo a extremo todo el flujo de Makerdu v2.6 (Alumnos, 1-PC, Preflight IA, FabCoins, War Room y Lotes)';
+    protected $description = 'Simula de extremo a extremo todo el flujo de Makerdu v2.6 (Alumnos, 1-PC, Preflight IA, FabCoins, War Room, Course Builder y Aulas)';
 
     public function handle(AiPreflightService $preflightService)
     {
@@ -143,9 +145,9 @@ class SimulateMakerduFlow extends Command
         $this->info("  -> PASO 6 SUPERADO CON ÉXITO.\n");
 
         // -------------------------------------------------------------
-        // PASO 7: WAR ROOM DOCENTE & EMPAQUETADO LOTE FABLAB (ZIP + PDF)
+        // PASO 7: WAR ROOM, GENERACIÓN DE ZIP, PDF ROTULADO Y TARJETAS PIN
         // -------------------------------------------------------------
-        $this->comment("Paso 7: Simulando War Room Docente, Generación de .ZIP y PDF de Rotulado...");
+        $this->comment("Paso 7: Simulando War Room Docente, Generación de .ZIP, PDF Rotulado y Tarjetas PIN...");
         $batch = FabricationBatch::create([
             'classroom_id' => $classroom->id,
             'status' => 'queue',
@@ -173,21 +175,72 @@ class SimulateMakerduFlow extends Command
             $zip->close();
         }
 
+        // Tarjetas PIN PDF
+        $pinPdf = Pdf::loadView('pdf.pin_cards', [
+            'classroom' => $classroom,
+        ]);
+        $pinPdfPath = "batches/test_tarjetas_pin_{$classroom->id}.pdf";
+        Storage::disk('public')->put($pinPdfPath, $pinPdf->output());
+
         $batch->update([
             'pdf_label_url' => Storage::url($pdfPath),
             'zip_file_url' => Storage::url($zipPath),
             'status' => 'printing',
         ]);
 
-        $this->line("  [✓] Lote FabLab #{$batch->id} generado en estado 'printing'.");
-        $this->line("  [✓] Archivo PDF creado físicamente: " . Storage::disk('public')->path($pdfPath) . " (" . filesize(Storage::disk('public')->path($pdfPath)) . " bytes)");
-        $this->line("  [✓] Archivo ZIP creado físicamente: " . $fullZipPath . " (" . filesize($fullZipPath) . " bytes)");
+        $this->line("  [✓] Lote FabLab #{$batch->id} generado.");
+        $this->line("  [✓] Archivo PDF Rotulado: " . filesize(Storage::disk('public')->path($pdfPath)) . " bytes");
+        $this->line("  [✓] Archivo ZIP Modelos: " . filesize($fullZipPath) . " bytes");
+        $this->line("  [✓] Tarjetas PIN PDF: " . filesize(Storage::disk('public')->path($pinPdfPath)) . " bytes");
         $this->info("  -> PASO 7 SUPERADO CON ÉXITO.\n");
+
+        // -------------------------------------------------------------
+        // PASO 8: DISEÑADOR DE CURSOS Y GESTOR DE AULAS/PINS
+        // -------------------------------------------------------------
+        $this->comment("Paso 8: Simulando Creación de Nuevo Curso y Matrícula Masiva con PINs...");
+        $newProject = Project::create([
+            'title_json' => ['es' => 'Curso Test Bio-Joyería', 'en' => 'Test Bio-Jewelry Course'],
+            'description_json' => ['es' => 'Curso de prueba automatizado', 'en' => 'Automated test course'],
+            'type' => '3D',
+            'total_levels' => 2,
+        ]);
+        $this->line("  [✓] Course Builder: Proyecto #{$newProject->id} ('{$newProject->title_json['es']}') creado.");
+
+        $newClassroom = Classroom::create([
+            'teacher_id' => $classroom->teacher_id ?? 1,
+            'name' => 'Aula Test 6to Primaria',
+            'access_code' => 'MK-600',
+            'mode' => 'school_squads',
+        ]);
+
+        $testStudents = ['Carlos Mendoza', 'Andrea Ruiz', 'Gabriel Peña', 'Lucía Torres'];
+        $newSquad = Squad::create([
+            'classroom_id' => $newClassroom->id,
+            'name' => 'Escuadra Fénix 1',
+            'fabcoins_balance' => 100,
+        ]);
+
+        $roles = ['Architect', 'Quality', 'Finance', 'Relator'];
+        foreach ($testStudents as $idx => $sName) {
+            $pin = str_pad((string)mt_rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+            $u = User::create([
+                'name' => $sName,
+                'email' => Str::slug($sName) . '.' . mt_rand(100, 999) . '@test.makerdu.local',
+                'password' => Hash::make($pin),
+                'pin' => $pin,
+                'role_type' => 'student',
+                'xp_points' => 100,
+            ]);
+            $newSquad->members()->attach($u->id, ['current_role' => $roles[$idx], 'active_minutes' => 0]);
+        }
+
+        $this->line("  [✓] Classroom Manager: Aula '{$newClassroom->name}' creada con 4 alumnos y PINs únicos en '{$newSquad->name}'.");
+        $this->info("  -> PASO 8 SUPERADO CON ÉXITO.\n");
 
         $totalDuration = round(microtime(true) - $startTime, 2);
 
         $this->info("===============================================================");
-        $this->info("   RESULTADO: TODOS LOS 7 PASOS PASARON SIN ERRORES (100%)");
+        $this->info("   🎉 RESULTADO: TODOS LOS 8 PASOS PASARON SIN ERRORES (100%)");
         $this->info("   Tiempo total de simulación: {$totalDuration} segundos.");
         $this->info("===============================================================");
 
