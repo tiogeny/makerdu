@@ -1,12 +1,12 @@
 <script setup>
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage, Link } from '@inertiajs/vue3';
 import { ref, computed, watch, nextTick } from 'vue';
 import {
     Sparkles, Coins, Trophy, Users, ShieldCheck, Wrench, CheckCircle2,
     Clock, BookOpen, ExternalLink, Send, FileText, ChevronRight, LogOut,
     Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop, UploadCloud,
     Cpu, XCircle, Printer, Hammer, Gauge, Globe, Box, Film, Camera, Image,
-    Download, ArrowLeft, Play, Lock, Award, Eye
+    Download, ArrowLeft, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
@@ -23,10 +23,10 @@ const props = defineProps({
 
 const page = usePage();
 
-// Vista principal: 'roadmap' (Mapa de la Aventura) o 'studio' (Estudio del Nivel Seleccionado)
+// Vista principal: 'roadmap' o 'studio'
 const currentMode = ref('roadmap');
 
-// Pestaña dentro del Estudio: 'mission', 'inspection_3d', 'bitacora'
+// Pestañas dentro del Estudio: 'mission', 'inspection_3d', 'reflection', 'bitacora'
 const studioTab = ref('inspection_3d');
 
 // Nivel seleccionado
@@ -36,7 +36,7 @@ const selectedLevel = computed(() => {
     return props.project.levels.find((l) => l.id === selectedLevelId.value) || props.project.levels[0];
 });
 
-const openLevelStudio = (levelId, defaultTab = 'mission') => {
+const openLevelStudio = (levelId, defaultTab = 'inspection_3d') => {
     selectedLevelId.value = levelId;
     studioTab.value = defaultTab;
     currentMode.value = 'studio';
@@ -87,7 +87,6 @@ const runPreflightCheck = async () => {
     isScanning.value = true;
     preflightForm.level_id = selectedLevel.value.id;
 
-    // Obtener captura de alta resolución desde Three.js para Gemini Vision
     if (viewerRef.value && typeof viewerRef.value.getSnapshotDataUrl === 'function') {
         preflightForm.image_snapshot = viewerRef.value.getSnapshotDataUrl();
     }
@@ -154,6 +153,21 @@ const confirmFabrication = () => {
     });
 };
 
+// Formulario de Autoevaluación & Reflexión Metacognitiva (+50 XP)
+const reflectionForm = useForm({
+    design_challenge_solved: '',
+    fabcoins_strategy: '',
+    self_rating: 5,
+});
+
+const submitReflection = () => {
+    if (!selectedLevel.value) return;
+    const combinedContent = `[AUTORREFLEXIÓN METACOGNITIVA MAKER ⭐${reflectionForm.self_rating}/5]\n\n• Reto resuelto: ${reflectionForm.design_challenge_solved}\n• Estrategia FabCoins/Material: ${reflectionForm.fabcoins_strategy}`;
+
+    bitacoraForm.content_text = combinedContent;
+    submitBitacora();
+};
+
 // Formulario de Bitácora Multimedia
 const bitacoraForm = useForm({
     content_text: '',
@@ -179,6 +193,7 @@ const submitBitacora = () => {
         onSuccess: () => {
             bitacoraForm.reset();
             photoPreviewUrl.value = null;
+            reflectionForm.reset();
         },
     });
 };
@@ -471,7 +486,7 @@ const totalSquadXp = computed(() => {
                             ]"
                         >
                             <BookOpen class="w-3.5 h-3.5" />
-                            <span>1. Misión y Tutorial</span>
+                            <span>1. Misión y Video</span>
                         </button>
 
                         <button
@@ -490,6 +505,20 @@ const totalSquadXp = computed(() => {
 
                         <button
                             type="button"
+                            @click="studioTab = 'reflection'"
+                            :class="[
+                                'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
+                                studioTab === 'reflection'
+                                    ? 'bg-gradient-to-r from-amber-500 to-purple-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                                    : 'bg-slate-950/60 hover:bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30'
+                            ]"
+                        >
+                            <Lightbulb class="w-3.5 h-3.5" />
+                            <span>3. Autoreflexión (+50 XP)</span>
+                        </button>
+
+                        <button
+                            type="button"
                             @click="studioTab = 'bitacora'"
                             :class="[
                                 'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
@@ -499,7 +528,7 @@ const totalSquadXp = computed(() => {
                             ]"
                         >
                             <Camera class="w-3.5 h-3.5" />
-                            <span>3. Bitácora y Fotos</span>
+                            <span>4. Bitácora y Fotos</span>
                         </button>
                     </div>
                 </div>
@@ -541,7 +570,7 @@ const totalSquadXp = computed(() => {
                     </div>
                 </div>
 
-                <!-- PESTAÑA 2: INSPECCIÓN 3D Y CALIDAD CON GEMINI VISION -->
+                <!-- PESTAÑA 2: INSPECCIÓN 3D Y CALIDAD (MINI-DASHBOARD VISUAL) -->
                 <div v-else-if="studioTab === 'inspection_3d'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
                     <!-- LADO IZQUIERDO: VISOR 3D REAL (7 Cols) -->
@@ -557,7 +586,7 @@ const totalSquadXp = computed(() => {
                         />
                     </div>
 
-                    <!-- LADO DERECHO: PANEL DE CONTROL Y DIAGNÓSTICO IA (5 Cols) -->
+                    <!-- LADO DERECHO: MINI-DASHBOARD VISUAL DE CONTROL DE CALIDAD IA (5 Cols) -->
                     <div class="lg:col-span-5 space-y-4">
                         <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                             <div>
@@ -565,7 +594,7 @@ const totalSquadXp = computed(() => {
                                     <Cpu class="w-4 h-4 text-cyan-400 animate-pulse" />
                                     <span>Control de Calidad IA (Gemini Vision)</span>
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Sube tu archivo .STL para que la IA inspeccione la pieza en 3D.</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Sube tu archivo .STL para que la IA inspeccione la geometría en 3D.</p>
                             </div>
 
                             <!-- Zona de Carga de Archivo -->
@@ -615,44 +644,66 @@ const totalSquadXp = computed(() => {
                                 </div>
                             </div>
 
-                            <!-- RESULTADO DEL DIAGNÓSTICO IA -->
-                            <div v-if="preflightResult" :class="[
-                                'p-4 rounded-2xl border space-y-3 transition-all',
-                                preflightResult.is_valid ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-rose-950/30 border-rose-500/50'
-                            ]">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-1.5 font-black text-xs">
-                                        <CheckCircle2 v-if="preflightResult.is_valid" class="w-4 h-4 text-emerald-400" />
-                                        <XCircle v-else class="w-4 h-4 text-rose-400" />
-                                        <span :class="preflightResult.is_valid ? 'text-emerald-300' : 'text-rose-300'">
-                                            {{ preflightResult.is_valid ? 'DISEÑO APROBADO' : 'CORRECCIÓN REQUERIDA' }}
+                            <!-- MINI-DASHBOARD ESTRUCTURADO DEL DIAGNÓSTICO IA -->
+                            <div v-if="preflightResult" class="space-y-3 pt-2">
+                                
+                                <!-- TARJETA DE VEREDICTO -->
+                                <div :class="[
+                                    'p-4 rounded-2xl border space-y-2 transition-all',
+                                    preflightResult.is_valid ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-rose-950/30 border-rose-500/50'
+                                ]">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2 font-black text-xs">
+                                            <CheckCircle2 v-if="preflightResult.is_valid" class="w-4 h-4 text-emerald-400" />
+                                            <XCircle v-else class="w-4 h-4 text-rose-400" />
+                                            <span :class="preflightResult.is_valid ? 'text-emerald-300' : 'text-rose-300'">
+                                                {{ preflightResult.dashboard?.verdict_title || (preflightResult.is_valid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD') }}
+                                            </span>
+                                        </div>
+
+                                        <span v-if="preflightResult.dashboard?.tokens_used" class="text-[9px] font-mono text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 flex items-center gap-1">
+                                            <Zap class="w-3 h-3 text-amber-400" />
+                                            <span>~{{ preflightResult.dashboard.tokens_used }} tk</span>
                                         </span>
                                     </div>
-                                    <span class="text-[11px] font-mono font-bold text-slate-300">
-                                        {{ preflightResult.metrics?.x_mm }}x{{ preflightResult.metrics?.y_mm }}x{{ preflightResult.metrics?.z_mm }} mm
-                                    </span>
+
+                                    <p class="text-xs text-slate-200 font-semibold leading-snug">
+                                        {{ preflightResult.dashboard?.headline || preflightResult.ai_feedback }}
+                                    </p>
                                 </div>
 
-                                <!-- Ficha de Insumos -->
-                                <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] font-mono">
-                                    <div class="p-1.5 rounded-lg bg-slate-950 border border-slate-800">
-                                        <p class="text-[9px] text-slate-500">Material</p>
-                                        <p class="font-bold text-cyan-300">{{ preflightResult.metrics?.material_grams }}g</p>
-                                    </div>
-                                    <div class="p-1.5 rounded-lg bg-slate-950 border border-slate-800">
-                                        <p class="text-[9px] text-slate-500">Tiempo</p>
-                                        <p class="font-bold text-purple-300">{{ preflightResult.metrics?.print_time_minutes }}m</p>
-                                    </div>
-                                    <div class="p-1.5 rounded-lg bg-slate-950 border border-slate-800">
-                                        <p class="text-[9px] text-slate-500">Costo</p>
-                                        <p class="font-bold text-amber-400">{{ preflightResult.metrics?.estimated_fc_cost }} FC</p>
+                                <!-- TARJETAS DE PUNTOS FUERTES GEOMÉTRICOS (LO QUE ESTÁ EXCELENTE) -->
+                                <div v-if="preflightResult.dashboard?.strengths?.length" class="space-y-1.5">
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">🌟 Aspectos destacados por la IA:</p>
+                                    <div class="space-y-1.5">
+                                        <div
+                                            v-for="(st, idx) in preflightResult.dashboard.strengths"
+                                            :key="idx"
+                                            class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-200 flex items-start gap-2"
+                                        >
+                                            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                                            <span class="leading-snug">{{ st }}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Feedback IA -->
-                                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1">
-                                    <p class="text-[11px] font-bold text-cyan-300">🤖 Diagnóstico del Copiloto IA:</p>
-                                    <p class="text-slate-300 leading-relaxed text-[11px]">{{ preflightResult.ai_feedback }}</p>
+                                <!-- PARÁMETROS TÉCNICOS DE LAMINADO RECOMENDADOS -->
+                                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                                    <p class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">⚙️ Recomendaciones de Fabricación:</p>
+                                    <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                            <p class="text-slate-500 font-mono">Boquilla</p>
+                                            <p class="font-bold text-cyan-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.nozzle || '0.4 mm' }}</p>
+                                        </div>
+                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                            <p class="text-slate-500 font-mono">Capa</p>
+                                            <p class="font-bold text-purple-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.layer_height || '0.16-0.2mm' }}</p>
+                                        </div>
+                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                            <p class="text-slate-500 font-mono">Relleno</p>
+                                            <p class="font-bold text-amber-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.infill || '15%' }}</p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Botón Autorizar Fabricación -->
@@ -672,7 +723,76 @@ const totalSquadXp = computed(() => {
                     </div>
                 </div>
 
-                <!-- PESTAÑA 3: BITÁCORA MULTIMEDIA Y FOTOS -->
+                <!-- PESTAÑA 3: FICHA DE AUTOEVALUACIÓN & REFLEXIÓN METACOGNITIVA (+50 XP) -->
+                <div v-else-if="studioTab === 'reflection'" class="max-w-3xl mx-auto space-y-6">
+                    <div class="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border border-amber-500/40 space-y-2 shadow-2xl">
+                        <div class="flex items-center gap-2">
+                            <Lightbulb class="w-6 h-6 text-amber-400" />
+                            <h3 class="text-base font-black text-white">Autoevaluación y Pensamiento Crítico Maker</h3>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            En el ecosistema Makerdu, la IA no hace el trabajo por ti: es tu copiloto. Reflexiona con tu escuadra sobre las decisiones técnicas tomadas en este reto para desbloquear el **Bono Metacognitivo de +50 XP**.
+                        </p>
+                    </div>
+
+                    <form @submit.prevent="submitReflection" class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-5 shadow-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-cyan-300 mb-1.5">
+                                1. ¿Cuál fue el mayor desafío geométrico o técnico que resolvió el equipo en este modelo? *
+                            </label>
+                            <textarea
+                                v-model="reflectionForm.design_challenge_solved"
+                                rows="3"
+                                placeholder="Ej: Mantener los relieves simétricos de 4mm y asegurar que el orificio del aro no debilite la estructura exterior..."
+                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-4 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-amber-300 mb-1.5">
+                                2. ¿Qué decisiones tomaron para ahorrar FabCoins o darle resistencia a la pieza? *
+                            </label>
+                            <textarea
+                                v-model="reflectionForm.fabcoins_strategy"
+                                rows="3"
+                                placeholder="Ej: Redujimos la altura innecesaria a 4mm y planeamos usar 15% de relleno para no exceder los 4.3 gramos de material..."
+                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-4 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <!-- Autovaloración Estrellas -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-2">
+                                3. ¿Qué tan satisfechos están con el resultado final del prototipo? (1 a 5 estrellas)
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    v-for="star in 5"
+                                    :key="star"
+                                    type="button"
+                                    @click="reflectionForm.self_rating = star"
+                                    class="p-2 rounded-xl bg-slate-950 border border-slate-800 transition transform hover:scale-110"
+                                >
+                                    <Star :class="['w-6 h-6', star <= reflectionForm.self_rating ? 'text-amber-400 fill-amber-400' : 'text-slate-600']" />
+                                </button>
+                                <span class="text-xs font-bold text-amber-300 ml-2">{{ reflectionForm.self_rating }}/5 Estrellas</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            :disabled="reflectionForm.processing || !reflectionForm.design_challenge_solved || !reflectionForm.fabcoins_strategy"
+                            class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition"
+                        >
+                            <Award class="w-4 h-4" />
+                            <span>GUARDAR REFLEXIÓN Y OBTENER BONO (+50 XP)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- PESTAÑA 4: BITÁCORA MULTIMEDIA Y FOTOS -->
                 <div v-else-if="studioTab === 'bitacora'" class="space-y-6">
                     <form @submit.prevent="submitBitacora" class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
                         <div>
@@ -735,7 +855,7 @@ const totalSquadXp = computed(() => {
                                         {{ b.status === 'approved' ? 'Aprobado' : 'Observado' }}
                                     </span>
                                 </div>
-                                <p class="text-slate-300">{{ b.content_text }}</p>
+                                <p class="text-slate-300 whitespace-pre-line">{{ b.content_text }}</p>
 
                                 <div v-if="b.file_url" class="pt-1">
                                     <img :src="b.file_url" class="max-h-48 rounded-xl border border-slate-800 object-cover" />
@@ -755,7 +875,7 @@ const totalSquadXp = computed(() => {
 
         </main>
 
-        <!-- WIDGET FLOTANTE CHATBOT TUTOR IA (GEMINI 2.0 FLASH) -->
+        <!-- WIDGET FLOTANTE CHATBOT TUTOR IA (GEMINI 3.6 FLASH) -->
         <AiTutorChatModal
             :squad="squad"
             :activeStudent="activeStudent"

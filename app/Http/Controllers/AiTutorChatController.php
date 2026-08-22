@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class AiTutorChatController extends Controller
 {
     /**
-     * Chatbot Tutor de Fabricación Digital con Gemini 3.6 Flash
+     * Chatbot Tutor de Fabricación Digital con Gemini 3.6 Flash & Fallback
      */
     public function chat(Request $request, Squad $squad)
     {
@@ -33,90 +33,93 @@ class AiTutorChatController extends Controller
         $firstName = explode(' ', trim($activeStudent->name))[0] ?? 'Maker';
 
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
+        $modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash'];
 
         $systemInstruction = "Eres el Tutor Inteligente y Mentor Senior de Fabricación Digital de Makerdu (un FabLab y LMS Figital de clase mundial). "
             . "Estás guiando a {$firstName}, integrante de la '{$squad->name}' con rol de {$studentRole}. "
             . ($level ? "Actualmente están en el Nivel {$level->level_number}: '{$level->title_json['es']}'. " : "")
             . "Tu misión es resolver cualquier duda técnica de impresión 3D (PLA, PETG, temperaturas, adherencia, boquillas 0.4mm, alturas de capa 0.2mm vs 0.12mm, warping, soportes), modelado CAD en TinkerCAD/Blender, corte láser, acabado artesanal y economía de FabCoins. "
             . "Reglas de conversación: "
-            . "1. Trata a {$firstName} por su nombre con naturalidad y calidez. NO repitas su rol ni el nombre de su escuadra a cada momento. "
+            . "1. Trata a {$firstName} por su nombre con naturalidad y calidez. NO repitas su rol ni el nombre de su escuadra en cada turno. "
             . "2. Responde como un mentor entusiasta de innovación y FabLab. "
             . "3. Usa formato Markdown con negritas, listas o viñetas y emojis para que las explicaciones sean muy visuales y claras. "
-            . "4. Da siempre recomendaciones prácticas reales de taller (por ejemplo, cambios de color con pausa de filamento M600, truco de pintar a mano, laca/pegamento para la cama, etc.).";
+            . "4. Da respuestas completas, bien explicadas y directas al grano, sin cortarte a mitad de frase. "
+            . "5. Ofrece siempre trucos reales de taller (por ejemplo, cambios de color con pausa de filamento M600, truco de pintar a mano con acrílicos, laca/pegamento para la cama, etc.).";
 
         if ($apiKey) {
-            try {
-                $rawHistory = $request->input('history', []);
-                $contents = [];
+            $rawHistory = $request->input('history', []);
+            $contents = [];
 
-                // Gemini requiere que el historial comience siempre con el rol 'user' y alterne
-                $validHistory = [];
-                $firstUserFound = false;
+            // Gemini requiere que el historial comience siempre con el rol 'user' y alterne
+            $validHistory = [];
+            $firstUserFound = false;
 
-                foreach ($rawHistory as $h) {
-                    $role = ($h['sender'] === 'user') ? 'user' : 'model';
-                    if (!$firstUserFound && $role !== 'user') {
-                        continue; // Omitir mensajes de bienvenida del modelo iniciales
-                    }
-                    $firstUserFound = true;
-                    $text = trim($h['text'] ?? '');
-                    if (!empty($text)) {
-                        $validHistory[] = [
-                            'role' => $role,
-                            'parts' => [['text' => $text]],
-                        ];
-                    }
+            foreach ($rawHistory as $h) {
+                $role = ($h['sender'] === 'user') ? 'user' : 'model';
+                if (!$firstUserFound && $role !== 'user') {
+                    continue;
                 }
-
-                // Asegurar alternancia limpia user -> model -> user
-                $lastRole = null;
-                foreach ($validHistory as $item) {
-                    if ($item['role'] !== $lastRole) {
-                        $contents[] = $item;
-                        $lastRole = $item['role'];
-                    }
-                }
-
-                // Agregar el mensaje actual del usuario si no fue el último
-                if ($lastRole !== 'user') {
-                    $contents[] = [
-                        'role' => 'user',
-                        'parts' => [['text' => $request->message]],
+                $firstUserFound = true;
+                $text = trim($h['text'] ?? '');
+                if (!empty($text)) {
+                    $validHistory[] = [
+                        'role' => $role,
+                        'parts' => [['text' => $text]],
                     ];
-                } else {
-                    // Si el último era user, actualizamos el texto
-                    $lastIdx = count($contents) - 1;
-                    $contents[$lastIdx]['parts'][0]['text'] .= "\n" . $request->message;
                 }
+            }
 
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->timeout(20)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}", [
-                        'system_instruction' => [
-                            'parts' => [['text' => $systemInstruction]]
-                        ],
-                        'contents' => $contents,
-                        'generationConfig' => [
-                            'temperature' => 0.7,
-                            'maxOutputTokens' => 600,
-                        ],
-                    ]);
+            $lastRole = null;
+            foreach ($validHistory as $item) {
+                if ($item['role'] !== $lastRole) {
+                    $contents[] = $item;
+                    $lastRole = $item['role'];
+                }
+            }
 
-                if ($response->successful()) {
-                    $json = $response->json();
-                    $reply = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
-                    if ($reply) {
-                        return response()->json([
-                            'success' => true,
-                            'reply' => trim($reply),
-                            'is_live_ai' => true,
+            if ($lastRole !== 'user') {
+                $contents[] = [
+                    'role' => 'user',
+                    'parts' => [['text' => $request->message]],
+                ];
+            } else {
+                $lastIdx = count($contents) - 1;
+                $contents[$lastIdx]['parts'][0]['text'] .= "\n" . $request->message;
+            }
+
+            foreach ($modelsToTry as $model) {
+                try {
+                    $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                        ->timeout(20)
+                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
+                            'system_instruction' => [
+                                'parts' => [['text' => $systemInstruction]]
+                            ],
+                            'contents' => $contents,
+                            'generationConfig' => [
+                                'temperature' => 0.7,
+                                'maxOutputTokens' => 1500,
+                            ],
                         ]);
+
+                    if ($response->successful()) {
+                        $json = $response->json();
+                        $reply = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                        $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 150;
+
+                        if ($reply) {
+                            return response()->json([
+                                'success' => true,
+                                'reply' => trim($reply),
+                                'is_live_ai' => true,
+                                'tokens_used' => $tokensUsed,
+                                'model' => $model,
+                            ]);
+                        }
                     }
-                } else {
-                    Log::warning("Gemini API Chat error: " . $response->body());
+                } catch (\Exception $e) {
+                    Log::warning("Gemini Chat model {$model} error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::warning("Excepción al consultar Gemini Chat: " . $e->getMessage());
             }
         }
 
@@ -151,6 +154,8 @@ class AiTutorChatController extends Controller
             'success' => true,
             'reply' => $fallbackReply,
             'is_live_ai' => false,
+            'tokens_used' => 0,
+            'model' => 'fallback',
         ]);
     }
 }

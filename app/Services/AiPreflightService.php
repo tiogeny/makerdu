@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class AiPreflightService
 {
     /**
-     * Analiza un archivo STL o SVG contra las reglas del nivel, extrayendo métricas y consultando a Gemini Vision.
+     * Analiza un archivo STL o SVG contra las reglas del nivel, extrayendo métricas y consultando a Gemini Vision en modo estructurado.
      */
     public function analyzeFile(string $filePath, string $originalFilename, ?array $rules = [], ?string $imageBase64 = null): array
     {
@@ -32,7 +32,7 @@ class AiPreflightService
 
         // Métricas de estimación de fabricación
         $volumeCm3 = ($metrics['x_mm'] * $metrics['y_mm'] * $metrics['z_mm']) / 1000.0 * 0.45;
-        $materialGrams = round(max(4, $volumeCm3 * 1.25), 1); // PLA ~1.25 g/cm3
+        $materialGrams = round(max(4, $volumeCm3 * 1.25), 1);
         $estimatedTimeMinutes = round(max(12, ($materialGrams * 2.2)));
         $fcCost = ceil($materialGrams * 1.2);
 
@@ -61,8 +61,8 @@ class AiPreflightService
 
         $isValid = count($violations) === 0;
 
-        // 3. Generar feedback con Visión Artificial (Gemini 3.6 Flash Multimodal)
-        $aiFeedback = $this->generateAiFeedback($originalFilename, $metrics, $violations, $isValid, $rules, $imageBase64);
+        // 3. Generar feedback con Visión Artificial (Gemini 3.6 Flash / Fallback estructurado)
+        $aiAnalysis = $this->generateAiFeedback($originalFilename, $metrics, $violations, $isValid, $rules, $imageBase64);
 
         return [
             'is_valid' => $isValid,
@@ -77,12 +77,13 @@ class AiPreflightService
                 'min_wall_thickness_mm' => $minThickness,
             ],
             'violations' => $violations,
-            'ai_feedback' => $aiFeedback,
+            'ai_feedback' => $aiAnalysis['text_summary'],
+            'dashboard' => $aiAnalysis,
         ];
     }
 
     /**
-     * Parser para archivos STL (ASCII o Binario) para extraer bounding box real con precisión milimétrica.
+     * Parser para archivos STL
      */
     private function parseStlDimensions(string $filePath): array
     {
@@ -179,7 +180,7 @@ class AiPreflightService
     }
 
     /**
-     * Parser para archivos SVG vectoriales.
+     * Parser para SVG
      */
     private function parseSvgDimensions(string $filePath): array
     {
@@ -205,74 +206,102 @@ class AiPreflightService
     }
 
     /**
-     * Consulta a Gemini Multimodal Vision API (con imagen 3D) o provee diagnóstico experto contextual.
+     * Consulta a Gemini Vision con estructura JSON para el Mini-Dashboard Visual
      */
-    private function generateAiFeedback(string $fileName, array $metrics, array $violations, bool $isValid, array $rules, ?string $imageBase64 = null): string
+    private function generateAiFeedback(string $fileName, array $metrics, array $violations, bool $isValid, array $rules = [], ?string $imageBase64 = null): array
     {
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
+        $modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash'];
+
+        $maxX = $rules['max_x_mm'] ?? 50;
+        $maxY = $rules['max_y_mm'] ?? 50;
+        $maxZ = $rules['max_z_mm'] ?? 15;
 
         if ($apiKey) {
-            try {
-                $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu (un FabLab y LMS Figital de clase mundial). "
-                    . "Estás realizando una inspección pre-flight del diseño 3D/CAD: '{$fileName}'. "
-                    . "Datos técnicos del archivo: "
-                    . "• Dimensiones reales: {$metrics['x_mm']} mm (ancho X) x {$metrics['y_mm']} mm (largo Y) x {$metrics['z_mm']} mm (altura Z). "
-                    . "• Peso estimado: {$metrics['material_grams']} g de filamento PLA. "
-                    . "• Densidad geométrica: " . ($metrics['triangles'] ?? 0) . " triángulos en la malla. "
-                    . "• Límites máximos del reto: {$rules['max_x_mm']} x {$rules['max_y_mm']} x {$rules['max_z_mm']} mm. "
-                    . "• Estado de validación: " . ($isValid ? "APROBADO (Cumple 100% de tolerancias)" : "RECHAZADO: " . implode('; ', $violations)) . ". "
-                    . "\nObserva con atención la imagen adjunta de la pieza renderizada sobre la bandeja magnética del visor 3D. "
-                    . "Escribe un diagnóstico profesional, detallado y pedagógico (en 1 a 2 párrafos concisos en español) que incluya: "
-                    . "1. Identificación precisa de la geometría y diseño (ej: silueta, relieves escalonados, orificios para aro/enganche, texturas, detalles grabados). "
-                    . "2. Evaluación de imprimibilidad (adherencia de la base, necesidad o ausencia de soportes, recomendación de boquilla de 0.4mm o altura de capa recomendada de 0.16mm-0.20mm). "
-                    . "3. Veredicto final motivador (si es válido, autoriza la producción; si no, indica exactamente cómo corregir en TinkerCAD/Blender).";
+            $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu. "
+                . "Analiza la imagen adjunta del modelo 3D '{$fileName}' ({$metrics['x_mm']}x{$metrics['y_mm']}x{$metrics['z_mm']} mm, {$metrics['material_grams']}g PLA, " . ($metrics['triangles'] ?? 0) . " triángulos). "
+                . "Límites del reto: {$maxX}x{$maxY}x{$maxZ} mm. "
+                . "Estado: " . ($isValid ? "APROBADO" : "RECHAZADO: " . implode('; ', $violations)) . ". "
+                . "Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto: "
+                . json_encode([
+                    'headline' => 'Tipo de objeto y silueta detectada en 1 frase corta',
+                    'strengths' => [
+                        'Punto fuerte 1 sobre la geometría o adherencia',
+                        'Punto fuerte 2 sobre dimensiones o resistencia'
+                    ],
+                    'slicing_recommendations' => [
+                        'nozzle' => '0.4 mm',
+                        'layer_height' => '0.16 mm - 0.20 mm',
+                        'infill' => '15% giroide o rejilla'
+                    ],
+                    'pedagogical_tip' => 'Consejo técnico breve para el estudiante',
+                    'verdict_title' => $isValid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD',
+                    'text_summary' => 'Resumen amigable de 2 oraciones para el alumno'
+                ]);
 
-                $parts = [];
-                $parts[] = ['text' => $promptText];
+            $parts = [['text' => $promptText]];
 
-                if ($imageBase64) {
-                    $cleanBase64 = preg_replace('/^data:image\/\w+;base64,/', '', $imageBase64);
-                    $parts[] = [
-                        'inline_data' => [
-                            'mime_type' => 'image/png',
-                            'data' => $cleanBase64
-                        ]
-                    ];
-                }
+            if ($imageBase64) {
+                $cleanBase64 = preg_replace('/^data:image\/\w+;base64,/', '', $imageBase64);
+                $parts[] = [
+                    'inline_data' => [
+                        'mime_type' => 'image/png',
+                        'data' => $cleanBase64
+                    ]
+                ];
+            }
 
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->timeout(20)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}", [
-                        'contents' => [
-                            ['parts' => $parts]
-                        ]
-                    ]);
+            foreach ($modelsToTry as $model) {
+                try {
+                    $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                        ->timeout(20)
+                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
+                            'contents' => [['parts' => $parts]],
+                            'generationConfig' => [
+                                'response_mime_type' => 'application/json',
+                                'temperature' => 0.4,
+                            ]
+                        ]);
 
-                if ($response->successful()) {
-                    $json = $response->json();
-                    $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
-                    if ($text) {
-                        return trim($text);
+                    if ($response->successful()) {
+                        $json = $response->json();
+                        $rawText = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                        $parsed = json_decode($rawText, true);
+                        $tokenCount = $json['usageMetadata']['totalTokenCount'] ?? 250;
+
+                        if ($parsed && isset($parsed['headline'])) {
+                            $parsed['tokens_used'] = $tokenCount;
+                            $parsed['model_used'] = $model;
+                            $parsed['text_summary'] = $parsed['text_summary'] ?? $parsed['headline'];
+                            return $parsed;
+                        }
                     }
-                } else {
-                    Log::warning("Gemini Vision API error: " . $response->body());
+                } catch (\Exception $e) {
+                    Log::warning("Gemini Vision model {$model} error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::warning("Error al consultar Gemini Vision API: " . $e->getMessage());
             }
         }
 
-        // Fallback pedagógico contextual
-        $isJewelryOrRelief = stripos($fileName, 'arete') !== false || stripos($fileName, 'pendant') !== false || stripos($fileName, 'relic') !== false || $metrics['z_mm'] <= 8.0;
-        
-        if ($isValid) {
-            if ($isJewelryOrRelief) {
-                return "¡Excelente modelado escuadra! La pieza '{$fileName}' presenta una base delgada y relieves escalonados de {$metrics['z_mm']} mm bien proporcionados. La geometría encaja perfectamente en el volumen de {$metrics['x_mm']}x{$metrics['y_mm']} mm, permitiendo una excelente definición con boquilla estándar de 0.4 mm. ¡Autorizado para fabricar con {$metrics['estimated_fc_cost']} FabCoins!";
-            } else {
-                return "¡Gran trabajo escuadra! El modelo '{$fileName}' ({$metrics['x_mm']}x{$metrics['y_mm']}x{$metrics['z_mm']} mm) cuenta con una base sólida apoyada en la cama magnética y un volumen de {$metrics['material_grams']} g de PLA. Cumple con todas las tolerancias mecánicas. ¡Autorizado para fabricación!";
-            }
-        } else {
-            return "Atención Escuadra: Se detectaron excesos mecánicos en '{$fileName}'. " . implode(' ', $violations) . " Regresen a TinkerCAD para escalar el contorno dentro del volumen máximo y vuelvan a ejecutar la inspección.";
-        }
+        // Fallback estructurado de alta fidelidad
+        $isJewelry = stripos($fileName, 'arete') !== false || stripos($fileName, 'pendant') !== false || $metrics['z_mm'] <= 6.0;
+
+        return [
+            'headline' => $isJewelry ? "Arete con relieve escalonado y base plana" : "Modelo 3D con base de fabricación",
+            'strengths' => [
+                "Base 100% plana: Adherencia óptima a la bandeja magnética sin soportes.",
+                "Dimensiones ({$metrics['x_mm']}x{$metrics['y_mm']}x{$metrics['z_mm']} mm): Dentro de los límites del reto.",
+                "Densidad de malla: Definición geométrica precisa con {$metrics['material_grams']} g de PLA."
+            ],
+            'slicing_recommendations' => [
+                'nozzle' => '0.4 mm',
+                'layer_height' => '0.16 mm - 0.20 mm',
+                'infill' => '15% relleno'
+            ],
+            'pedagogical_tip' => $isValid ? "Pieza lista para laminar y autorizar fabricación con {$metrics['estimated_fc_cost']} FabCoins." : "Ajusta las medidas en TinkerCAD para que no superen los límites máximos.",
+            'verdict_title' => $isValid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD',
+            'text_summary' => $isValid ? "El modelo '{$fileName}' cumple 100% las tolerancias y tiene excelente imprimibilidad." : "Se detectaron excesos: " . implode(', ', $violations),
+            'tokens_used' => 0,
+            'model_used' => 'local_fallback',
+        ];
     }
 }

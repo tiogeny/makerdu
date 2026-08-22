@@ -1,8 +1,8 @@
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, computed } from 'vue';
 import {
     Sparkles, MessageSquare, Send, X, Bot, User,
-    HelpCircle, Wrench, Flame, RefreshCw, ChevronDown
+    HelpCircle, Wrench, Flame, RefreshCw, ChevronDown, Zap
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -16,21 +16,26 @@ const isOpen = ref(false);
 const inputMessage = ref('');
 const isTyping = ref(false);
 const messagesContainer = ref(null);
+const totalTokensSession = ref(0);
+
+const firstName = computed(() => {
+    return props.activeStudent?.name?.split(' ')[0] || 'Maker';
+});
 
 const messages = ref([
     {
         id: 1,
         sender: 'model',
-        text: `¡Hola ${props.activeStudent?.name || 'Maker'}! Soy tu Tutor IA de Fabricación Digital. Estoy aquí para ayudarte con técnicas de modelado 3D, solución de errores de impresión y optimización de FabCoins. ¿En qué puedo guiarte hoy?`,
+        text: `¡Hola ${firstName.value}! Soy tu Tutor IA de Fabricación Digital. Estoy aquí para resolver tus dudas de modelado en TinkerCAD/Blender, parámetros de impresión 3D, corte láser y optimización de FabCoins. ¿En qué reto estás trabajando hoy?`,
         time: 'Ahora',
     }
 ]);
 
 const quickPrompts = [
     '¿Cómo hago un orificio en TinkerCAD?',
-    'Mi pieza se despega de la cama',
-    '¿Cómo ahorro FabCoins en este nivel?',
-    '¿Qué temperatura necesita el filamento PLA?'
+    '¿Debería imprimir en 1 o varios colores?',
+    'Mi pieza se despega de la cama, ¿qué hago?',
+    '¿Cómo ahorro FabCoins en este nivel?'
 ];
 
 const toggleChat = () => {
@@ -45,11 +50,32 @@ const sendQuickPrompt = (promptText) => {
     sendMessage();
 };
 
+// Formateador simple de Markdown para el chat
+const formatMarkdown = (text) => {
+    if (!text) return '';
+    let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Negritas **texto**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-300 font-bold">$1</strong>');
+    // Cursivas *texto*
+    html = html.replace(/\*(.*?)\*/g, '<em class="text-cyan-200">$1</em>');
+    // Código en línea `código`
+    html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-900 text-cyan-300 px-1.5 py-0.5 rounded font-mono text-[11px] border border-slate-700">$1</code>');
+    // Viñetas • o -
+    html = html.replace(/^[•\-] (.*)$/gm, '<li class="ml-4 list-disc">$1</li>');
+    // Saltos de línea
+    html = html.replace(/\n/g, '<br/>');
+
+    return html;
+};
+
 const sendMessage = async () => {
     const text = inputMessage.value.trim();
     if (!text || isTyping.value) return;
 
-    // Agregar mensaje del usuario
     messages.value.push({
         id: Date.now(),
         sender: 'user',
@@ -80,12 +106,16 @@ const sendMessage = async () => {
                 text: response.data.reply,
                 time: 'Ahora',
             });
+
+            if (response.data?.tokens_used) {
+                totalTokensSession.value += response.data.tokens_used;
+            }
         }
     } catch (err) {
         messages.value.push({
             id: Date.now() + 1,
             sender: 'model',
-            text: 'Disculpa, tuve un pequeño inconveniente de conexión. Por favor verifica tu consulta o reintenta en un momento.',
+            text: 'Disculpa, tuve un pequeño inconveniente de conexión. Por favor reintenta tu pregunta.',
             time: 'Ahora',
         });
     } finally {
@@ -123,7 +153,7 @@ const scrollToBottom = () => {
         <!-- VENTANA DE CHAT EXPANDIBLE -->
         <div
             v-else
-            class="w-[360px] sm:w-[420px] h-[540px] bg-slate-900/95 border border-slate-700/80 rounded-3xl shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in"
+            class="w-[360px] sm:w-[440px] h-[580px] bg-slate-900/95 border border-slate-700/80 rounded-3xl shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in"
         >
             <!-- HEADER -->
             <div class="p-4 bg-gradient-to-r from-slate-950 via-cyan-950/60 to-slate-950 border-b border-slate-800 flex items-center justify-between">
@@ -134,25 +164,32 @@ const scrollToBottom = () => {
                     <div>
                         <div class="flex items-center gap-1.5">
                             <h3 class="font-black text-xs text-white">TUTOR IA DE FABRICACIÓN</h3>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded-full font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Gemini 2.0</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded-full font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Gemini 3.6</span>
                         </div>
-                        <p class="text-[10px] text-slate-400">Copiloto pedagógico de la Escuadra</p>
+                        <p class="text-[10px] text-slate-400">Mentor senior de la Escuadra</p>
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    @click="isOpen = false"
-                    class="p-1.5 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white transition"
-                >
-                    <X class="w-4 h-4" />
-                </button>
+                <div class="flex items-center gap-2">
+                    <span v-if="totalTokensSession > 0" class="text-[9px] font-mono text-amber-300/80 flex items-center gap-0.5 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-800" title="Tokens consumidos en esta sesión">
+                        <Zap class="w-3 h-3 text-amber-400" />
+                        <span>~{{ totalTokensSession }} tk</span>
+                    </span>
+
+                    <button
+                        type="button"
+                        @click="isOpen = false"
+                        class="p-1.5 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white transition"
+                    >
+                        <X class="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             <!-- CHAT BODY / MENSAJES -->
-            <div ref="messagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+            <div ref="messagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
                 <!-- CHIPS DE CONSULTAS RÁPIDAS -->
-                <div class="space-y-1.5 pb-2">
+                <div class="space-y-1.5 pb-1">
                     <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">⚡ Preguntas frecuentes:</p>
                     <div class="flex flex-wrap gap-1.5">
                         <button
@@ -185,19 +222,20 @@ const scrollToBottom = () => {
                     </div>
 
                     <div :class="[
-                        'p-3 rounded-2xl max-w-[82%] space-y-1 text-xs leading-relaxed',
+                        'p-3.5 rounded-2xl max-w-[85%] space-y-1.5 text-xs leading-relaxed',
                         m.sender === 'user'
                             ? 'bg-amber-500/10 border border-amber-500/30 text-amber-100 rounded-tr-none'
-                            : 'bg-slate-950/90 border border-slate-800 text-slate-200 rounded-tl-none'
+                            : 'bg-slate-950/90 border border-slate-800 text-slate-200 rounded-tl-none shadow-lg'
                     ]">
-                        <p class="whitespace-pre-line">{{ m.text }}</p>
+                        <div v-if="m.sender === 'model'" v-html="formatMarkdown(m.text)" class="space-y-1"></div>
+                        <p v-else class="whitespace-pre-line">{{ m.text }}</p>
                     </div>
                 </div>
 
                 <!-- INDICADOR TYPING -->
                 <div v-if="isTyping" class="flex items-center gap-2 text-cyan-400 text-xs font-medium p-2 bg-slate-950/60 rounded-xl w-fit">
                     <RefreshCw class="w-3.5 h-3.5 animate-spin" />
-                    <span class="text-[11px]">Gemini IA está redactando respuesta...</span>
+                    <span class="text-[11px]">Gemini 3.6 está redactando respuesta completa...</span>
                 </div>
             </div>
 
@@ -206,7 +244,7 @@ const scrollToBottom = () => {
                 <input
                     v-model="inputMessage"
                     type="text"
-                    placeholder="Escribe tu consulta sobre diseño o 3D..."
+                    placeholder="Pregunta sobre TinkerCAD, PLA, boquillas o FabCoins..."
                     class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
 
