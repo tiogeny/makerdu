@@ -52,7 +52,8 @@
 | **Módulo 9**| **Ficha de Autoevaluación & Reflexión Metacognitiva (+50 XP)** | ✅ Completado |
 | **Módulo 10**| **Tutor Maker IA con Formato Markdown y Memoria de Modelo 3D en Vivo** | ✅ Completado |
 | **Módulo 11**| **Barra de Pasos Guiados (Mission Stepper 1-2-3-4) & Modal de Victoria (Level Clear)** | ✅ Completado |
-| **Módulo 12**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
+| **Módulo 12**| **Entregables Dinámicos por Nivel (Boceto / STL 3D / Láser SVG / Ensamble Físico)** | ✅ Completado |
+| **Módulo 13**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
 
 ---
 
