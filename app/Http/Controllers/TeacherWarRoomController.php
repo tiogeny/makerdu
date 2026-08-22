@@ -153,7 +153,7 @@ class TeacherWarRoomController extends Controller
             'project' => $project,
             'bitacoras' => $bitacoras,
             'competencies' => $competencies,
-            'qrUrl' => url("/family/{$classroom->access_code}/squad/{$squad->id}"),
+            'qrUrl' => request()->getSchemeAndHttpHost() . "/family/{$classroom->access_code}/squad/{$squad->id}",
         ]);
     }
 
