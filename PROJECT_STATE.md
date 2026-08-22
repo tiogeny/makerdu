@@ -14,7 +14,7 @@
 * **Stack Tecnológico:**
   * **Backend:** Laravel 11 (Inertia.js + REST API)
   * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls 360° + Slicer + Gemini Vision) + Bunny Player + Lucide Icons + i18n
-  * **Motor IA:** Gemini 3.6 Flash / Multimodal (Mini-Dashboard de Calidad, Tutor Chatbot en Vivo con Markdown y Contador de Tokens)
+  * **Motor IA:** Gemini 3.5 Flash / 3.6 Multimodal (Mini-Dashboard de Calidad, Tutor Chatbot en Vivo con Markdown y Memoria de Diseño 3D)
   * **Generación de Archivos:** DomPDF (Hojas de Rotulado, Tarjetas PIN en PDF) + ZipArchive (Batches de fabricación)
 
 ---
@@ -50,8 +50,9 @@
 | **Módulo 7**| **Diseñador Web de Cursos (Course Builder) & Gestor de Aulas/PINs** | ✅ Completado |
 | **Módulo 8**| **Mini-Dashboard Visual de Calidad IA (Tarjetas de Puntos Fuertes y Slicing)** | ✅ Completado |
 | **Módulo 9**| **Ficha de Autoevaluación & Reflexión Metacognitiva (+50 XP)** | ✅ Completado |
-| **Módulo 10**| **Tutor Maker IA con Formato Markdown y Contador de Tokens en Vivo** | ✅ Completado |
-| **Módulo 11**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
+| **Módulo 10**| **Tutor Maker IA con Formato Markdown y Memoria de Modelo 3D en Vivo** | ✅ Completado |
+| **Módulo 11**| **Barra de Pasos Guiados (Mission Stepper 1-2-3-4) & Modal de Victoria (Level Clear)** | ✅ Completado |
+| **Módulo 12**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
 
 ---
 
