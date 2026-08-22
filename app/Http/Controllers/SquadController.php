@@ -137,13 +137,14 @@ class SquadController extends Controller
     }
 
     /**
-     * Engine de Pre-flight Check con IA (POST /api/squads/{id}/pre-flight)
+     * Engine de Pre-flight Check con IA Multimodal (POST /squad/{id}/pre-flight)
      */
     public function preflight(Request $request, Squad $squad, AiPreflightService $preflightService)
     {
         $request->validate([
             'level_id' => ['required', 'exists:project_levels,id'],
             'file' => ['required', 'file', 'max:25600'], // Max 25MB (.stl, .svg, .obj)
+            'image_snapshot' => ['nullable', 'string'], // Base64 snapshot del Three.js canvas
         ]);
 
         $level = ProjectLevel::findOrFail($request->level_id);
@@ -153,8 +154,13 @@ class SquadController extends Controller
         $storedPath = $file->store('preflights', 'public');
         $fullPath = Storage::disk('public')->path($storedPath);
 
-        // Ejecutar análisis y consulta IA
-        $result = $preflightService->analyzeFile($fullPath, $file->getClientOriginalName(), $level->validation_rules_json);
+        // Ejecutar análisis y consulta a Gemini Vision
+        $result = $preflightService->analyzeFile(
+            $fullPath,
+            $file->getClientOriginalName(),
+            $level->validation_rules_json,
+            $request->image_snapshot
+        );
         $result['file_url'] = Storage::url($storedPath);
         $result['level_id'] = $level->id;
 
@@ -164,7 +170,7 @@ class SquadController extends Controller
             'squad_id' => $squad->id,
             'level_id' => $level->id,
             'active_role_user_id' => $activeStudentId,
-            'content_text' => "Pre-flight Check para '{$file->getClientOriginalName()}': " . ($result['is_valid'] ? "Aprobado (Listo para Fabricación)" : "Requiere corrección de tolerancias."),
+            'content_text' => "Control de Calidad 3D para '{$file->getClientOriginalName()}': " . ($result['is_valid'] ? "Aprobado (Listo para Fabricación)" : "Requiere corrección de tolerancias."),
             'file_url' => Storage::url($storedPath),
             'ai_score' => $result['ai_score'],
             'ai_feedback' => $result['ai_feedback'],
@@ -179,7 +185,6 @@ class SquadController extends Controller
             ]);
         }
 
-        // Si es una petición desde el HUD en Inertia
         return back()->with('preflight_result', $result);
     }
 
@@ -196,7 +201,6 @@ class SquadController extends Controller
 
         $squad->decrement('fabcoins_balance', $cost);
 
-        // Otorgar XP de logro
         $activeStudentId = session('active_student_id', Auth::id());
         $user = User::find($activeStudentId);
         if ($user) {
