@@ -6,7 +6,8 @@ import {
     Clock, BookOpen, ExternalLink, Send, FileText, ChevronRight, LogOut,
     Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop, UploadCloud,
     Cpu, XCircle, Printer, Hammer, Gauge, Globe, Box, Film, Camera, Image,
-    Download, ArrowLeft, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap
+    Download, ArrowLeft, ArrowRight, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap,
+    PartyPopper, Compass
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
@@ -26,8 +27,12 @@ const page = usePage();
 // Vista principal: 'roadmap' o 'studio'
 const currentMode = ref('roadmap');
 
-// Pestañas dentro del Estudio: 'mission', 'inspection_3d', 'reflection', 'bitacora'
-const studioTab = ref('inspection_3d');
+// Paso activo del Stepper Guiado dentro del Estudio: 1, 2, 3 o 4
+// 1: Misión & Video | 2: Taller 3D e IA | 3: Reflexión Maker | 4: Fabricar & Celebrar
+const currentStep = ref(2);
+
+// Modal de Celebración de Nivel Superado
+const showVictoryModal = ref(false);
 
 // Nivel seleccionado
 const selectedLevelId = ref(props.project.levels[0]?.id || null);
@@ -36,15 +41,20 @@ const selectedLevel = computed(() => {
     return props.project.levels.find((l) => l.id === selectedLevelId.value) || props.project.levels[0];
 });
 
-const openLevelStudio = (levelId, defaultTab = 'inspection_3d') => {
+const openLevelStudio = (levelId, stepNumber = 1) => {
     selectedLevelId.value = levelId;
-    studioTab.value = defaultTab;
+    currentStep.value = stepNumber;
     currentMode.value = 'studio';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const backToRoadmap = () => {
     currentMode.value = 'roadmap';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const goToStep = (stepNumber) => {
+    currentStep.value = stepNumber;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -147,6 +157,9 @@ const confirmFabrication = () => {
         level: selectedLevel.value.id,
     }), {}, {
         preserveScroll: true,
+        onSuccess: () => {
+            showVictoryModal.value = true;
+        },
         onFinish: () => {
             isFabricating.value = false;
         },
@@ -194,6 +207,7 @@ const submitBitacora = () => {
             bitacoraForm.reset();
             photoPreviewUrl.value = null;
             reflectionForm.reset();
+            goToStep(4); // Avanzar automáticamente al paso de fabricación
         },
     });
 };
@@ -223,6 +237,9 @@ const getRoleColor = (role) => {
     }
 };
 
+const totalSquadXp = computed(() => {
+    return props.squad.members.reduce((acc, m) => acc + (m.xp_points || 0), 0);
+});
 
 const activeModelInfo = computed(() => {
     if (preflightResult.value?.metrics) {
@@ -246,8 +263,12 @@ const activeModelInfo = computed(() => {
     return null;
 });
 
-const totalSquadXp = computed(() => {
-    return props.squad.members.reduce((acc, m) => acc + (m.xp_points || 0), 0);
+const nextLevel = computed(() => {
+    const currentIdx = props.project.levels.findIndex(l => l.id === selectedLevel.value?.id);
+    if (currentIdx !== -1 && currentIdx + 1 < props.project.levels.length) {
+        return props.project.levels[currentIdx + 1];
+    }
+    return null;
 });
 </script>
 
@@ -433,7 +454,7 @@ const totalSquadXp = computed(() => {
                     <div
                         v-for="(lvl, idx) in project.levels"
                         :key="lvl.id"
-                        @click="openLevelStudio(lvl.id, 'inspection_3d')"
+                        @click="openLevelStudio(lvl.id, 1)"
                         class="p-5 rounded-3xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/60 shadow-xl transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between"
                     >
                         <div>
@@ -466,7 +487,7 @@ const totalSquadXp = computed(() => {
                                 type="button"
                                 class="px-3 py-1.5 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-500 text-cyan-300 group-hover:text-slate-950 text-xs font-black transition flex items-center gap-1"
                             >
-                                <span>Entrar</span>
+                                <span>Iniciar Reto</span>
                                 <ArrowRight class="w-3.5 h-3.5" />
                             </button>
                         </div>
@@ -475,286 +496,366 @@ const totalSquadXp = computed(() => {
             </section>
 
             <!-- ================================================================= -->
-            <!-- MODO B: ESTUDIO DE TRABAJO A PANTALLA COMPLETA DEL NIVEL -->
+            <!-- MODO B: ESTUDIO DE TRABAJO CON STEPPER GUIADO (1 ➔ 2 ➔ 3 ➔ 4) -->
             <!-- ================================================================= -->
-            <section v-else-if="currentMode === 'studio'" class="space-y-4 animate-fade-in">
-                <!-- BARRA DE NAVEGACIÓN DEL ESTUDIO -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-xl">
-                    <div class="flex items-center gap-3">
-                        <button
-                            type="button"
-                            @click="backToRoadmap"
-                            class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
-                        >
-                            <ArrowLeft class="w-4 h-4" />
-                            <span>Volver a la Ruta</span>
-                        </button>
+            <section v-else-if="currentMode === 'studio'" class="space-y-6 animate-fade-in">
+                
+                <!-- HEADER DEL ESTUDIO CON NAVEGACIÓN Y STEPPER GUIADO -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <button
+                                type="button"
+                                @click="backToRoadmap"
+                                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
+                            >
+                                <ArrowLeft class="w-4 h-4" />
+                                <span>Volver a la Ruta</span>
+                            </button>
 
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Estudio de Fabricación • Nivel {{ selectedLevel.level_number }}</span>
-                            <h2 class="text-base font-black text-white">{{ selectedLevel.title }}</h2>
-                        </div>
-                    </div>
-
-                    <!-- SELECTOR DE PESTAÑAS EN EL ESTUDIO -->
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                        <button
-                            type="button"
-                            @click="studioTab = 'mission'"
-                            :class="[
-                                'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
-                                studioTab === 'mission'
-                                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                                    : 'bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
-                            ]"
-                        >
-                            <BookOpen class="w-3.5 h-3.5" />
-                            <span>1. Misión y Video</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="studioTab = 'inspection_3d'"
-                            :class="[
-                                'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
-                                studioTab === 'inspection_3d'
-                                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                                    : 'bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
-                            ]"
-                        >
-                            <Box class="w-3.5 h-3.5" />
-                            <span>2. Inspección 3D IA</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="studioTab = 'reflection'"
-                            :class="[
-                                'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
-                                studioTab === 'reflection'
-                                    ? 'bg-gradient-to-r from-amber-500 to-purple-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                                    : 'bg-slate-950/60 hover:bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30'
-                            ]"
-                        >
-                            <Lightbulb class="w-3.5 h-3.5" />
-                            <span>3. Autoreflexión (+50 XP)</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="studioTab = 'bitacora'"
-                            :class="[
-                                'px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap',
-                                studioTab === 'bitacora'
-                                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                                    : 'bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
-                            ]"
-                        >
-                            <Camera class="w-3.5 h-3.5" />
-                            <span>4. Bitácora y Fotos</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- PESTAÑA 1: MISIÓN & TUTORIALES BUNNY STREAM -->
-                <div v-if="studioTab === 'mission'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <div class="lg:col-span-6 space-y-4">
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <BookOpen class="w-4 h-4 text-cyan-400" />
-                                <span>Guía del Reto de Fabricación</span>
-                            </h3>
-                            <p class="text-xs text-slate-300 leading-relaxed">{{ selectedLevel?.toolbox?.guide }}</p>
-                        </div>
-
-                        <div v-if="selectedLevel?.toolbox?.resources?.length" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
-                            <h4 class="text-xs font-bold text-slate-400">Recursos de Apoyo:</h4>
-                            <div class="flex flex-wrap gap-2">
-                                <a
-                                    v-for="(res, idx) in selectedLevel.toolbox.resources"
-                                    :key="idx"
-                                    :href="res.url"
-                                    target="_blank"
-                                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-slate-700 transition font-medium"
-                                >
-                                    <FileText class="w-3.5 h-3.5" />
-                                    <span>{{ res.title }}</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-6">
-                        <VideoTutorialPlayer
-                            :title="`Video Tutorial: ${selectedLevel?.title}`"
-                            type="bunny_stream"
-                            source="https://iframe.mediadelivery.net/embed/demo"
-                        />
-                    </div>
-                </div>
-
-                <!-- PESTAÑA 2: INSPECCIÓN 3D Y CALIDAD (MINI-DASHBOARD VISUAL) -->
-                <div v-else-if="studioTab === 'inspection_3d'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    
-                    <!-- LADO IZQUIERDO: VISOR 3D REAL (7 Cols) -->
-                    <div class="lg:col-span-7 space-y-3">
-                        <StlViewer3D
-                            ref="viewerRef"
-                            :file="selectedRealFile"
-                            :fileUrl="preflightResult?.file_url || ''"
-                            :dimensions="preflightResult?.metrics || { x_mm: 40, y_mm: 40, z_mm: 10 }"
-                            :limits="selectedLevel.validation_rules || { max_x_mm: 50, max_y_mm: 50, max_z_mm: 15 }"
-                            :isValid="preflightResult ? preflightResult.is_valid : true"
-                            :fileName="selectedFileName || 'modelo.stl'"
-                        />
-                    </div>
-
-                    <!-- LADO DERECHO: MINI-DASHBOARD VISUAL DE CONTROL DE CALIDAD IA (5 Cols) -->
-                    <div class="lg:col-span-5 space-y-4">
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                             <div>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <Cpu class="w-4 h-4 text-cyan-400 animate-pulse" />
-                                    <span>Control de Calidad IA (Gemini Vision)</span>
-                                </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Sube tu archivo .STL para que la IA inspeccione la geometría en 3D.</p>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Estudio de Fabricación • Nivel {{ selectedLevel.level_number }}</span>
+                                <h2 class="text-base font-black text-white">{{ selectedLevel.title }}</h2>
+                            </div>
+                        </div>
+
+                        <!-- Badge de Estado del Nivel -->
+                        <div class="flex items-center gap-2">
+                            <span v-if="selectedLevel.is_completed" class="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-600/40">
+                                <CheckCircle2 class="w-4 h-4" /> Nivel Completado
+                            </span>
+                            <span v-else class="text-xs font-bold text-amber-300 bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-600/40">
+                                Reto Activo
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- STEPPER GUIADO VISUAL (4 PASOS DE LA MISIÓN MAKER) -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
+                        <!-- Paso 1 -->
+                        <button
+                            type="button"
+                            @click="goToStep(1)"
+                            :class="[
+                                'p-3 rounded-2xl border text-left transition flex items-center gap-2.5',
+                                currentStep === 1
+                                    ? 'bg-gradient-to-r from-cyan-950 to-slate-900 border-cyan-400 shadow-md shadow-cyan-950/50 ring-1 ring-cyan-400/50'
+                                    : (currentStep > 1 ? 'bg-slate-950/70 border-emerald-500/40 text-emerald-300' : 'bg-slate-950/40 border-slate-800 text-slate-400')
+                            ]"
+                        >
+                            <div :class="[
+                                'w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0',
+                                currentStep === 1 ? 'bg-cyan-400 text-slate-950' : (currentStep > 1 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400')
+                            ]">
+                                <Check v-if="currentStep > 1" class="w-4 h-4 stroke-[3]" />
+                                <span v-else>1</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 1</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 1 ? 'text-white' : 'text-slate-300']">Misión y Video</p>
+                            </div>
+                        </button>
+
+                        <!-- Paso 2 -->
+                        <button
+                            type="button"
+                            @click="goToStep(2)"
+                            :class="[
+                                'p-3 rounded-2xl border text-left transition flex items-center gap-2.5',
+                                currentStep === 2
+                                    ? 'bg-gradient-to-r from-cyan-950 to-slate-900 border-cyan-400 shadow-md shadow-cyan-950/50 ring-1 ring-cyan-400/50'
+                                    : (currentStep > 2 ? 'bg-slate-950/70 border-emerald-500/40 text-emerald-300' : 'bg-slate-950/40 border-slate-800 text-slate-400')
+                            ]"
+                        >
+                            <div :class="[
+                                'w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0',
+                                currentStep === 2 ? 'bg-cyan-400 text-slate-950' : (currentStep > 2 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400')
+                            ]">
+                                <Check v-if="currentStep > 2" class="w-4 h-4 stroke-[3]" />
+                                <span v-else>2</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 2</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 2 ? 'text-white' : 'text-slate-300']">Inspección 3D IA</p>
+                            </div>
+                        </button>
+
+                        <!-- Paso 3 -->
+                        <button
+                            type="button"
+                            @click="goToStep(3)"
+                            :class="[
+                                'p-3 rounded-2xl border text-left transition flex items-center gap-2.5',
+                                currentStep === 3
+                                    ? 'bg-gradient-to-r from-amber-950/50 to-slate-900 border-amber-400 shadow-md shadow-amber-950/50 ring-1 ring-amber-400/50'
+                                    : (currentStep > 3 ? 'bg-slate-950/70 border-emerald-500/40 text-emerald-300' : 'bg-slate-950/40 border-slate-800 text-slate-400')
+                            ]"
+                        >
+                            <div :class="[
+                                'w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0',
+                                currentStep === 3 ? 'bg-amber-400 text-slate-950' : (currentStep > 3 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400')
+                            ]">
+                                <Check v-if="currentStep > 3" class="w-4 h-4 stroke-[3]" />
+                                <span v-else>3</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 3</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 3 ? 'text-white' : 'text-slate-300']">Autoreflexión (+50 XP)</p>
+                            </div>
+                        </button>
+
+                        <!-- Paso 4 -->
+                        <button
+                            type="button"
+                            @click="goToStep(4)"
+                            :class="[
+                                'p-3 rounded-2xl border text-left transition flex items-center gap-2.5',
+                                currentStep === 4
+                                    ? 'bg-gradient-to-r from-emerald-950 to-slate-900 border-emerald-400 shadow-md shadow-emerald-950/50 ring-1 ring-emerald-400/50'
+                                    : 'bg-slate-950/40 border-slate-800 text-slate-400'
+                            ]"
+                        >
+                            <div :class="[
+                                'w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0',
+                                currentStep === 4 ? 'bg-emerald-400 text-slate-950' : 'bg-slate-800 text-slate-400'
+                            ]">
+                                <span>4</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 4</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 4 ? 'text-white' : 'text-slate-300']">Fabricar & Bitácora</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- PASO 1: COMPRENDER (MISIÓN & TUTORIAL BUNNY STREAM) -->
+                <!-- ========================================================= -->
+                <div v-if="currentStep === 1" class="space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
+                                <div class="flex items-center gap-2 text-cyan-400 font-black text-sm">
+                                    <Compass class="w-5 h-5" />
+                                    <span>Objetivo de la Misión</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">{{ selectedLevel?.toolbox?.guide }}</p>
                             </div>
 
-                            <!-- Zona de Carga de Archivo -->
-                            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-dashed border-slate-700 hover:border-cyan-400 text-center space-y-2 transition">
-                                <UploadCloud class="w-7 h-7 text-cyan-400 mx-auto" />
+                            <div v-if="selectedLevel?.toolbox?.resources?.length" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
+                                <h4 class="text-xs font-bold text-slate-400">Recursos y Archivos de Apoyo:</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <a
+                                        v-for="(res, idx) in selectedLevel.toolbox.resources"
+                                        :key="idx"
+                                        :href="res.url"
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-slate-700 transition font-medium"
+                                    >
+                                        <FileText class="w-3.5 h-3.5" />
+                                        <span>{{ res.title }}</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-6 space-y-4">
+                            <VideoTutorialPlayer
+                                :title="`Video Tutorial: ${selectedLevel?.title}`"
+                                type="bunny_stream"
+                                source="https://iframe.mediadelivery.net/embed/demo"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- FOOTER NAVEGACIÓN PASO 1 -->
+                    <div class="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-slate-400">¿Listos para modelar en TinkerCAD?</span>
+                        <button
+                            type="button"
+                            @click="goToStep(2)"
+                            class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition"
+                        >
+                            <span>Comenzar Inspección 3D</span>
+                            <ArrowRight class="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- PASO 2: CREAR & AUDITAR (VISOR 3D + MINI-DASHBOARD IA) -->
+                <!-- ========================================================= -->
+                <div v-else-if="currentStep === 2" class="space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- Visor 3D (7 Cols) -->
+                        <div class="lg:col-span-7 space-y-3">
+                            <StlViewer3D
+                                ref="viewerRef"
+                                :file="selectedRealFile"
+                                :fileUrl="preflightResult?.file_url || ''"
+                                :dimensions="preflightResult?.metrics || { x_mm: 40, y_mm: 40, z_mm: 10 }"
+                                :limits="selectedLevel.validation_rules || { max_x_mm: 50, max_y_mm: 50, max_z_mm: 15 }"
+                                :isValid="preflightResult ? preflightResult.is_valid : true"
+                                :fileName="selectedFileName || 'modelo.stl'"
+                            />
+                        </div>
+
+                        <!-- Mini-Dashboard IA (5 Cols) -->
+                        <div class="lg:col-span-5 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
                                 <div>
-                                    <label class="cursor-pointer text-xs font-bold text-cyan-300 hover:underline">
-                                        <span>Seleccionar archivo .STL o .SVG</span>
-                                        <input type="file" @change="handleFileSelect" accept=".stl,.svg,.obj" class="hidden" />
-                                    </label>
-                                    <p v-if="selectedFileName" class="text-xs font-mono text-amber-300 mt-1 font-bold">
-                                        📄 {{ selectedFileName }}
-                                    </p>
+                                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                        <Cpu class="w-4 h-4 text-cyan-400 animate-pulse" />
+                                        <span>Control de Calidad IA (Gemini Vision)</span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Sube tu archivo .STL para que la IA inspeccione la geometría en 3D.</p>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    @click="runPreflightCheck"
-                                    :disabled="isScanning || !preflightForm.file"
-                                    class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs disabled:opacity-40 transition flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20"
-                                >
-                                    <Sparkles class="w-3.5 h-3.5" />
-                                    <span>{{ isScanning ? 'Analizando con Gemini Vision...' : 'INSPECCIONAR PIEZA CON IA' }}</span>
-                                </button>
-                            </div>
+                                <!-- Carga de Archivo -->
+                                <div class="p-4 rounded-2xl bg-slate-950 border-2 border-dashed border-slate-700 hover:border-cyan-400 text-center space-y-2 transition">
+                                    <UploadCloud class="w-7 h-7 text-cyan-400 mx-auto" />
+                                    <div>
+                                        <label class="cursor-pointer text-xs font-bold text-cyan-300 hover:underline">
+                                            <span>Seleccionar archivo .STL o .SVG</span>
+                                            <input type="file" @change="handleFileSelect" accept=".stl,.svg,.obj" class="hidden" />
+                                        </label>
+                                        <p v-if="selectedFileName" class="text-xs font-mono text-amber-300 mt-1 font-bold">
+                                            📄 {{ selectedFileName }}
+                                        </p>
+                                    </div>
 
-                            <!-- Pruebas Rápidas Demo -->
-                            <div>
-                                <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">Simulaciones de prueba:</p>
-                                <div class="grid grid-cols-2 gap-2">
                                     <button
                                         type="button"
-                                        @click="createAndTestDemoFile('stl', true)"
-                                        :disabled="isScanning"
-                                        class="p-2 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-600/40 text-emerald-300 text-[10px] font-bold text-left transition"
+                                        @click="runPreflightCheck"
+                                        :disabled="isScanning || !preflightForm.file"
+                                        class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs disabled:opacity-40 transition flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20"
                                     >
-                                        ✓ STL Válido (40mm)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="createAndTestDemoFile('stl', false)"
-                                        :disabled="isScanning"
-                                        class="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 border border-rose-600/40 text-rose-300 text-[10px] font-bold text-left transition"
-                                    >
-                                        ✕ STL Excedido (75mm)
+                                        <Sparkles class="w-3.5 h-3.5" />
+                                        <span>{{ isScanning ? 'Analizando con Gemini Vision...' : 'INSPECCIONAR PIEZA CON IA' }}</span>
                                     </button>
                                 </div>
-                            </div>
 
-                            <!-- MINI-DASHBOARD ESTRUCTURADO DEL DIAGNÓSTICO IA -->
-                            <div v-if="preflightResult" class="space-y-3 pt-2">
-                                
-                                <!-- TARJETA DE VEREDICTO -->
-                                <div :class="[
-                                    'p-4 rounded-2xl border space-y-2 transition-all',
-                                    preflightResult.is_valid ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-rose-950/30 border-rose-500/50'
-                                ]">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2 font-black text-xs">
-                                            <CheckCircle2 v-if="preflightResult.is_valid" class="w-4 h-4 text-emerald-400" />
-                                            <XCircle v-else class="w-4 h-4 text-rose-400" />
-                                            <span :class="preflightResult.is_valid ? 'text-emerald-300' : 'text-rose-300'">
-                                                {{ preflightResult.dashboard?.verdict_title || (preflightResult.is_valid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD') }}
+                                <!-- Pruebas Demo -->
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">Simulaciones de prueba:</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            @click="createAndTestDemoFile('stl', true)"
+                                            :disabled="isScanning"
+                                            class="p-2 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-600/40 text-emerald-300 text-[10px] font-bold text-left transition"
+                                        >
+                                            ✓ STL Válido (40mm)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="createAndTestDemoFile('stl', false)"
+                                            :disabled="isScanning"
+                                            class="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 border border-rose-600/40 text-rose-300 text-[10px] font-bold text-left transition"
+                                        >
+                                            ✕ STL Excedido (75mm)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Mini-Dashboard IA -->
+                                <div v-if="preflightResult" class="space-y-3 pt-2">
+                                    <div :class="[
+                                        'p-4 rounded-2xl border space-y-2 transition-all',
+                                        preflightResult.is_valid ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-rose-950/30 border-rose-500/50'
+                                    ]">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2 font-black text-xs">
+                                                <CheckCircle2 v-if="preflightResult.is_valid" class="w-4 h-4 text-emerald-400" />
+                                                <XCircle v-else class="w-4 h-4 text-rose-400" />
+                                                <span :class="preflightResult.is_valid ? 'text-emerald-300' : 'text-rose-300'">
+                                                    {{ preflightResult.dashboard?.verdict_title || (preflightResult.is_valid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD') }}
+                                                </span>
+                                            </div>
+
+                                            <span v-if="preflightResult.dashboard?.tokens_used" class="text-[9px] font-mono text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 flex items-center gap-1">
+                                                <Zap class="w-3 h-3 text-amber-400" />
+                                                <span>~{{ preflightResult.dashboard.tokens_used }} tk</span>
                                             </span>
                                         </div>
 
-                                        <span v-if="preflightResult.dashboard?.tokens_used" class="text-[9px] font-mono text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 flex items-center gap-1">
-                                            <Zap class="w-3 h-3 text-amber-400" />
-                                            <span>~{{ preflightResult.dashboard.tokens_used }} tk</span>
-                                        </span>
+                                        <p class="text-xs text-slate-200 font-semibold leading-snug">
+                                            {{ preflightResult.dashboard?.headline || preflightResult.ai_feedback }}
+                                        </p>
                                     </div>
 
-                                    <p class="text-xs text-slate-200 font-semibold leading-snug">
-                                        {{ preflightResult.dashboard?.headline || preflightResult.ai_feedback }}
-                                    </p>
-                                </div>
-
-                                <!-- TARJETAS DE PUNTOS FUERTES GEOMÉTRICOS (LO QUE ESTÁ EXCELENTE) -->
-                                <div v-if="preflightResult.dashboard?.strengths?.length" class="space-y-1.5">
-                                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">🌟 Aspectos destacados por la IA:</p>
-                                    <div class="space-y-1.5">
-                                        <div
-                                            v-for="(st, idx) in preflightResult.dashboard.strengths"
-                                            :key="idx"
-                                            class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-200 flex items-start gap-2"
-                                        >
-                                            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                                            <span class="leading-snug">{{ st }}</span>
+                                    <!-- Aspectos Destacados -->
+                                    <div v-if="preflightResult.dashboard?.strengths?.length" class="space-y-1.5">
+                                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">🌟 Aspectos destacados por la IA:</p>
+                                        <div class="space-y-1.5">
+                                            <div
+                                                v-for="(st, idx) in preflightResult.dashboard.strengths"
+                                                :key="idx"
+                                                class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-200 flex items-start gap-2"
+                                            >
+                                                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                                                <span class="leading-snug">{{ st }}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- PARÁMETROS TÉCNICOS DE LAMINADO RECOMENDADOS -->
-                                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-                                    <p class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">⚙️ Recomendaciones de Fabricación:</p>
-                                    <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
-                                            <p class="text-slate-500 font-mono">Boquilla</p>
-                                            <p class="font-bold text-cyan-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.nozzle || '0.4 mm' }}</p>
-                                        </div>
-                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
-                                            <p class="text-slate-500 font-mono">Capa</p>
-                                            <p class="font-bold text-purple-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.layer_height || '0.16-0.2mm' }}</p>
-                                        </div>
-                                        <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
-                                            <p class="text-slate-500 font-mono">Relleno</p>
-                                            <p class="font-bold text-amber-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.infill || '15%' }}</p>
+                                    <!-- Parámetros de Laminado -->
+                                    <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                                        <p class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">⚙️ Recomendaciones de Fabricación:</p>
+                                        <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+                                            <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                                <p class="text-slate-500 font-mono">Boquilla</p>
+                                                <p class="font-bold text-cyan-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.nozzle || '0.4 mm' }}</p>
+                                            </div>
+                                            <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                                <p class="text-slate-500 font-mono">Capa</p>
+                                                <p class="font-bold text-purple-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.layer_height || '0.16-0.2mm' }}</p>
+                                            </div>
+                                            <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                                <p class="text-slate-500 font-mono">Relleno</p>
+                                                <p class="font-bold text-amber-300 mt-0.5">{{ preflightResult.dashboard?.slicing_recommendations?.infill || '15%' }}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <!-- Botón Autorizar Fabricación -->
-                                <div v-if="preflightResult.is_valid && selectedLevel.fabcoins_cost > 0">
-                                    <button
-                                        type="button"
-                                        @click="confirmFabrication"
-                                        :disabled="isFabricating || squad.fabcoins_balance < selectedLevel.fabcoins_cost"
-                                        class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 disabled:opacity-40 transition"
-                                    >
-                                        <Printer class="w-4 h-4" />
-                                        <span>AUTORIZAR IMPRESIÓN ({{ selectedLevel.fabcoins_cost }} FC)</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- FOOTER NAVEGACIÓN PASO 2 -->
+                    <div class="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <button
+                            type="button"
+                            @click="goToStep(1)"
+                            class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
+                        >
+                            <ArrowLeft class="w-4 h-4" />
+                            <span>Paso 1: Video Misión</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="goToStep(3)"
+                            class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition"
+                        >
+                            <span>Paso 3: Autoreflexión (+50 XP)</span>
+                            <ArrowRight class="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
 
-                <!-- PESTAÑA 3: FICHA DE AUTOEVALUACIÓN & REFLEXIÓN METACOGNITIVA (+50 XP) -->
-                <div v-else-if="studioTab === 'reflection'" class="max-w-3xl mx-auto space-y-6">
+                <!-- ========================================================= -->
+                <!-- PASO 3: REFLEXIONAR (METACOGNICIÓN MAKER +50 XP) -->
+                <!-- ========================================================= -->
+                <div v-else-if="currentStep === 3" class="max-w-3xl mx-auto space-y-6 animate-fade-in">
                     <div class="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border border-amber-500/40 space-y-2 shadow-2xl">
                         <div class="flex items-center gap-2">
                             <Lightbulb class="w-6 h-6 text-amber-400" />
                             <h3 class="text-base font-black text-white">Autoevaluación y Pensamiento Crítico Maker</h3>
                         </div>
                         <p class="text-xs text-slate-300 leading-relaxed">
-                            En el ecosistema Makerdu, la IA no hace el trabajo por ti: es tu copiloto. Reflexiona con tu escuadra sobre las decisiones técnicas tomadas en este reto para desbloquear el **Bono Metacognitivo de +50 XP**.
+                            La IA es tu copiloto, pero el criterio es de tu equipo. Reflexionen sobre las decisiones técnicas tomadas en este reto para desbloquear el **Bono Metacognitivo de +50 XP**.
                         </p>
                     </div>
 
@@ -810,87 +911,135 @@ const totalSquadXp = computed(() => {
                             class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition"
                         >
                             <Award class="w-4 h-4" />
-                            <span>GUARDAR REFLEXIÓN Y OBTENER BONO (+50 XP)</span>
+                            <span>GUARDAR REFLEXIÓN Y AVANZAR A FABRICACIÓN (+50 XP)</span>
                         </button>
                     </form>
-                </div>
 
-                <!-- PESTAÑA 4: BITÁCORA MULTIMEDIA Y FOTOS -->
-                <div v-else-if="studioTab === 'bitacora'" class="space-y-6">
-                    <form @submit.prevent="submitBitacora" class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">
-                                Registrar evidencia como:
-                                <span class="text-cyan-400 font-black">{{ activeStudent.name }} ({{ activeStudent.current_role }})</span>
-                            </label>
-                            <textarea
-                                v-model="bitacoraForm.content_text"
-                                rows="3"
-                                placeholder="Describe las decisiones tomadas por el equipo, ajustes técnicos o ideas clave de este nivel..."
-                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-4 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
-                                required
-                            ></textarea>
-                        </div>
-
-                        <!-- Subir Foto Real -->
-                        <div class="flex items-center gap-3">
-                            <label class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition">
-                                <Camera class="w-4 h-4 text-cyan-400" />
-                                <span>Subir Foto del Proceso / Pieza Real</span>
-                                <input type="file" @change="handlePhotoSelect" accept="image/*" class="hidden" />
-                            </label>
-                            <span v-if="bitacoraForm.file" class="text-xs text-emerald-400 font-mono font-bold">
-                                📷 {{ bitacoraForm.file.name }}
-                            </span>
-                        </div>
-
-                        <div v-if="photoPreviewUrl" class="w-36 h-36 rounded-2xl overflow-hidden border border-slate-700">
-                            <img :src="photoPreviewUrl" class="w-full h-full object-cover" />
-                        </div>
+                    <!-- FOOTER NAVEGACIÓN PASO 3 -->
+                    <div class="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <button
+                            type="button"
+                            @click="goToStep(2)"
+                            class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
+                        >
+                            <ArrowLeft class="w-4 h-4" />
+                            <span>Paso 2: Inspección 3D</span>
+                        </button>
 
                         <button
-                            type="submit"
-                            :disabled="bitacoraForm.processing || !bitacoraForm.content_text"
-                            class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 transition"
+                            type="button"
+                            @click="goToStep(4)"
+                            class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
                         >
-                            <Send class="w-4 h-4" />
-                            <span>GUARDAR EVIDENCIA EN LA BITÁCORA (+25 XP)</span>
+                            <span>Paso 4: Fabricación</span>
+                            <ArrowRight class="w-4 h-4" />
                         </button>
-                    </form>
+                    </div>
+                </div>
 
-                    <!-- Historial -->
-                    <div class="space-y-3">
-                        <h4 class="text-xs font-bold text-slate-400">Línea de Tiempo de Evidencias Guardadas:</h4>
-                        <div v-if="currentLevelBitacoras.length" class="space-y-3">
-                            <div
-                                v-for="b in currentLevelBitacoras"
-                                :key="b.id"
-                                class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs space-y-2"
-                            >
-                                <div class="flex items-center justify-between text-[11px]">
-                                    <span class="font-bold text-cyan-300">{{ b.active_role_user?.name || 'Miembro' }}</span>
-                                    <span :class="[
-                                        'flex items-center gap-1 font-semibold text-[10px]',
-                                        b.status === 'approved' ? 'text-emerald-400' : 'text-rose-400'
-                                    ]">
-                                        <CheckCircle2 v-if="b.status === 'approved'" class="w-3.5 h-3.5" />
-                                        <XCircle v-else class="w-3.5 h-3.5" />
-                                        {{ b.status === 'approved' ? 'Aprobado' : 'Observado' }}
-                                    </span>
+                <!-- ========================================================= -->
+                <!-- PASO 4: FABRICAR & BITÁCORA (FABCOINS + PRODUCCIÓN FÍSICA) -->
+                <!-- ========================================================= -->
+                <div v-else-if="currentStep === 4" class="space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        <!-- Columna Izquierda: Panel de Autorización de Fabricación (5 Cols) -->
+                        <div class="lg:col-span-5 space-y-4">
+                            <div class="p-6 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 space-y-4 shadow-2xl">
+                                <div class="flex items-center gap-2.5 text-amber-400 font-black text-sm">
+                                    <Printer class="w-5 h-5" />
+                                    <span>Autorización de Fabricación Física</span>
                                 </div>
-                                <p class="text-slate-300 whitespace-pre-line">{{ b.content_text }}</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Al autorizar la impresión, se consumirán los FabCoins requeridos para el filamento y el archivo pasará al lote de producción del docente.
+                                </p>
 
-                                <div v-if="b.file_url" class="pt-1">
-                                    <img :src="b.file_url" class="max-h-48 rounded-xl border border-slate-800 object-cover" />
+                                <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-400">Balance Actual:</span>
+                                        <span class="font-mono font-bold text-amber-300">{{ squad.fabcoins_balance }} FC</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-400">Costo de Producción:</span>
+                                        <span class="font-mono font-bold text-rose-400">-{{ selectedLevel.fabcoins_cost }} FC</span>
+                                    </div>
+                                    <div class="pt-2 border-t border-slate-800 flex justify-between text-xs font-black">
+                                        <span class="text-white">Balance Final:</span>
+                                        <span class="font-mono text-cyan-300">{{ squad.fabcoins_balance - selectedLevel.fabcoins_cost }} FC</span>
+                                    </div>
                                 </div>
 
-                                <div v-if="b.ai_feedback" class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-900/60 text-[11px] text-cyan-300">
-                                    🤖 <strong>Diagnóstico IA:</strong> {{ b.ai_feedback }}
-                                </div>
+                                <button
+                                    type="button"
+                                    @click="confirmFabrication"
+                                    :disabled="isFabricating || squad.fabcoins_balance < selectedLevel.fabcoins_cost"
+                                    class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-emerald-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 disabled:opacity-40 transition transform active:scale-95"
+                                >
+                                    <Printer class="w-4 h-4" />
+                                    <span>{{ isFabricating ? 'Autorizando Fabricación...' : `AUTORIZAR IMPRESIÓN (${selectedLevel.fabcoins_cost} FC)` }}</span>
+                                </button>
                             </div>
                         </div>
-                        <div v-else class="text-xs text-slate-500 text-center py-6 bg-slate-900/40 rounded-2xl border border-slate-850">
-                            Aún no hay evidencias registradas en este nivel.
+
+                        <!-- Columna Derecha: Registro de Fotos Reales en Bitácora (7 Cols) -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <form @submit.prevent="submitBitacora" class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <Camera class="w-4 h-4 text-cyan-400" />
+                                    <span>Subir Foto de la Pieza Fabricada a la Bitácora</span>
+                                </h3>
+
+                                <textarea
+                                    v-model="bitacoraForm.content_text"
+                                    rows="2"
+                                    placeholder="Nota final del equipo sobre el resultado físico impreso..."
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3.5 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                                ></textarea>
+
+                                <div class="flex items-center gap-3">
+                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition">
+                                        <Camera class="w-4 h-4 text-cyan-400" />
+                                        <span>Adjuntar Foto Real</span>
+                                        <input type="file" @change="handlePhotoSelect" accept="image/*" class="hidden" />
+                                    </label>
+                                    <span v-if="bitacoraForm.file" class="text-xs text-emerald-400 font-mono font-bold">
+                                        📷 {{ bitacoraForm.file.name }}
+                                    </span>
+                                </div>
+
+                                <div v-if="photoPreviewUrl" class="w-32 h-32 rounded-2xl overflow-hidden border border-slate-700">
+                                    <img :src="photoPreviewUrl" class="w-full h-full object-cover" />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    :disabled="bitacoraForm.processing || !bitacoraForm.content_text"
+                                    class="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 transition"
+                                >
+                                    <Send class="w-4 h-4" />
+                                    <span>GUARDAR EN PORTAFOLIO (+25 XP)</span>
+                                </button>
+                            </form>
+
+                            <!-- Línea de Tiempo de Evidencias -->
+                            <div class="space-y-3">
+                                <h4 class="text-xs font-bold text-slate-400">Evidencias Guardadas de este Reto:</h4>
+                                <div v-if="currentLevelBitacoras.length" class="space-y-2">
+                                    <div
+                                        v-for="b in currentLevelBitacoras"
+                                        :key="b.id"
+                                        class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs space-y-2"
+                                    >
+                                        <div class="flex items-center justify-between text-[11px]">
+                                            <span class="font-bold text-cyan-300">{{ b.active_role_user?.name || 'Miembro' }}</span>
+                                            <span class="flex items-center gap-1 font-semibold text-[10px] text-emerald-400">
+                                                <CheckCircle2 class="w-3.5 h-3.5" /> Aprobado
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-300 whitespace-pre-line">{{ b.content_text }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -898,7 +1047,62 @@ const totalSquadXp = computed(() => {
 
         </main>
 
-        <!-- WIDGET FLOTANTE CHATBOT TUTOR IA (GEMINI 3.6 FLASH) -->
+        <!-- ================================================================= -->
+        <!-- MODAL DE VICTORIA & CELEBRACIÓN DE NIVEL COMPLETADO -->
+        <!-- ================================================================= -->
+        <div
+            v-if="showVictoryModal"
+            class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+        >
+            <div class="w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/60 rounded-3xl p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+                <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center text-slate-950 mx-auto shadow-2xl shadow-amber-500/40 animate-bounce">
+                    <PartyPopper class="w-10 h-10" />
+                </div>
+
+                <div class="space-y-2">
+                    <span class="text-[11px] uppercase font-mono font-bold tracking-widest text-amber-400">¡Misión Cumplida!</span>
+                    <h2 class="text-2xl font-black text-white">¡NIVEL {{ selectedLevel.level_number }} SUPERADO CON ÉXITO!</h2>
+                    <p class="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                        Tu pieza <strong>'{{ activeModelInfo?.file_name || 'Modelo 3D' }}'</strong> ha sido validada por la IA y enviada a la cola de fabricación física.
+                    </p>
+                </div>
+
+                <!-- Resumen de Recompensas -->
+                <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+                    <div class="p-3 rounded-2xl bg-purple-950/60 border border-purple-500/40 text-center">
+                        <p class="text-[10px] text-purple-300 uppercase font-bold">XP Ganados</p>
+                        <p class="text-base font-black text-purple-200">+100 XP</p>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-amber-950/60 border border-amber-500/40 text-center">
+                        <p class="text-[10px] text-amber-300 uppercase font-bold">FabCoins Usados</p>
+                        <p class="text-base font-black text-amber-200">-{{ selectedLevel.fabcoins_cost }} FC</p>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="space-y-2 pt-2">
+                    <button
+                        v-if="nextLevel"
+                        type="button"
+                        @click="showVictoryModal = false; openLevelStudio(nextLevel.id, 1)"
+                        class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-emerald-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/30 transition"
+                    >
+                        <span>AVANZAR AL NIVEL {{ nextLevel.level_number }} 🚀</span>
+                        <ArrowRight class="w-4 h-4" />
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="showVictoryModal = false; backToRoadmap()"
+                        class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition"
+                    >
+                        Volver al Mapa de Retos
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WIDGET FLOTANTE CHATBOT TUTOR IA (GEMINI FLASH) -->
         <AiTutorChatModal
             :squad="squad"
             :activeStudent="activeStudent"
