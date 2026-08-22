@@ -7,7 +7,7 @@ import {
     Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop, UploadCloud,
     Cpu, XCircle, Printer, Hammer, Gauge, Globe, Box, Film, Camera, Image,
     Download, ArrowLeft, ArrowRight, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap,
-    PartyPopper, Compass
+    PartyPopper, Compass, Palette, Scissors, CheckSquare, ListChecks
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
@@ -28,7 +28,6 @@ const page = usePage();
 const currentMode = ref('roadmap');
 
 // Paso activo del Stepper Guiado dentro del Estudio: 1, 2, 3 o 4
-// 1: Misión & Video | 2: Taller 3D e IA | 3: Reflexión Maker | 4: Fabricar & Celebrar
 const currentStep = ref(2);
 
 // Modal de Celebración de Nivel Superado
@@ -39,6 +38,12 @@ const selectedLevelId = ref(props.project.levels[0]?.id || null);
 
 const selectedLevel = computed(() => {
     return props.project.levels.find((l) => l.id === selectedLevelId.value) || props.project.levels[0];
+});
+
+// Tipo de entregable activo del nivel: 'stl_3d', 'photo_sketch', 'svg_laser', 'checklist_assembly'
+const levelDeliverableType = computed(() => {
+    const lvl = selectedLevel.value;
+    return lvl?.toolbox?.deliverable_type || lvl?.validation_rules?.deliverable_type || (lvl?.level_number === 1 ? 'photo_sketch' : (lvl?.level_number === 4 ? 'checklist_assembly' : 'stl_3d'));
 });
 
 const openLevelStudio = (levelId, stepNumber = 1) => {
@@ -78,6 +83,21 @@ const selectedRealFile = ref(null);
 const selectedFileName = ref('');
 const isScanning = ref(false);
 
+// Checklist interactivo para niveles de ensamble físico
+const assemblyChecks = ref({
+    bed_removal: true,
+    deburred_edges: true,
+    tight_fit: true,
+    durability_test: false,
+});
+
+const allAssemblyChecksPassed = computed(() => {
+    return Object.values(assemblyChecks.value).every(Boolean);
+});
+
+// Preview para fotos de boceto
+const sketchPreviewUrl = ref(null);
+
 watch(() => props.flash?.preflight_result, (newVal) => {
     if (newVal) {
         preflightResult.value = newVal;
@@ -90,6 +110,10 @@ const handleFileSelect = (event) => {
     selectedRealFile.value = file;
     selectedFileName.value = file.name;
     preflightForm.file = file;
+
+    if (levelDeliverableType.value === 'photo_sketch') {
+        sketchPreviewUrl.value = URL.createObjectURL(file);
+    }
 };
 
 const runPreflightCheck = async () => {
@@ -147,7 +171,7 @@ const createAndTestDemoFile = (type, isValid = true) => {
     });
 };
 
-// Confirmar Fabricación y Descontar FabCoins
+// Confirmar Fabricación o Completar Reto Gratuito
 const isFabricating = ref(false);
 const confirmFabrication = () => {
     if (!selectedLevel.value) return;
@@ -175,7 +199,7 @@ const reflectionForm = useForm({
 
 const submitReflection = () => {
     if (!selectedLevel.value) return;
-    const combinedContent = `[AUTORREFLEXIÓN METACOGNITIVA MAKER ⭐${reflectionForm.self_rating}/5]\n\n• Reto resuelto: ${reflectionForm.design_challenge_solved}\n• Estrategia FabCoins/Material: ${reflectionForm.fabcoins_strategy}`;
+    const combinedContent = `[AUTORREFLEXIÓN METACOGNITIVA MAKER ⭐${reflectionForm.self_rating}/5]\n\n• Reto resuelto: ${reflectionForm.design_challenge_solved}\n• Estrategia y Acabado: ${reflectionForm.fabcoins_strategy}`;
 
     bitacoraForm.content_text = combinedContent;
     submitBitacora();
@@ -207,7 +231,7 @@ const submitBitacora = () => {
             bitacoraForm.reset();
             photoPreviewUrl.value = null;
             reflectionForm.reset();
-            goToStep(4); // Avanzar automáticamente al paso de fabricación
+            goToStep(4);
         },
     });
 };
@@ -270,6 +294,15 @@ const nextLevel = computed(() => {
     }
     return null;
 });
+
+const getDeliverableBadge = (type) => {
+    switch(type) {
+        case 'photo_sketch': return { label: 'Boceto / Ideación', icon: Palette, color: 'text-amber-400 bg-amber-950/60 border-amber-500/40' };
+        case 'svg_laser': return { label: 'Corte Láser 2D', icon: Scissors, color: 'text-purple-400 bg-purple-950/60 border-purple-500/40' };
+        case 'checklist_assembly': return { label: 'Ensamble Físico', icon: Wrench, color: 'text-emerald-400 bg-emerald-950/60 border-emerald-500/40' };
+        default: return { label: 'Impresión 3D STL', icon: Box, color: 'text-cyan-400 bg-cyan-950/60 border-cyan-500/40' };
+    }
+};
 </script>
 
 <template>
@@ -462,11 +495,9 @@ const nextLevel = computed(() => {
                                 <span class="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg bg-slate-950 text-cyan-400 border border-slate-800">
                                     NIVEL {{ lvl.level_number }}
                                 </span>
-                                <span v-if="lvl.is_completed" class="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-600/40">
-                                    <CheckCircle2 class="w-3.5 h-3.5" /> Aprobado
-                                </span>
-                                <span v-else class="text-[10px] font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded-lg border border-amber-600/30">
-                                    En Curso
+                                
+                                <span :class="['flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-lg border', getDeliverableBadge(lvl.toolbox?.deliverable_type || (lvl.level_number === 1 ? 'photo_sketch' : (lvl.level_number === 4 ? 'checklist_assembly' : 'stl_3d'))).color]">
+                                    {{ getDeliverableBadge(lvl.toolbox?.deliverable_type || (lvl.level_number === 1 ? 'photo_sketch' : (lvl.level_number === 4 ? 'checklist_assembly' : 'stl_3d'))).label }}
                                 </span>
                             </div>
 
@@ -487,7 +518,7 @@ const nextLevel = computed(() => {
                                 type="button"
                                 class="px-3 py-1.5 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-500 text-cyan-300 group-hover:text-slate-950 text-xs font-black transition flex items-center gap-1"
                             >
-                                <span>Iniciar Reto</span>
+                                <span>Iniciar</span>
                                 <ArrowRight class="w-3.5 h-3.5" />
                             </button>
                         </div>
@@ -496,7 +527,7 @@ const nextLevel = computed(() => {
             </section>
 
             <!-- ================================================================= -->
-            <!-- MODO B: ESTUDIO DE TRABAJO CON STEPPER GUIADO (1 ➔ 2 ➔ 3 ➔ 4) -->
+            <!-- MODO B: ESTUDIO DE TRABAJO CON STEPPER GUIADO ADAPTABLE -->
             <!-- ================================================================= -->
             <section v-else-if="currentMode === 'studio'" class="space-y-6 animate-fade-in">
                 
@@ -514,23 +545,28 @@ const nextLevel = computed(() => {
                             </button>
 
                             <div>
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Estudio de Fabricación • Nivel {{ selectedLevel.level_number }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Nivel {{ selectedLevel.level_number }}</span>
+                                    <span :class="['text-[9px] font-bold px-2 py-0.5 rounded-md border', getDeliverableBadge(levelDeliverableType).color]">
+                                        {{ getDeliverableBadge(levelDeliverableType).label }}
+                                    </span>
+                                </div>
                                 <h2 class="text-base font-black text-white">{{ selectedLevel.title }}</h2>
                             </div>
                         </div>
 
-                        <!-- Badge de Estado del Nivel -->
+                        <!-- Badge de Costo del Nivel -->
                         <div class="flex items-center gap-2">
-                            <span v-if="selectedLevel.is_completed" class="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-600/40">
-                                <CheckCircle2 class="w-4 h-4" /> Nivel Completado
+                            <span v-if="selectedLevel.fabcoins_cost > 0" class="text-xs font-mono font-bold text-amber-300 bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-600/40">
+                                🪙 Costo: {{ selectedLevel.fabcoins_cost }} FC
                             </span>
-                            <span v-else class="text-xs font-bold text-amber-300 bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-600/40">
-                                Reto Activo
+                            <span v-else class="text-xs font-bold text-emerald-300 bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-600/40">
+                                🎁 Reto Sin Costo FC (+XP)
                             </span>
                         </div>
                     </div>
 
-                    <!-- STEPPER GUIADO VISUAL (4 PASOS DE LA MISIÓN MAKER) -->
+                    <!-- STEPPER GUIADO VISUAL (4 PASOS ADAPTABLES) -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
                         <!-- Paso 1 -->
                         <button
@@ -556,7 +592,7 @@ const nextLevel = computed(() => {
                             </div>
                         </button>
 
-                        <!-- Paso 2 -->
+                        <!-- Paso 2 (Nombre Adaptable según deliverable_type) -->
                         <button
                             type="button"
                             @click="goToStep(2)"
@@ -576,7 +612,9 @@ const nextLevel = computed(() => {
                             </div>
                             <div class="overflow-hidden">
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 2</p>
-                                <p :class="['text-xs font-black truncate', currentStep === 2 ? 'text-white' : 'text-slate-300']">Inspección 3D IA</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 2 ? 'text-white' : 'text-slate-300']">
+                                    {{ levelDeliverableType === 'photo_sketch' ? 'Boceto Inicial' : (levelDeliverableType === 'checklist_assembly' ? 'Ensamble y Pruebas' : (levelDeliverableType === 'svg_laser' ? 'Inspección Láser 2D' : 'Inspección 3D IA')) }}
+                                </p>
                             </div>
                         </button>
 
@@ -623,7 +661,9 @@ const nextLevel = computed(() => {
                             </div>
                             <div class="overflow-hidden">
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Paso 4</p>
-                                <p :class="['text-xs font-black truncate', currentStep === 4 ? 'text-white' : 'text-slate-300']">Fabricar & Bitácora</p>
+                                <p :class="['text-xs font-black truncate', currentStep === 4 ? 'text-white' : 'text-slate-300']">
+                                    {{ selectedLevel.fabcoins_cost > 0 ? 'Fabricar & FC' : 'Completar Nivel' }}
+                                </p>
                             </div>
                         </button>
                     </div>
@@ -671,23 +711,126 @@ const nextLevel = computed(() => {
 
                     <!-- FOOTER NAVEGACIÓN PASO 1 -->
                     <div class="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-                        <span class="text-xs text-slate-400">¿Listos para modelar en TinkerCAD?</span>
+                        <span class="text-xs text-slate-400">¿Listos para comenzar con el entregable?</span>
                         <button
                             type="button"
                             @click="goToStep(2)"
                             class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition"
                         >
-                            <span>Comenzar Inspección 3D</span>
+                            <span>Ir al Paso 2: Creación</span>
                             <ArrowRight class="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- PASO 2: CREAR & AUDITAR (VISOR 3D + MINI-DASHBOARD IA) -->
+                <!-- PASO 2: CREACIÓN ADAPTABLE SEGÚN DELIVERABLE_TYPE -->
                 <!-- ========================================================= -->
                 <div v-else-if="currentStep === 2" class="space-y-6 animate-fade-in">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- CASO A: BOCETO / IDEACIÓN (PHOTO_SKETCH) -->
+                    <div v-if="levelDeliverableType === 'photo_sketch'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+                                <div class="flex items-center gap-2 text-amber-400 font-black text-sm">
+                                    <Palette class="w-5 h-5" />
+                                    <span>Lienzo de Ideación y Bocetado</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Dibuja tu concepto en papel o en una pizarra con tu escuadra. Define las dimensiones estimadas (máximo {{ selectedLevel.validation_rules?.max_x_mm || 50 }}x{{ selectedLevel.validation_rules?.max_y_mm || 50 }} mm) antes de pasar al modelado 3D.
+                                </p>
+
+                                <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                                    <p class="font-bold text-amber-300">📋 Rúbrica de Diseño del Nivel 1:</p>
+                                    <ul class="space-y-1.5 text-slate-400 text-[11px]">
+                                        <li class="flex items-center gap-2">✓ Proporciones equilibradas y silueta clara.</li>
+                                        <li class="flex items-center gap-2">✓ Identificación de zonas planas para apoyo magnético.</li>
+                                        <li class="flex items-center gap-2">✓ Indicación de orificios o relieves previstos.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <Camera class="w-4 h-4 text-cyan-400" />
+                                    <span>Subir Foto del Boceto en Papel</span>
+                                </h3>
+
+                                <div class="p-5 rounded-2xl bg-slate-950 border-2 border-dashed border-slate-700 hover:border-cyan-400 text-center space-y-3 transition">
+                                    <UploadCloud class="w-8 h-8 text-cyan-400 mx-auto" />
+                                    <label class="cursor-pointer text-xs font-bold text-cyan-300 hover:underline block">
+                                        <span>Tomar foto o subir imagen del boceto</span>
+                                        <input type="file" @change="handleFileSelect" accept="image/*" class="hidden" />
+                                    </label>
+                                    <span v-if="selectedFileName" class="text-xs text-emerald-400 font-mono font-bold block">
+                                        📷 {{ selectedFileName }}
+                                    </span>
+                                </div>
+
+                                <div v-if="sketchPreviewUrl" class="w-full h-48 rounded-2xl overflow-hidden border border-slate-700">
+                                    <img :src="sketchPreviewUrl" class="w-full h-full object-contain bg-slate-950" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASO B: ENSAMBLAJE Y PRUEBAS FÍSICAS (CHECKLIST_ASSEMBLY) -->
+                    <div v-else-if="levelDeliverableType === 'checklist_assembly'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+                                <div class="flex items-center gap-2 text-emerald-400 font-black text-sm">
+                                    <Wrench class="w-5 h-5" />
+                                    <span>Guía de Ensamble y Post-Procesado</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Llegó el momento de retirar la pieza de la impresora 3D, remover rebabas con lija suave, colocar los aros de bisutería o accesorios y realizar las pruebas de calidad física.
+                                </p>
+
+                                <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                                    <p class="font-bold text-cyan-300">💡 Trucos de Taller:</p>
+                                    <p class="text-slate-400 text-[11px]">
+                                        Usa una lija al agua de grano 400 para pulir los relieves antes de colocar la argolla superior. Si vas a pintar a mano, aplica una capa ligera de laca para fijar el color.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <CheckSquare class="w-4 h-4 text-emerald-400" />
+                                    <span>Checklist de Calidad Física</span>
+                                </h3>
+
+                                <div class="space-y-2.5">
+                                    <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3 text-xs cursor-pointer hover:border-emerald-500/50 transition">
+                                        <input type="checkbox" v-model="assemblyChecks.bed_removal" class="w-4 h-4 rounded text-emerald-500 focus:ring-0" />
+                                        <span class="text-slate-200">Pieza despegada de la cama sin fracturas ni warping.</span>
+                                    </label>
+
+                                    <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3 text-xs cursor-pointer hover:border-emerald-500/50 transition">
+                                        <input type="checkbox" v-model="assemblyChecks.deburred_edges" class="w-4 h-4 rounded text-emerald-500 focus:ring-0" />
+                                        <span class="text-slate-200">Bordes lijados y orificio de enganche limpio.</span>
+                                    </label>
+
+                                    <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3 text-xs cursor-pointer hover:border-emerald-500/50 transition">
+                                        <input type="checkbox" v-model="assemblyChecks.tight_fit" class="w-4 h-4 rounded text-emerald-500 focus:ring-0" />
+                                        <span class="text-slate-200">Argolla o accesorio de ensamble colocado con firmeza.</span>
+                                    </label>
+
+                                    <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3 text-xs cursor-pointer hover:border-emerald-500/50 transition">
+                                        <input type="checkbox" v-model="assemblyChecks.durability_test" class="w-4 h-4 rounded text-emerald-500 focus:ring-0" />
+                                        <span class="text-slate-200">Prueba de resistencia superada (soporta el peso sin ceder).</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASO C: IMPRESIÓN 3D STL (STL_3D) -->
+                    <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         <!-- Visor 3D (7 Cols) -->
                         <div class="lg:col-span-7 space-y-3">
                             <StlViewer3D
@@ -831,7 +974,7 @@ const nextLevel = computed(() => {
                             class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
                         >
                             <ArrowLeft class="w-4 h-4" />
-                            <span>Paso 1: Video Misión</span>
+                            <span>Paso 1: Misión</span>
                         </button>
 
                         <button
@@ -911,7 +1054,7 @@ const nextLevel = computed(() => {
                             class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition"
                         >
                             <Award class="w-4 h-4" />
-                            <span>GUARDAR REFLEXIÓN Y AVANZAR A FABRICACIÓN (+50 XP)</span>
+                            <span>GUARDAR REFLEXIÓN Y AVANZAR AL PASO 4 (+50 XP)</span>
                         </button>
                     </form>
 
@@ -923,7 +1066,7 @@ const nextLevel = computed(() => {
                             class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
                         >
                             <ArrowLeft class="w-4 h-4" />
-                            <span>Paso 2: Inspección 3D</span>
+                            <span>Paso 2: Creación</span>
                         </button>
 
                         <button
@@ -931,21 +1074,23 @@ const nextLevel = computed(() => {
                             @click="goToStep(4)"
                             class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition flex items-center gap-1.5"
                         >
-                            <span>Paso 4: Fabricación</span>
+                            <span>Paso 4: Finalizar</span>
                             <ArrowRight class="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- PASO 4: FABRICAR & BITÁCORA (FABCOINS + PRODUCCIÓN FÍSICA) -->
+                <!-- PASO 4: FABRICAR / COMPLETAR RETO (ADAPTABLE FC) -->
                 <!-- ========================================================= -->
                 <div v-else-if="currentStep === 4" class="space-y-6 animate-fade-in">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         
-                        <!-- Columna Izquierda: Panel de Autorización de Fabricación (5 Cols) -->
+                        <!-- Columna Izquierda: Panel de Autorización o Completar Reto (5 Cols) -->
                         <div class="lg:col-span-5 space-y-4">
-                            <div class="p-6 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 space-y-4 shadow-2xl">
+                            
+                            <!-- CASO 1: REQUIERE FABCOINS (3D PRINT / LASER) -->
+                            <div v-if="selectedLevel.fabcoins_cost > 0" class="p-6 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 space-y-4 shadow-2xl">
                                 <div class="flex items-center gap-2.5 text-amber-400 font-black text-sm">
                                     <Printer class="w-5 h-5" />
                                     <span>Autorización de Fabricación Física</span>
@@ -960,7 +1105,7 @@ const nextLevel = computed(() => {
                                         <span class="font-mono font-bold text-amber-300">{{ squad.fabcoins_balance }} FC</span>
                                     </div>
                                     <div class="flex justify-between text-xs">
-                                        <span class="text-slate-400">Costo de Producción:</span>
+                                        <span class="text-slate-400">Costo de Insumos:</span>
                                         <span class="font-mono font-bold text-rose-400">-{{ selectedLevel.fabcoins_cost }} FC</span>
                                     </div>
                                     <div class="pt-2 border-t border-slate-800 flex justify-between text-xs font-black">
@@ -979,6 +1124,27 @@ const nextLevel = computed(() => {
                                     <span>{{ isFabricating ? 'Autorizando Fabricación...' : `AUTORIZAR IMPRESIÓN (${selectedLevel.fabcoins_cost} FC)` }}</span>
                                 </button>
                             </div>
+
+                            <!-- CASO 2: RETO SIN COSTO FC (BOCETO / ENSAMBLE FINAL) -->
+                            <div v-else class="p-6 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/40 space-y-4 shadow-2xl">
+                                <div class="flex items-center gap-2.5 text-emerald-400 font-black text-sm">
+                                    <Award class="w-5 h-5" />
+                                    <span>Completar Misión Pedagógica</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    ¡Gran trabajo escuadra! Este reto no requiere gasto de FabCoins de insumos. Al confirmar, registrarán su avance y recibirán sus **+100 XP**.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    @click="confirmFabrication"
+                                    :disabled="isFabricating"
+                                    class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 transition transform active:scale-95"
+                                >
+                                    <CheckCircle2 class="w-4 h-4" />
+                                    <span>{{ isFabricating ? 'Guardando Progreso...' : 'CONFIRMAR Y FINALIZAR NIVEL (+100 XP)' }}</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Columna Derecha: Registro de Fotos Reales en Bitácora (7 Cols) -->
@@ -992,7 +1158,7 @@ const nextLevel = computed(() => {
                                 <textarea
                                     v-model="bitacoraForm.content_text"
                                     rows="2"
-                                    placeholder="Nota final del equipo sobre el resultado físico impreso..."
+                                    placeholder="Nota final del equipo sobre el resultado físico impreso o ensamble..."
                                     class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3.5 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
                                 ></textarea>
 
@@ -1063,7 +1229,7 @@ const nextLevel = computed(() => {
                     <span class="text-[11px] uppercase font-mono font-bold tracking-widest text-amber-400">¡Misión Cumplida!</span>
                     <h2 class="text-2xl font-black text-white">¡NIVEL {{ selectedLevel.level_number }} SUPERADO CON ÉXITO!</h2>
                     <p class="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                        Tu pieza <strong>'{{ activeModelInfo?.file_name || 'Modelo 3D' }}'</strong> ha sido validada por la IA y enviada a la cola de fabricación física.
+                        {{ selectedLevel.fabcoins_cost > 0 ? `Tu pieza '${activeModelInfo?.file_name || 'Modelo 3D'}' ha sido validada por la IA y enviada a la cola de fabricación física.` : 'Has completado este reto pedagógico con éxito.' }}
                     </p>
                 </div>
 
@@ -1074,8 +1240,8 @@ const nextLevel = computed(() => {
                         <p class="text-base font-black text-purple-200">+100 XP</p>
                     </div>
                     <div class="p-3 rounded-2xl bg-amber-950/60 border border-amber-500/40 text-center">
-                        <p class="text-[10px] text-amber-300 uppercase font-bold">FabCoins Usados</p>
-                        <p class="text-base font-black text-amber-200">-{{ selectedLevel.fabcoins_cost }} FC</p>
+                        <p class="text-[10px] text-amber-300 uppercase font-bold">FabCoins Invertidos</p>
+                        <p class="text-base font-black text-amber-200">{{ selectedLevel.fabcoins_cost > 0 ? `-${selectedLevel.fabcoins_cost} FC` : '0 FC (Gratis)' }}</p>
                     </div>
                 </div>
 

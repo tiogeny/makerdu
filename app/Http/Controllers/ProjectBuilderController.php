@@ -33,7 +33,7 @@ class ProjectBuilderController extends Controller
     }
 
     /**
-     * Formulario de Creación / Edición
+     * Formulario de Creación
      */
     public function create()
     {
@@ -53,11 +53,12 @@ class ProjectBuilderController extends Controller
             'title_en' => ['nullable', 'string', 'max:255'],
             'description_es' => ['required', 'string'],
             'description_en' => ['nullable', 'string'],
-            'type' => ['required', 'string', 'in:2.5D,3D,Laser'],
+            'type' => ['required', 'string'],
             'levels' => ['required', 'array', 'min:1'],
             'levels.*.level_number' => ['required', 'integer'],
             'levels.*.title_es' => ['required', 'string'],
             'levels.*.guide_es' => ['required', 'string'],
+            'levels.*.deliverable_type' => ['nullable', 'string', 'in:stl_3d,photo_sketch,svg_laser,checklist_assembly'],
             'levels.*.bunny_video_url' => ['nullable', 'string'],
             'levels.*.max_x_mm' => ['nullable', 'numeric'],
             'levels.*.max_y_mm' => ['nullable', 'numeric'],
@@ -79,6 +80,8 @@ class ProjectBuilderController extends Controller
         ]);
 
         foreach ($request->levels as $idx => $lvl) {
+            $delivType = $lvl['deliverable_type'] ?? ($idx === 0 ? 'photo_sketch' : ($idx === 3 ? 'checklist_assembly' : 'stl_3d'));
+
             ProjectLevel::create([
                 'project_id' => $project->id,
                 'level_number' => $idx + 1,
@@ -88,10 +91,12 @@ class ProjectBuilderController extends Controller
                 ],
                 'toolbox_json' => [
                     'guide' => $lvl['guide_es'],
+                    'deliverable_type' => $delivType,
                     'bunny_video_url' => $lvl['bunny_video_url'] ?? '',
                     'resources' => [],
                 ],
                 'validation_rules_json' => [
+                    'deliverable_type' => $delivType,
                     'max_x_mm' => (float)($lvl['max_x_mm'] ?? 50),
                     'max_y_mm' => (float)($lvl['max_y_mm'] ?? 50),
                     'max_z_mm' => (float)($lvl['max_z_mm'] ?? 15),
@@ -119,12 +124,14 @@ class ProjectBuilderController extends Controller
                 'description_es' => $project->description_json['es'] ?? '',
                 'description_en' => $project->description_json['en'] ?? '',
                 'type' => $project->type,
-                'levels' => $project->levels->map(function ($lvl) {
+                'levels' => $project->levels->map(function ($lvl, $idx) {
+                    $delivType = $lvl->toolbox_json['deliverable_type'] ?? $lvl->validation_rules_json['deliverable_type'] ?? ($idx === 0 ? 'photo_sketch' : ($idx === 3 ? 'checklist_assembly' : 'stl_3d'));
                     return [
                         'id' => $lvl->id,
                         'level_number' => $lvl->level_number,
                         'title_es' => $lvl->title_json['es'] ?? '',
                         'title_en' => $lvl->title_json['en'] ?? '',
+                        'deliverable_type' => $delivType,
                         'guide_es' => $lvl->toolbox_json['guide'] ?? '',
                         'bunny_video_url' => $lvl->toolbox_json['bunny_video_url'] ?? '',
                         'max_x_mm' => $lvl->validation_rules_json['max_x_mm'] ?? 50,
@@ -146,7 +153,7 @@ class ProjectBuilderController extends Controller
         $request->validate([
             'title_es' => ['required', 'string', 'max:255'],
             'description_es' => ['required', 'string'],
-            'type' => ['required', 'string', 'in:2.5D,3D,Laser'],
+            'type' => ['required', 'string'],
             'levels' => ['required', 'array', 'min:1'],
         ]);
 
@@ -163,10 +170,11 @@ class ProjectBuilderController extends Controller
             'total_levels' => count($request->levels),
         ]);
 
-        // Reconstruir niveles
         $project->levels()->delete();
 
         foreach ($request->levels as $idx => $lvl) {
+            $delivType = $lvl['deliverable_type'] ?? ($idx === 0 ? 'photo_sketch' : ($idx === 3 ? 'checklist_assembly' : 'stl_3d'));
+
             ProjectLevel::create([
                 'project_id' => $project->id,
                 'level_number' => $idx + 1,
@@ -176,10 +184,12 @@ class ProjectBuilderController extends Controller
                 ],
                 'toolbox_json' => [
                     'guide' => $lvl['guide_es'],
+                    'deliverable_type' => $delivType,
                     'bunny_video_url' => $lvl['bunny_video_url'] ?? '',
                     'resources' => [],
                 ],
                 'validation_rules_json' => [
+                    'deliverable_type' => $delivType,
                     'max_x_mm' => (float)($lvl['max_x_mm'] ?? 50),
                     'max_y_mm' => (float)($lvl['max_y_mm'] ?? 50),
                     'max_z_mm' => (float)($lvl['max_z_mm'] ?? 15),

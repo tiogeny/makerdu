@@ -3,7 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import {
     Sparkles, Layers, Plus, Trash2, ArrowLeft,
-    Save, Film, Box, Coins, HelpCircle
+    Save, Film, Box, Coins, HelpCircle, Palette, Scissors, Wrench, CheckSquare
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -16,13 +16,14 @@ const form = useForm({
     title_en: props.project?.title_en || '',
     description_es: props.project?.description_es || '',
     description_en: props.project?.description_en || '',
-    type: props.project?.type || '3d_print',
+    type: props.project?.type || '3D',
     levels: props.project?.levels?.length ? props.project.levels : [
         {
             level_number: 1,
-            title_es: 'Nivel 1: Ideación y Bocetado Digital',
-            title_en: 'Level 1: Ideation & Digital Sketching',
-            guide_es: 'Boceta tu diseño en TinkerCAD manteniendo dimensiones básicas.',
+            title_es: 'Nivel 1: Ideación y Boceto Inicial',
+            title_en: 'Level 1: Ideation & Sketching',
+            deliverable_type: 'photo_sketch',
+            guide_es: 'Dibuja el concepto de tu pieza en tu libreta o papel cuadriculado y sube la foto.',
             bunny_video_url: 'https://iframe.mediadelivery.net/embed/demo',
             max_x_mm: 50,
             max_y_mm: 50,
@@ -31,14 +32,39 @@ const form = useForm({
         },
         {
             level_number: 2,
-            title_es: 'Nivel 2: Prototipado y Pre-flight Check',
-            title_en: 'Level 2: Prototyping & Pre-flight Check',
-            guide_es: 'Inspecciona la pieza en 3D para verificar que no exceda 50mm.',
+            title_es: 'Nivel 2: Modelado CAD e Inspección 3D IA',
+            title_en: 'Level 2: 3D CAD Modeling & AI Inspection',
+            deliverable_type: 'stl_3d',
+            guide_es: 'Diseña el modelo en TinkerCAD y súbelo al visor para que Gemini Vision valide las medidas.',
             bunny_video_url: 'https://iframe.mediadelivery.net/embed/demo',
             max_x_mm: 50,
             max_y_mm: 50,
             max_z_mm: 15,
             fabcoins_cost: 20,
+        },
+        {
+            level_number: 3,
+            title_es: 'Nivel 3: Relieves y Optimización de Infill',
+            title_en: 'Level 3: Reliefs & Infill Optimization',
+            deliverable_type: 'stl_3d',
+            guide_es: 'Agrega relieves escalonados y verifica el ahorro de FabCoins con la IA.',
+            bunny_video_url: 'https://iframe.mediadelivery.net/embed/demo',
+            max_x_mm: 50,
+            max_y_mm: 50,
+            max_z_mm: 15,
+            fabcoins_cost: 25,
+        },
+        {
+            level_number: 4,
+            title_es: 'Nivel 4: Ensamblaje y Pruebas Físicas',
+            title_en: 'Level 4: Physical Assembly & Testing',
+            deliverable_type: 'checklist_assembly',
+            guide_es: 'Retira la pieza de la cama, lija los bordes, realiza el ensamble y completa el checklist de calidad.',
+            bunny_video_url: 'https://iframe.mediadelivery.net/embed/demo',
+            max_x_mm: 50,
+            max_y_mm: 50,
+            max_z_mm: 15,
+            fabcoins_cost: 0,
         }
     ],
 });
@@ -49,12 +75,13 @@ const addLevel = () => {
         level_number: nextNum,
         title_es: `Nivel ${nextNum}: Reto de Fabricación ${nextNum}`,
         title_en: `Level ${nextNum}: Fabrication Challenge ${nextNum}`,
+        deliverable_type: 'stl_3d',
         guide_es: 'Describe la guía paso a paso para los estudiantes...',
         bunny_video_url: '',
         max_x_mm: 50,
         max_y_mm: 50,
         max_z_mm: 15,
-        fabcoins_cost: 25,
+        fabcoins_cost: 20,
     });
 };
 
@@ -159,10 +186,9 @@ const submitForm = () => {
                                 v-model="form.type"
                                 class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-bold focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                             >
-                                <option value="3d_print">Impresión 3D (FDM / Resina)</option>
-                                <option value="laser_cut">Corte y Grabado Láser (MDF / Acrílico)</option>
-                                <option value="phygital_assembly">Ensamblaje Figital y Robótica</option>
-                                <option value="electronics">Electrónica y Microcontroladores</option>
+                                <option value="3D">Impresión 3D (FDM / Resina)</option>
+                                <option value="Laser">Corte y Grabado Láser (MDF / Acrílico)</option>
+                                <option value="2.5D">Relieves 2.5D y Sellos</option>
                             </select>
                         </div>
                     </div>
@@ -176,7 +202,7 @@ const submitForm = () => {
                                 <Layers class="w-5 h-5 text-cyan-400" />
                                 <span>Malla de Niveles Dinámicos ({{ form.levels.length }})</span>
                             </h2>
-                            <p class="text-xs text-slate-400">Configura la secuencia de retos, videos en Bunny Stream y tolerancias físicas.</p>
+                            <p class="text-xs text-slate-400">Configura la secuencia de retos, el tipo de entregable, videos y costos.</p>
                         </div>
 
                         <button
@@ -214,7 +240,7 @@ const submitForm = () => {
                                 </button>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-400 mb-1">Título del Nivel *</label>
                                     <input
@@ -226,7 +252,20 @@ const submitForm = () => {
                                 </div>
 
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-400 mb-1">URL Video Tutorial (Bunny.net Stream Embed)</label>
+                                    <label class="block text-[11px] font-bold text-amber-300 mb-1">Tipo de Reto / Entregable *</label>
+                                    <select
+                                        v-model="lvl.deliverable_type"
+                                        class="w-full bg-slate-900 border border-amber-500/40 rounded-lg p-2.5 text-xs text-amber-300 font-bold focus:outline-none"
+                                    >
+                                        <option value="stl_3d">🧊 Impresión 3D (Visor Three.js + Gemini Vision)</option>
+                                        <option value="photo_sketch">🎨 Boceto / Ideación (Foto de Cuaderno / Canvas)</option>
+                                        <option value="svg_laser">✂️ Corte Láser 2D (Inspección SVG Vectorial)</option>
+                                        <option value="checklist_assembly">🔌 Ensamblaje y Pruebas Físicas (Checklist)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-1">URL Video Tutorial (Bunny Stream)</label>
                                     <input
                                         v-model="lvl.bunny_video_url"
                                         type="text"
@@ -277,6 +316,7 @@ const submitForm = () => {
                                     <input
                                         v-model.number="lvl.fabcoins_cost"
                                         type="number"
+                                        placeholder="0 para bocetos/ensamble"
                                         class="w-full bg-slate-950 border border-amber-500/40 rounded-lg p-1.5 text-xs text-amber-300 font-mono font-bold"
                                     />
                                 </div>
