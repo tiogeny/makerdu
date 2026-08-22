@@ -5,8 +5,10 @@ import {
     Sparkles, Coins, Trophy, Users, ShieldCheck, Wrench, CheckCircle2,
     Clock, BookOpen, ExternalLink, Send, FileText, ChevronRight, LogOut,
     Check, AlertCircle, ArrowUpRight, Flame, Layers, Laptop, UploadCloud,
-    Cpu, XCircle, Printer, Hammer, Gauge
+    Cpu, XCircle, Printer, Hammer, Gauge, Globe, Box
 } from 'lucide-vue-next';
+import StlViewer3D from '@/Components/StlViewer3D.vue';
+import { t, currentLang, setLanguage } from '@/i18n.js';
 
 const props = defineProps({
     squad: Object,
@@ -202,7 +204,7 @@ const totalSquadXp = computed(() => {
                             <Coins class="w-4 h-4" />
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-400/80 leading-none">FabCoins (Insumos)</p>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-400/80 leading-none">{{ t('fabcoins_balance') }}</p>
                             <p class="text-sm font-mono font-black text-amber-300">{{ squad.fabcoins_balance }} <span class="text-[11px] font-normal">FC</span></p>
                         </div>
                     </div>
@@ -213,10 +215,21 @@ const totalSquadXp = computed(() => {
                             <Trophy class="w-4 h-4" />
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold uppercase tracking-wider text-purple-400/80 leading-none">XP Escuadra</p>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-purple-400/80 leading-none">{{ t('squad_xp') }}</p>
                             <p class="text-sm font-mono font-black text-purple-300">{{ totalSquadXp }} <span class="text-[11px] font-normal">XP</span></p>
                         </div>
                     </div>
+
+                    <!-- Idioma Selector (i18n) -->
+                    <button
+                        type="button"
+                        @click="setLanguage(currentLang === 'es' ? 'en' : 'es')"
+                        class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold font-mono text-cyan-300 border border-slate-700 transition flex items-center gap-1"
+                        title="Cambiar Idioma"
+                    >
+                        <Globe class="w-3.5 h-3.5" />
+                        <span>{{ currentLang.toUpperCase() }}</span>
+                    </button>
 
                     <!-- TinkerCAD Direct Access -->
                     <a
@@ -225,7 +238,7 @@ const totalSquadXp = computed(() => {
                         target="_blank"
                         class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 transition"
                     >
-                        <span>TinkerCAD Taller</span>
+                        <span>TinkerCAD</span>
                         <ExternalLink class="w-3.5 h-3.5" />
                     </a>
 
@@ -260,8 +273,8 @@ const totalSquadXp = computed(() => {
                         </div>
                         <div>
                             <h2 class="text-base font-black text-white flex items-center gap-2">
-                                Panel de Escuadra: Rol Activo en Dispositivo
-                                <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-normal border border-slate-700">Regla 1-PC</span>
+                                {{ t('active_role_device') }}
+                                <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-normal border border-slate-700">{{ t('rule_1pc') }}</span>
                             </h2>
                             <p class="text-xs text-slate-400">Haz clic en tu tarjeta para tomar el turno activo sin desloguear el equipo.</p>
                         </div>
@@ -282,7 +295,7 @@ const totalSquadXp = computed(() => {
                         ]"
                     >
                         <div v-if="member.is_active_device_user" class="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950">
-                            <Check class="w-3 h-3 stroke-[3]" /> ACTIVO
+                            <Check class="w-3 h-3 stroke-[3]" /> {{ t('role_active') }}
                         </div>
 
                         <div class="flex items-center gap-3 mb-2">
@@ -316,10 +329,10 @@ const totalSquadXp = computed(() => {
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center gap-2">
                                 <Layers class="w-5 h-5 text-amber-400" />
-                                <h2 class="text-base font-black text-white">Malla del Proyecto</h2>
+                                <h2 class="text-base font-black text-white">{{ t('project_roadmap') }}</h2>
                             </div>
                             <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                                {{ project.type }} • {{ project.total_levels }} Niveles
+                                {{ project.type }} • {{ project.total_levels }} {{ t('levels') }}
                             </span>
                         </div>
                         
@@ -385,7 +398,7 @@ const totalSquadXp = computed(() => {
                         <div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                                 <BookOpen class="w-4 h-4 text-cyan-400" />
-                                Guía y Recursos del Nivel
+                                {{ t('level_guide') }}
                             </h4>
                             <p class="text-xs text-slate-300 leading-relaxed">{{ selectedLevel?.toolbox?.guide }}</p>
 
@@ -403,18 +416,18 @@ const totalSquadXp = computed(() => {
                             </div>
                         </div>
 
-                        <!-- MOTOR DE PRE-FLIGHT CHECK CON IA (MÓDULO C) -->
+                        <!-- MOTOR DE PRE-FLIGHT CHECK CON IA Y VISOR 3D WEBGL (MÓDULO 1) -->
                         <div v-if="selectedLevel?.validation_rules" class="p-5 rounded-2xl bg-gradient-to-br from-slate-950 to-cyan-950/30 border border-cyan-500/30 space-y-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 text-cyan-300 font-bold text-sm">
                                     <Cpu class="w-5 h-5 text-cyan-400 animate-pulse" />
-                                    <span>Laboratorio de Pre-flight Check IA (STL / SVG)</span>
+                                    <span>{{ t('preflight_lab') }}</span>
                                 </div>
-                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">Gemini Vision/Rules</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">Three.js WebGL & Gemini</span>
                             </div>
 
                             <p class="text-xs text-slate-300">
-                                Sube tu diseño 3D o vectorial para validar tolerancias mecánicas antes de enviar a fabricación física.
+                                Sube tu diseño 3D o vectorial para inspeccionarlo interactivamente en la cama de impresión y validar tolerancias mecánicas.
                             </p>
 
                             <!-- Zona de Carga de Archivo -->
@@ -422,7 +435,7 @@ const totalSquadXp = computed(() => {
                                 <UploadCloud class="w-8 h-8 text-cyan-400 mx-auto" />
                                 <div>
                                     <label class="cursor-pointer text-xs font-bold text-cyan-300 hover:underline">
-                                        <span>Seleccionar archivo .STL o .SVG</span>
+                                        <span>{{ t('upload_design') }}</span>
                                         <input type="file" @change="handleFileSelect" accept=".stl,.svg,.obj" class="hidden" />
                                     </label>
                                     <p v-if="selectedFileName" class="text-xs font-mono text-amber-300 mt-1 font-bold">
@@ -439,7 +452,7 @@ const totalSquadXp = computed(() => {
                                         class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs disabled:opacity-40 transition flex items-center gap-1.5"
                                     >
                                         <Sparkles class="w-3.5 h-3.5" />
-                                        <span>{{ isScanning ? 'Analizando archivo...' : 'Ejecutar Pre-flight Check' }}</span>
+                                        <span>{{ isScanning ? t('analyzing_file') : t('run_preflight') }}</span>
                                     </button>
                                 </div>
                             </div>
@@ -467,6 +480,23 @@ const totalSquadXp = computed(() => {
                                 </div>
                             </div>
 
+                            <!-- VISOR 3D INTERACTIVO THREE.JS WEBGL -->
+                            <div class="pt-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                                        <Box class="w-4 h-4" />
+                                        {{ t('view_3d') }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400">{{ t('rotate_hint') }}</span>
+                                </div>
+                                <StlViewer3D
+                                    :dimensions="preflightResult?.metrics || { x_mm: 40, y_mm: 40, z_mm: 10 }"
+                                    :limits="selectedLevel.validation_rules || { max_x_mm: 50, max_y_mm: 50, max_z_mm: 15 }"
+                                    :isValid="preflightResult ? preflightResult.is_valid : true"
+                                    :fileName="selectedFileName || 'modelo.stl'"
+                                />
+                            </div>
+
                             <!-- PANEL DE RESULTADOS PRE-FLIGHT -->
                             <div v-if="preflightResult" :class="[
                                 'p-4 rounded-xl border space-y-3 transition-all',
@@ -479,7 +509,7 @@ const totalSquadXp = computed(() => {
                                         <CheckCircle2 v-if="preflightResult.is_valid" class="w-5 h-5 text-emerald-400" />
                                         <XCircle v-else class="w-5 h-5 text-rose-400" />
                                         <span class="font-black text-sm text-white">
-                                            {{ preflightResult.is_valid ? 'PRE-FLIGHT APROBADO' : 'CORRECCIÓN REQUERIDA' }}
+                                            {{ preflightResult.is_valid ? t('preflight_approved') : t('preflight_rejected') }}
                                         </span>
                                     </div>
                                     <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-900 text-slate-300">
@@ -520,7 +550,7 @@ const totalSquadXp = computed(() => {
                                         class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-black text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-40 transition"
                                     >
                                         <Printer class="w-4 h-4" />
-                                        <span>ENVIAR A COLA DE FABRICACIÓN (CONSUMIR {{ selectedLevel.fabcoins_cost }} FC)</span>
+                                        <span>{{ t('send_to_fabrication') }} (CONSUMIR {{ selectedLevel.fabcoins_cost }} FC)</span>
                                     </button>
                                 </div>
                             </div>
@@ -530,7 +560,7 @@ const totalSquadXp = computed(() => {
                         <form @submit.prevent="submitBitacora" class="space-y-4 pt-2">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                    Registrar Avance / Bitácora como:
+                                    {{ t('register_bitacora') }} como:
                                     <span class="text-cyan-400 font-black">{{ activeStudent.name }} ({{ activeStudent.current_role }})</span>
                                 </label>
                                 <textarea
@@ -548,7 +578,7 @@ const totalSquadXp = computed(() => {
                                 class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 transition"
                             >
                                 <Send class="w-4 h-4" />
-                                <span>ENVIAR EVIDENCIA A LA BITÁCORA (+25 XP)</span>
+                                <span>{{ t('send_evidence') }}</span>
                             </button>
                         </form>
 

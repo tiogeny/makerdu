@@ -12,7 +12,7 @@
 * **Hosting Producción:** BanaHosting (cPanel / LiteSpeed / PHP 8.3 / MySQL)
 * **Stack Tecnológico:**
   * **Backend:** Laravel 11 (Inertia.js + REST API)
-  * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Lucide Icons + Ziggy
+  * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (WebGL 3D Viewer) + Lucide Icons + i18n
   * **Motor IA:** Gemini 2.0 Flash / OpenAI (para Pre-flight Check de STL/SVG)
   * **Generación de Archivos:** DomPDF (Hojas de Rotulado) + ZipArchive (Batches de fabricación)
 
@@ -23,7 +23,7 @@
 2. **Separación Económica:** 
    - `FabCoins (FC)` = Insumos Físicos Reales (filamento, corte láser, placas). No se regalan con trivias. La IA de validación protege este balance.
    - `XP Points` = Puntos Pedagógicos de reputación virtual (bitácoras, rotación de rol, colaboración).
-3. **Internacionalización (`i18n`):** Todo texto en vistas debe usar traducción (`es` base, `en` preparado).
+3. **Internacionalización (`i18n`):** Todo texto en vistas usa claves de traducción dinámicas (`es` base y `en` inglés) con selector de idioma en tiempo real.
 4. **Deploy en BanaHosting (cPanel):** Nunca compilar en el cPanel. El workflow de deploy usa `npm run build` en local/GitHub Actions para subir `public/build/`.
 
 ---
@@ -37,6 +37,7 @@
 | **Fase 2** | Autenticación (Código Clase + PIN 4 dígitos) y HUD Escuadra (1-PC) | ✅ Completado |
 | **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG + Gemini API) | ✅ Completado |
 | **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ✅ Completado |
+| **Módulo 1**| **Visor 3D Interactivo WebGL (Three.js) & Multi-idioma (i18n ES/EN)** | ✅ Completado |
 
 ---
 
