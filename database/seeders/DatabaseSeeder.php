@@ -1,15 +1,15 @@
 <?php
 
-namespace DatabaseSeeders;
+namespace Database\Seeders;
 
-use AppModelsUser;
-use AppModelsClassroom;
-use AppModelsSquad;
-use AppModelsProject;
-use AppModelsProjectLevel;
-use AppModelsBitacoraEntry;
-use IlluminateDatabaseSeeder;
-use IlluminateSupportFacadesHash;
+use App\Models\User;
+use App\Models\Classroom;
+use App\Models\Squad;
+use App\Models\Project;
+use App\Models\ProjectLevel;
+use App\Models\BitacoraEntry;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
