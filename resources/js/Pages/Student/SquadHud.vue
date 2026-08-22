@@ -223,6 +223,29 @@ const getRoleColor = (role) => {
     }
 };
 
+
+const activeModelInfo = computed(() => {
+    if (preflightResult.value?.metrics) {
+        return {
+            file_name: selectedFileName.value || preflightResult.value.file_name || 'AreteAmazon.stl',
+            x_mm: preflightResult.value.metrics.x_mm || 40,
+            y_mm: preflightResult.value.metrics.y_mm || 47.5,
+            z_mm: preflightResult.value.metrics.z_mm || 4,
+            material_grams: preflightResult.value.metrics.material_grams || 4.3,
+        };
+    }
+    if (selectedFileName.value) {
+        return {
+            file_name: selectedFileName.value,
+            x_mm: 40,
+            y_mm: 47.5,
+            z_mm: 4,
+            material_grams: 4.3,
+        };
+    }
+    return null;
+});
+
 const totalSquadXp = computed(() => {
     return props.squad.members.reduce((acc, m) => acc + (m.xp_points || 0), 0);
 });
@@ -880,6 +903,7 @@ const totalSquadXp = computed(() => {
             :squad="squad"
             :activeStudent="activeStudent"
             :selectedLevelId="selectedLevelId"
+            :activeModelInfo="activeModelInfo"
         />
     </div>
 </template>

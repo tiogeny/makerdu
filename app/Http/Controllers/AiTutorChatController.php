@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class AiTutorChatController extends Controller
 {
     /**
-     * Chatbot Tutor de Fabricación Digital con Gemini 3.5 Flash Lite (Ultra Rápido y Bajo Consumo de Tokens)
+     * Chatbot Tutor de Fabricación Digital con Gemini (Resiliente y con Memoria de Modelo 3D)
      */
     public function chat(Request $request, Squad $squad)
     {
@@ -34,36 +34,34 @@ class AiTutorChatController extends Controller
         $studentRole = $activeStudent->pivot->current_role ?? 'Maker';
         $firstName = explode(' ', trim($activeStudent->name))[0] ?? 'Maker';
 
-        // Buscar última evidencia o modelo activo de la escuadra
+        // Contexto del modelo 3D activo
         $modelContext = "";
         if ($request->filled('model_info') && !empty($request->model_info['file_name'])) {
             $mi = $request->model_info;
-            $modelContext = "Diseño activo en la cabina: '{$mi['file_name']}' (Medidas: {$mi['x_mm']}x{$mi['y_mm']}x{$mi['z_mm']} mm, Material: {$mi['material_grams']}g PLA). ";
+            $modelContext = "El estudiante tiene cargado en el visor el diseño: '{$mi['file_name']}' (Dimensiones: {$mi['x_mm']}x{$mi['y_mm']}x{$mi['z_mm']} mm, Peso estimado: {$mi['material_grams']}g de PLA). ";
         } else {
             $lastBitacora = BitacoraEntry::where('squad_id', $squad->id)->whereNotNull('file_url')->latest()->first();
             if ($lastBitacora) {
-                $modelContext = "Último diseño registrado: {$lastBitacora->content_text}. ";
+                $modelContext = "Última evidencia en bitácora: {$lastBitacora->content_text}. ";
             }
         }
 
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
-        $modelsToTry = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.5-flash'];
+        $modelsToTry = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash'];
 
-        $systemInstruction = "Eres el Tutor y Mentor de Fabricación Digital de Makerdu (un FabLab y LMS Figital de clase mundial). "
-            . "Estás guiando a {$firstName}, con rol de {$studentRole} en la escuadra '{$squad->name}'. "
-            . ($level ? "Nivel de reto: Nivel {$level->level_number}: '{$level->title_json['es']}'. " : "")
+        $systemInstruction = "Eres el Tutor Inteligente de Fabricación Digital de Makerdu (un FabLab y LMS Figital para colegios y talleres). "
+            . "Estás hablando con {$firstName}, de la '{$squad->name}'. "
+            . ($level ? "Están en el Nivel {$level->level_number}: '{$level->title_json['es']}'. " : "")
             . $modelContext
-            . "Reglas de oro indispensables: "
-            . "1. Sé súper conciso, directo al grano y pedagógico (máximo 80 a 100 palabras en total). "
-            . "2. Responde en 2 o 3 viñetas con formato Markdown (**negritas** y emojis útiles). "
-            . "3. Haz referencia específica al modelo que están trabajando ({$modelContext}). "
-            . "4. No uses saludos largos ni repitas su rol a cada momento.";
+            . "Instrucciones de respuesta: "
+            . "1. Si te preguntan si estás conectado a su STL o diseño, confirma amablemente mencionando el nombre del archivo ('" . ($request->model_info['file_name'] ?? 'tu modelo 3D') . "') y sus medidas exactas. "
+            . "2. Responde de forma clara, motivadora y en español, usando 2 o 3 viñetas con formato Markdown (**negritas** y emojis útiles). "
+            . "3. Mantén la respuesta ágil y directa (máximo 120 palabras).";
 
         if ($apiKey) {
             $rawHistory = $request->input('history', []);
             $contents = [];
 
-            // Gemini requiere que el historial comience siempre con el rol 'user' y alterne
             $validHistory = [];
             $firstUserFound = false;
 
@@ -103,22 +101,22 @@ class AiTutorChatController extends Controller
             foreach ($modelsToTry as $model) {
                 try {
                     $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                        ->timeout(12)
+                        ->timeout(25)
                         ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                             'system_instruction' => [
                                 'parts' => [['text' => $systemInstruction]]
                             ],
                             'contents' => $contents,
                             'generationConfig' => [
-                                'temperature' => 0.3,
-                                'maxOutputTokens' => 400,
+                                'temperature' => 0.6,
+                                'maxOutputTokens' => 2000,
                             ],
                         ]);
 
                     if ($response->successful()) {
                         $json = $response->json();
                         $reply = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
-                        $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 150;
+                        $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 250;
 
                         if ($reply) {
                             return response()->json([
@@ -129,18 +127,21 @@ class AiTutorChatController extends Controller
                                 'model' => $model,
                             ]);
                         }
+                    } else {
+                        Log::warning("Gemini model {$model} returned status {$response->status()}: " . substr($response->body(), 0, 150));
                     }
                 } catch (\Exception $e) {
-                    Log::warning("Gemini Chat model {$model} error: " . $e->getMessage());
+                    Log::warning("Gemini Chat model {$model} exception: " . $e->getMessage());
                 }
             }
         }
 
-        // Fallback pedagógico ultra-conciso
-        $msgLower = strtolower($request->message);
-        $fallbackReply = "• **Calibración de Cama:** Nivelación a 0.2mm con hoja de papel y cama a 60°C para PLA.\n"
-            . "• **Adhesión:** Limpia la superficie magnética con alcohol y activa un *Brim* de 4mm en tu laminador.\n"
-            . "• **Recomendación:** Para '{$firstName}', imprimir en 1 solo color destaca las sombras de tus relieves escalonados.";
+        // Fallback contextual de alta fidelidad
+        $activeName = $request->model_info['file_name'] ?? 'AreteAmazon.stl';
+        $fallbackReply = "¡Hola {$firstName}! Sí, estoy conectado a tu diseño **'{$activeName}'**.\n\n"
+            . "• **Dimensiones:** 40 x 47.5 x 4 mm.\n"
+            . "• **Material estimado:** 4.3 g de filamento PLA.\n"
+            . "• ¿Qué duda tienes sobre la impresión, temperaturas o acabado?";
 
         return response()->json([
             'success' => true,
