@@ -5,8 +5,9 @@ import {
     Sparkles, School, Users, Layers, Trophy, Coins, CheckCircle2,
     Clock, Lock, FileText, Download, Package, Truck, Printer,
     Flame, ArrowRight, ExternalLink, ShieldCheck, ChevronRight, BarChart3,
-    Share2, MessageCircle
+    Share2, MessageCircle, Award, CreditCard
 } from 'lucide-vue-next';
+import { t } from '@/i18n.js';
 
 const props = defineProps({
     classrooms: Array,
@@ -44,7 +45,7 @@ const updateStatus = (batchId, status) => {
 const getStatusBadge = (status) => {
     switch (status) {
         case 'completed':
-            return { label: 'Completado', class: 'bg-emerald-500 text-slate-950 font-bold' };
+            return { label: 'Aprobado', class: 'bg-emerald-500 text-slate-950 font-bold' };
         case 'in_progress':
             return { label: 'En Curso', class: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse' };
         case 'locked':
@@ -70,7 +71,7 @@ const getBatchStatusBadge = (status) => {
 </script>
 
 <template>
-    <Head title="War Room Docente - Makerdu v2.6" />
+    <Head title="Torre de Control Maker - Makerdu v2.6" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
         <!-- TOPBAR DOCENTE -->
@@ -82,17 +83,17 @@ const getBatchStatusBadge = (status) => {
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h1 class="font-black text-lg tracking-tight text-white">WAR ROOM DOCENTE</h1>
+                            <h1 class="font-black text-lg tracking-tight text-white">{{ t('teacher.tower_title') }}</h1>
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
-                                Monitor CNEB & FabLab
+                                {{ t('teacher.tower_badge') }}
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400">Supervisión en vivo de escuadras, insumos y fabricación digital</p>
+                        <p class="text-xs text-slate-400">{{ t('teacher.tower_desc') }}</p>
                     </div>
                 </div>
 
                 <!-- Selector de Aula & Acciones -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                     <select
                         :value="activeClassroom?.id"
                         @change="changeClassroom($event.target.value)"
@@ -102,6 +103,16 @@ const getBatchStatusBadge = (status) => {
                             {{ c.name }} ({{ c.access_code }})
                         </option>
                     </select>
+
+                    <!-- Descargar Tarjetas PIN en PDF -->
+                    <a
+                        v-if="activeClassroom"
+                        :href="route('teacher.pin-cards', { classroom: activeClassroom.id })"
+                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5"
+                    >
+                        <CreditCard class="w-3.5 h-3.5" />
+                        <span>Tarjetas PIN (PDF)</span>
+                    </a>
 
                     <Link
                         :href="route('student.login')"
@@ -122,13 +133,13 @@ const getBatchStatusBadge = (status) => {
                 <span>{{ $page.props.flash.success }}</span>
             </div>
 
-            <!-- SECCIÓN 1: MAPA DE CALOR DEL AULA (PROGRESS HEATMAP) -->
+            <!-- SECCIÓN 1: RADAR DE AVANCE DEL AULA -->
             <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2">
                             <BarChart3 class="w-5 h-5 text-cyan-400" />
-                            <h2 class="text-lg font-black text-white">Mapa de Calor del Aula (Niveles vs. Escuadras)</h2>
+                            <h2 class="text-lg font-black text-white">{{ t('teacher.heatmap_title') }}</h2>
                         </div>
                         <p class="text-xs text-slate-400 mt-0.5">Avance de cada equipo en los {{ project?.total_levels }} niveles dinámicos del proyecto figital.</p>
                     </div>
@@ -141,7 +152,7 @@ const getBatchStatusBadge = (status) => {
                         class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs tracking-wider flex items-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 transition"
                     >
                         <Package class="w-4 h-4" />
-                        <span>{{ isGeneratingBatch ? 'Generando Lote...' : 'EMPAQUETAR LOTE FABLAB (.ZIP + PDF)' }}</span>
+                        <span>{{ isGeneratingBatch ? 'Empaquetando...' : t('teacher.btn_generate_batch') }}</span>
                     </button>
                 </div>
 
@@ -156,7 +167,8 @@ const getBatchStatusBadge = (status) => {
                                 <th v-for="lvl in project?.levels" :key="lvl.id" class="p-4 text-center">
                                     Nivel {{ lvl.level_number }}
                                 </th>
-                                <th class="p-4 text-center">Link Familiar</th>
+                                <th class="p-4 text-center">Pasaporte Maker</th>
+                                <th class="p-4 text-center">WhatsApp Familia</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 font-medium">
@@ -178,6 +190,16 @@ const getBatchStatusBadge = (status) => {
                                 </td>
                                 <td class="p-4 text-center">
                                     <Link
+                                        :href="route('squad.passport', { squad: sq.squad_id })"
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-600/40 text-[11px] font-bold transition"
+                                    >
+                                        <Award class="w-3.5 h-3.5" />
+                                        <span>Certificado</span>
+                                    </Link>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <Link
                                         :href="route('family.portal', { accessCode: activeClassroom.access_code, squad: sq.squad_id })"
                                         target="_blank"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 border border-emerald-600/40 text-[11px] font-bold transition"
@@ -192,11 +214,11 @@ const getBatchStatusBadge = (status) => {
                 </div>
             </section>
 
-            <!-- SECCIÓN 2: TRADUCCIÓN DUAL A COMPETENCIAS CNEB / MINEDU -->
+            <!-- SECCIÓN 2: TRADUCCIÓN A COMPETENCIAS CNEB / MINEDU -->
             <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
                 <div class="flex items-center gap-2">
                     <ShieldCheck class="w-5 h-5 text-emerald-400" />
-                    <h2 class="text-lg font-black text-white">Traductor Curricular CNEB / MINEDU</h2>
+                    <h2 class="text-lg font-black text-white">{{ t('teacher.cneb_title') }}</h2>
                 </div>
                 <p class="text-xs text-slate-400">
                     Correspondencia automática entre los niveles pedagógicos del alumno y los estándares oficiales del currículo nacional.
@@ -224,7 +246,7 @@ const getBatchStatusBadge = (status) => {
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Printer class="w-5 h-5 text-amber-400" />
-                        <h2 class="text-lg font-black text-white">Lotes de Fabricación Generados (FabLab)</h2>
+                        <h2 class="text-lg font-black text-white">{{ t('teacher.batches_title') }}</h2>
                     </div>
                     <span class="text-xs text-slate-400">{{ batches.length }} lotes registrados</span>
                 </div>
@@ -254,7 +276,7 @@ const getBatchStatusBadge = (status) => {
                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-700/50 text-xs font-bold transition"
                             >
                                 <Download class="w-3.5 h-3.5" />
-                                <span>Descargar .ZIP Modelos</span>
+                                <span>{{ t('teacher.download_zip') }}</span>
                             </a>
 
                             <a
@@ -264,10 +286,10 @@ const getBatchStatusBadge = (status) => {
                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-700/50 text-xs font-bold transition"
                             >
                                 <FileText class="w-3.5 h-3.5" />
-                                <span>Imprimir Hojas Rotulado (PDF)</span>
+                                <span>{{ t('teacher.print_pdf') }}</span>
                             </a>
 
-                            <!-- Selector de estado rápido para el técnico -->
+                            <!-- Selector de estado rápido -->
                             <select
                                 :value="b.status"
                                 @change="updateStatus(b.id, $event.target.value)"

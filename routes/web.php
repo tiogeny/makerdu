@@ -23,7 +23,7 @@ Route::get('/student-login', [StudentAuthController::class, 'showLogin'])->name(
 Route::post('/student-login', [StudentAuthController::class, 'login'])->name('student.login.post');
 Route::post('/student-logout', [StudentAuthController::class, 'logout'])->name('student.logout');
 
-// HUD de la Escuadra (Regla de 1-PC) y Operaciones Maker
+// HUD de la Escuadra y Operaciones Maker
 Route::middleware(['auth'])->group(function () {
     Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud');
     Route::post('/squad/{squad}/switch-role', [SquadController::class, 'switchRole'])->name('squad.switch-role');
@@ -31,8 +31,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');
     Route::post('/squad/{squad}/level/{level}/bitacora', [SquadController::class, 'submitBitacora'])->name('squad.bitacora.submit');
 
-    // War Room Docente (Módulo D)
+    // Pasaporte Maker Digital Verificable
+    Route::get('/squad/{squad}/passport', [TeacherWarRoomController::class, 'passport'])->name('squad.passport');
+
+    // Torre de Control Docente
     Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
+    Route::get('/teacher/classroom/{classroom}/pin-cards', [TeacherWarRoomController::class, 'downloadPinCards'])->name('teacher.pin-cards');
     Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
     Route::post('/teacher/batch/{batch}/status', [TeacherWarRoomController::class, 'updateBatchStatus'])->name('teacher.batch-status');
 
@@ -46,10 +50,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Portal Familiar Seguro (Enlace para Apoderados vía WhatsApp)
+// Portal Familiar Seguro (WhatsApp)
 Route::get('/family/{accessCode}/squad/{squad}', [TeacherWarRoomController::class, 'familyPortal'])->name('family.portal');
 
-// Endpoint API REST según PRD v2.6 (Módulo C)
+// API REST Pre-flight
 Route::post('/api/squads/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('api.squad.preflight');
 
 require __DIR__.'/auth.php';
