@@ -86,73 +86,95 @@ class AiPreflightService
      */
     private function parseStlDimensions(string $filePath): array
     {
+        $content = @file_get_contents($filePath);
+        if (!$content) {
+            return ['x_mm' => 40.0, 'y_mm' => 40.0, 'z_mm' => 10.0, 'triangles' => 1200];
+        }
+
+        // Si es ASCII STL (contiene 'vertex')
+        if (stripos($content, 'vertex') !== false) {
+            $minX = PHP_FLOAT_MAX; $maxX = -PHP_FLOAT_MAX;
+            $minY = PHP_FLOAT_MAX; $maxY = -PHP_FLOAT_MAX;
+            $minZ = PHP_FLOAT_MAX; $maxZ = -PHP_FLOAT_MAX;
+            $vertexCount = 0;
+
+            if (preg_match_all('/vertex\s+([-\d\.\+eE]+)\s+([-\d\.\+eE]+)\s+([-\d\.\+eE]+)/i', $content, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $m) {
+                    $x = (float)$m[1]; $y = (float)$m[2]; $z = (float)$m[3];
+                    $minX = min($minX, $x); $maxX = max($maxX, $x);
+                    $minY = min($minY, $y); $maxY = max($maxY, $y);
+                    $minZ = min($minZ, $z); $maxZ = max($maxZ, $z);
+                    $vertexCount++;
+                }
+
+                $dimX = round(abs($maxX - $minX), 1);
+                $dimY = round(abs($maxY - $minY), 1);
+                $dimZ = round(abs($maxZ - $minZ), 1);
+
+                return [
+                    'x_mm' => $dimX > 0 ? $dimX : 40.0,
+                    'y_mm' => $dimY > 0 ? $dimY : 40.0,
+                    'z_mm' => $dimZ > 0 ? $dimZ : 10.0,
+                    'triangles' => intval($vertexCount / 3),
+                ];
+            }
+        }
+
+        // Si es Binario STL
         $handle = @fopen($filePath, 'rb');
-        if (!$handle) {
-            return ['x_mm' => 38.5, 'y_mm' => 38.5, 'z_mm' => 10.0, 'triangles' => 2400];
-        }
+        if ($handle) {
+            $header = fread($handle, 80);
+            $triangleCountBytes = fread($handle, 4);
+            $triangleCount = 0;
 
-        $header = fread($handle, 80);
-        $triangleCountBytes = fread($handle, 4);
-        $triangleCount = 0;
+            if (strlen($triangleCountBytes) === 4) {
+                $unpacked = unpack('Vcount', $triangleCountBytes);
+                $triangleCount = $unpacked['count'] ?? 0;
+            }
 
-        if (strlen($triangleCountBytes) === 4) {
-            $unpacked = unpack('Vcount', $triangleCountBytes);
-            $triangleCount = $unpacked['count'] ?? 0;
-        }
+            $minX = PHP_FLOAT_MAX; $maxX = -PHP_FLOAT_MAX;
+            $minY = PHP_FLOAT_MAX; $maxY = -PHP_FLOAT_MAX;
+            $minZ = PHP_FLOAT_MAX; $maxZ = -PHP_FLOAT_MAX;
 
-        // Bounding box inicial
-        $minX = PHP_FLOAT_MAX; $maxX = -PHP_FLOAT_MAX;
-        $minY = PHP_FLOAT_MAX; $maxY = -PHP_FLOAT_MAX;
-        $minZ = PHP_FLOAT_MAX; $maxZ = -PHP_FLOAT_MAX;
+            if ($triangleCount > 0) {
+                $samples = min($triangleCount, 5000);
+                for ($i = 0; $i < $samples; $i++) {
+                    fseek($handle, 84 + ($i * 50) + 12);
+                    $vertexData = fread($handle, 36);
+                    if (strlen($vertexData) === 36) {
+                        $v = unpack('f9coords', $vertexData);
+                        for ($j = 1; $j <= 9; $j += 3) {
+                            $x = $v["coords$j"];
+                            $y = $v['coords' . ($j + 1)];
+                            $z = $v['coords' . ($j + 2)];
 
-        $isBinary = $triangleCount > 0 && filesize($filePath) >= (84 + $triangleCount * 50);
-
-        if ($isBinary && $triangleCount > 0) {
-            // Leer hasta un máximo de 5,000 triángulos para cálculo rápido
-            $samples = min($triangleCount, 5000);
-            for ($i = 0; $i < $samples; $i++) {
-                fseek($handle, 84 + ($i * 50) + 12); // Saltar normal (12 bytes) a los 3 vértices
-                $vertexData = fread($handle, 36);
-                if (strlen($vertexData) === 36) {
-                    $v = unpack('f9coords', $vertexData);
-                    for ($j = 1; $j <= 9; $j += 3) {
-                        $x = $v["coords$j"];
-                        $y = $v['coords' . ($j + 1)];
-                        $z = $v['coords' . ($j + 2)];
-
-                        $minX = min($minX, $x); $maxX = max($maxX, $x);
-                        $minY = min($minY, $y); $maxY = max($maxY, $y);
-                        $minZ = min($minZ, $z); $maxZ = max($maxZ, $z);
+                            $minX = min($minX, $x); $maxX = max($maxX, $x);
+                            $minY = min($minY, $y); $maxY = max($maxY, $y);
+                            $minZ = min($minZ, $z); $maxZ = max($maxZ, $z);
+                        }
                     }
                 }
+                fclose($handle);
+
+                $dimX = round(abs($maxX - $minX), 1);
+                $dimY = round(abs($maxY - $minY), 1);
+                $dimZ = round(abs($maxZ - $minZ), 1);
+
+                return [
+                    'x_mm' => ($dimX > 0 && $dimX < 500) ? $dimX : 42.0,
+                    'y_mm' => ($dimY > 0 && $dimY < 500) ? $dimY : 42.0,
+                    'z_mm' => ($dimZ > 0 && $dimZ < 500) ? $dimZ : 12.0,
+                    'triangles' => $triangleCount,
+                ];
             }
             fclose($handle);
-
-            $dimX = round(abs($maxX - $minX), 1);
-            $dimY = round(abs($maxY - $minY), 1);
-            $dimZ = round(abs($maxZ - $minZ), 1);
-
-            // Validar dimensiones lógicas
-            $dimX = ($dimX > 0 && $dimX < 500) ? $dimX : 42.0;
-            $dimY = ($dimY > 0 && $dimY < 500) ? $dimY : 42.0;
-            $dimZ = ($dimZ > 0 && $dimZ < 500) ? $dimZ : 12.0;
-
-            return [
-                'x_mm' => $dimX,
-                'y_mm' => $dimY,
-                'z_mm' => $dimZ,
-                'triangles' => $triangleCount,
-            ];
         }
 
-        fclose($handle);
-
-        // Fallback para ASCII o STL simplificado
         return [
-            'x_mm' => 45.0,
-            'y_mm' => 45.0,
-            'z_mm' => 12.5,
-            'triangles' => max(100, $triangleCount),
+            'x_mm' => 40.0,
+            'y_mm' => 40.0,
+            'z_mm' => 10.0,
+            'triangles' => 1200,
         ];
     }
 
@@ -170,14 +192,14 @@ class AiPreflightService
         $dimY = 40.0;
 
         if (preg_match('/viewBox\s*=\s*["\']\s*[\d\.]+\s+[\d\.]+\s+([\d\.]+)\s+([\d\.]+)\s*["\']/i', $content, $m)) {
-            $dimX = round((float)$m[1] * 0.264583, 1); // Conversión px a mm (96 DPI)
+            $dimX = round((float)$m[1] * 0.264583, 1);
             $dimY = round((float)$m[2] * 0.264583, 1);
         }
 
         return [
             'x_mm' => ($dimX > 0 && $dimX < 300) ? $dimX : 40.0,
             'y_mm' => ($dimY > 0 && $dimY < 300) ? $dimY : 40.0,
-            'z_mm' => 3.0, // Espesor placa láser
+            'z_mm' => 3.0,
             'triangles' => 0,
         ];
     }
@@ -218,7 +240,6 @@ class AiPreflightService
             }
         }
 
-        // Fallback pedagógico experto y contextual
         if ($isValid) {
             return "¡Excelente trabajo escuadra! La pieza cumple estrictamente con el volumen máximo de {$metrics['x_mm']}x{$metrics['y_mm']}mm y una altura de {$metrics['z_mm']}mm. La base geométrica proporcionará una impresión 3D sólida y un buen soporte de estampado. ¡Autorizado para fabricación con {$metrics['estimated_fc_cost']} FabCoins!";
         } else {
