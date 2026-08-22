@@ -19,7 +19,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+})->name('welcome');
 
 // Autenticación de Alumnos (Código de Aula + PIN de 4 dígitos)
 Route::get('/student-login', [StudentAuthController::class, 'showLogin'])->name('student.login');
