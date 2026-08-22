@@ -1,13 +1,13 @@
 <?php
 
-namespace AppHttpControllers;
+namespace App\Http\Controllers;
 
-use AppModelsProject;
-use AppModelsProjectLevel;
-use AppModelsSquad;
-use IlluminateHttpRequest;
-use IlluminateSupportFacadesHttp;
-use IlluminateSupportFacadesLog;
+use App\Models\Project;
+use App\Models\ProjectLevel;
+use App\Models\Squad;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AiTutorChatController extends Controller
 {
@@ -44,7 +44,6 @@ class AiTutorChatController extends Controller
             try {
                 $contents = [];
 
-                // Agregar historial previo si existe
                 if ($request->filled('history') && is_array($request->history)) {
                     foreach ($request->history as $h) {
                         $role = ($h['sender'] === 'user') ? 'user' : 'model';
@@ -55,7 +54,6 @@ class AiTutorChatController extends Controller
                     }
                 }
 
-                // Mensaje actual
                 $contents[] = [
                     'role' => 'user',
                     'parts' => [['text' => $request->message]],
@@ -87,12 +85,12 @@ class AiTutorChatController extends Controller
                 } else {
                     Log::warning("Gemini API Chat error: " . $response->body());
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 Log::warning("Excepción al consultar Gemini Chat: " . $e->getMessage());
             }
         }
 
-        // Fallback pedagógico inteligente si no hay internet o falla la API
+        // Fallback pedagógico inteligente
         $msgLower = strtolower($request->message);
         $fallbackReply = "¡Hola {$activeStudent->name}! Como {$studentRole} de la escuadra '{$squad->name}', ";
 

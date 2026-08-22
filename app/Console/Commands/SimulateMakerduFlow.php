@@ -21,7 +21,7 @@ use ZipArchive;
 class SimulateMakerduFlow extends Command
 {
     protected $signature = 'makerdu:simulate';
-    protected $description = 'Simula de extremo a extremo todo el flujo de Makerdu v2.6 (Alumnos, 1-PC, Preflight IA, FabCoins, War Room, Course Builder y Aulas)';
+    protected $description = 'Simula de extremo a extremo todo el flujo de Makerdu v2.6 (Alumnos, 1-PC, Preflight IA, FabCoins, War Room, Course Builder, Aulas y Tutor Chat)';
 
     public function handle(AiPreflightService $preflightService)
     {
@@ -206,10 +206,11 @@ class SimulateMakerduFlow extends Command
         ]);
         $this->line("  [✓] Course Builder: Proyecto #{$newProject->id} ('{$newProject->title_json['es']}') creado.");
 
+        $rndCode = 'MK-' . mt_rand(1000, 9999);
         $newClassroom = Classroom::create([
             'teacher_id' => $classroom->teacher_id ?? 1,
-            'name' => 'Aula Test 6to Primaria',
-            'access_code' => 'MK-600',
+            'name' => "Aula Test {$rndCode}",
+            'access_code' => $rndCode,
             'mode' => 'school_squads',
         ]);
 
@@ -237,10 +238,28 @@ class SimulateMakerduFlow extends Command
         $this->line("  [✓] Classroom Manager: Aula '{$newClassroom->name}' creada con 4 alumnos y PINs únicos en '{$newSquad->name}'.");
         $this->info("  -> PASO 8 SUPERADO CON ÉXITO.\n");
 
+        // -------------------------------------------------------------
+        // PASO 9: CHATBOT TUTOR IA (GEMINI 2.0 FLASH / FALLBACK)
+        // -------------------------------------------------------------
+        $this->comment("Paso 9: Simulando Consulta al Tutor IA de Fabricación...");
+        $aiController = new \App\Http\Controllers\AiTutorChatController();
+        $mockRequest = new \Illuminate\Http\Request();
+        $mockRequest->merge([
+            'message' => '¿Cómo hago un agujero en TinkerCAD?',
+            'level_id' => $l1->id,
+        ]);
+
+        $chatResponse = $aiController->chat($mockRequest, $squad);
+        $chatData = json_decode($chatResponse->getContent(), true);
+
+        $this->line("  [✓] Respuesta del Tutor IA: " . substr($chatData['reply'], 0, 80) . "...");
+        $this->line("  [✓] Modo IA: " . ($chatData['is_live_ai'] ? 'Gemini 2.0 Flash en Vivo' : 'Motor Pedagógico Fallback'));
+        $this->info("  -> PASO 9 SUPERADO CON ÉXITO.\n");
+
         $totalDuration = round(microtime(true) - $startTime, 2);
 
         $this->info("===============================================================");
-        $this->info("   🎉 RESULTADO: TODOS LOS 8 PASOS PASARON SIN ERRORES (100%)");
+        $this->info("   🎉 RESULTADO: TODOS LOS 9 PASOS PASARON SIN ERRORES (100%)");
         $this->info("   Tiempo total de simulación: {$totalDuration} segundos.");
         $this->info("===============================================================");
 
