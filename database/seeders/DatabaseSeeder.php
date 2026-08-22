@@ -1,30 +1,39 @@
 <?php
 
-namespace Database\Seeders;
+namespace DatabaseSeeders;
 
-use App\Models\User;
-use App\Models\Classroom;
-use App\Models\Squad;
-use App\Models\Project;
-use App\Models\ProjectLevel;
-use App\Models\BitacoraEntry;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use AppModelsUser;
+use AppModelsClassroom;
+use AppModelsSquad;
+use AppModelsProject;
+use AppModelsProjectLevel;
+use AppModelsBitacoraEntry;
+use IlluminateDatabaseSeeder;
+use IlluminateSupportFacadesHash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Docente Maker
+        // 1. Super Administrador Makerdu
+        $admin = User::create([
+            'name' => 'Admin FabLab Lima',
+            'email' => 'contacto@fablablima.org',
+            'password' => Hash::make('password'),
+            'role_type' => 'admin',
+            'language' => 'es',
+        ]);
+
+        // 2. Docente / Instructor
         $teacher = User::create([
             'name' => 'Prof. Henry Sánchez',
-            'email' => 'contacto@fablablima.org',
+            'email' => 'profesor@makerdu.com',
             'password' => Hash::make('password'),
             'role_type' => 'teacher',
             'language' => 'es',
         ]);
 
-        // 2. Aula / Taller FabLab
+        // 3. Aula / Taller FabLab asignado al docente
         $classroom = Classroom::create([
             'teacher_id' => $teacher->id,
             'name' => 'Laboratorio FabLab - 4to Grado A',
@@ -33,7 +42,7 @@ class DatabaseSeeder extends Seeder
             'tinkercad_link' => 'https://www.tinkercad.com/joinclass/MK402DEMO',
         ]);
 
-        // 3. Proyecto Dinámico (Sellos y Relieves 2.5D)
+        // 4. Proyecto Dinámico (Sellos y Relieves 2.5D)
         $project = Project::create([
             'title_json' => [
                 'es' => 'Sellos y Relieves de Fabricación 2.5D',
@@ -56,13 +65,19 @@ class DatabaseSeeder extends Seeder
                 'en' => 'Level 1: Maker Challenge & Ideation'
             ],
             'toolbox_json' => [
-                'guide' => 'Define el boceto a mano alzada del sello con tu escuadra.',
+                'deliverable_type' => 'photo_sketch',
+                'guide' => 'Define el boceto a mano alzada del sello con tu escuadra en papel o pizarra.',
                 'resources' => [
                     ['title' => 'Plantilla de Boceto PDF', 'url' => '#', 'type' => 'pdf'],
                     ['title' => 'Inspiración de Formas Geométricas', 'url' => '#', 'type' => 'link']
                 ]
             ],
-            'validation_rules_json' => null,
+            'validation_rules_json' => [
+                'deliverable_type' => 'photo_sketch',
+                'max_x_mm' => 50,
+                'max_y_mm' => 50,
+                'max_z_mm' => 15,
+            ],
             'fabcoins_cost' => 0,
         ]);
 
@@ -74,6 +89,7 @@ class DatabaseSeeder extends Seeder
                 'en' => 'Level 2: Digital Modeling in TinkerCAD'
             ],
             'toolbox_json' => [
+                'deliverable_type' => 'stl_3d',
                 'guide' => 'Exporta tu diseño en formato .STL o .SVG respetando las dimensiones máximas de 50x50mm.',
                 'resources' => [
                     ['title' => 'Acceso a TinkerCAD Makerdu', 'url' => 'https://www.tinkercad.com', 'type' => 'link'],
@@ -81,30 +97,35 @@ class DatabaseSeeder extends Seeder
                 ]
             ],
             'validation_rules_json' => [
+                'deliverable_type' => 'stl_3d',
                 'max_x_mm' => 50,
                 'max_y_mm' => 50,
                 'max_z_mm' => 15,
                 'min_wall_thickness_mm' => 2.0,
             ],
-            'fabcoins_cost' => 0,
+            'fabcoins_cost' => 20,
         ]);
 
         $l3 = ProjectLevel::create([
             'project_id' => $project->id,
             'level_number' => 3,
             'title_json' => [
-                'es' => 'Nivel 3: Pre-flight Check IA y Fabricación',
-                'en' => 'Level 3: AI Pre-flight Check & Fabrication'
+                'es' => 'Nivel 3: Pre-flight Check IA y Relieves',
+                'en' => 'Level 3: AI Pre-flight Check & Reliefs'
             ],
             'toolbox_json' => [
+                'deliverable_type' => 'stl_3d',
                 'guide' => 'Sube tu archivo .STL para validación automática por Inteligencia Artificial antes del envío a impresión.',
                 'resources' => [
                     ['title' => 'Guía de Errores Comunes de Malla STL', 'url' => '#', 'type' => 'pdf']
                 ]
             ],
             'validation_rules_json' => [
-                'require_ai_approval' => true,
-                'max_print_time_hours' => 1.5,
+                'deliverable_type' => 'stl_3d',
+                'max_x_mm' => 50,
+                'max_y_mm' => 50,
+                'max_z_mm' => 15,
+                'min_wall_thickness_mm' => 2.0,
             ],
             'fabcoins_cost' => 25,
         ]);
@@ -117,23 +138,29 @@ class DatabaseSeeder extends Seeder
                 'en' => 'Level 4: Assembly, Testing & Final Report'
             ],
             'toolbox_json' => [
+                'deliverable_type' => 'checklist_assembly',
                 'guide' => 'Realiza la prueba de estampado sobre papel y registra el resultado en la bitácora fotográfica.',
                 'resources' => [
                     ['title' => 'Rúbrica de Evaluación Figital CNEB', 'url' => '#', 'type' => 'pdf']
                 ]
             ],
-            'validation_rules_json' => null,
+            'validation_rules_json' => [
+                'deliverable_type' => 'checklist_assembly',
+                'max_x_mm' => 50,
+                'max_y_mm' => 50,
+                'max_z_mm' => 15,
+            ],
             'fabcoins_cost' => 0,
         ]);
 
-        // 4. Escuadra Maker
+        // 5. Escuadra Maker
         $squad = Squad::create([
             'classroom_id' => $classroom->id,
             'name' => 'Escuadra Titanes Maker',
-            'fabcoins_balance' => 100, // 100 FabCoins iniciales
+            'fabcoins_balance' => 100,
         ]);
 
-        // 5. Alumnos de la Escuadra con PINs y Roles
+        // 6. Alumnos de la Escuadra con PINs y Roles
         $students = [
             [
                 'name' => 'Mateo Alarcón',
