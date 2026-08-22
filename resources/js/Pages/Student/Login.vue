@@ -87,7 +87,7 @@ const adultForm = useForm({
 });
 
 const useDemoTeacher = () => {
-    adultForm.email = 'profesor@makerdu.com';
+    adultForm.email = 'contacto@fablablima.org';
     adultForm.password = 'password';
 };
 
@@ -379,7 +379,7 @@ const submitAdult = () => {
                     >
                         <div>
                             <p class="font-bold text-amber-300 text-[11px]">⚡ Cargar Docente Demo</p>
-                            <p class="text-[10px] text-slate-500">profesor@makerdu.com (pass: password)</p>
+                            <p class="text-[10px] text-slate-500">contacto@fablablima.org (pass: password)</p>
                         </div>
                         <UserCheck class="w-4 h-4 text-amber-400" />
                     </button>

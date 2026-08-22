@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         // 1. Docente Maker
         $teacher = User::create([
             'name' => 'Prof. Henry Sánchez',
-            'email' => 'profesor@makerdu.com',
+            'email' => 'contacto@fablablima.org',
             'password' => Hash::make('password'),
             'role_type' => 'teacher',
             'language' => 'es',

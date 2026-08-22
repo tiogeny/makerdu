@@ -51,7 +51,7 @@
     "login_btn_adult": "INICIAR SESIÓN",
     "entering": "Conectando con el Taller...",
     "demo_title": "⚡ Accesos rápidos de prueba (Aula MK-402):",
-    "teacher_demo": "Docente demo: profesor@makerdu.com (pass: password)"
+    "teacher_demo": "Docente: contacto@fablablima.org (pass: password)"
   },
   "roles": {
     "title": "Panel de Escuadra: Rol Activo en Dispositivo",
@@ -91,5 +91,15 @@
     "photo_sketch": "Boceto / Ideación",
     "svg_laser": "Corte Láser 2D",
     "checklist_assembly": "Ensamble Físico"
+  },
+  "teacher": {
+    "tower_title": "Torre de Control Docente",
+    "tower_badge": "FabLab Live",
+    "tower_desc": "Monitoreo en tiempo real, gestión de lotes físicos y vinculación curricular CNEB.",
+    "heatmap_title": "Radar de Avance del Aula y Escuadras",
+    "btn_generate_batch": "Generar Lote de Fabricación (.ZIP + PDF)",
+    "cneb_title": "Vinculación Curricular CNEB / STEAM",
+    "batches_title": "Lotes de Fabricación en Taller",
+    "batches_desc": "Historial de paquetes de producción enviados a la granja de impresión 3D / corte láser."
   }
 }

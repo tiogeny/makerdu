@@ -153,7 +153,7 @@ class TeacherWarRoomController extends Controller
             'project' => $project,
             'bitacoras' => $bitacoras,
             'competencies' => $competencies,
-            'qrUrl' => "https://makerdu.test/family/{$classroom->access_code}/squad/{$squad->id}",
+            'qrUrl' => url("/family/{$classroom->access_code}/squad/{$squad->id}"),
         ]);
     }
 

@@ -84,7 +84,7 @@ const printCertificate = () => {
                         </div>
                         <div class="w-20 h-20 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-md border border-slate-700">
                             <!-- QR Code SVG Simulado -->
-                            <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://makerdu.test/family/${classroom.access_code}/squad/${squad.id}`" alt="QR Verificado" class="w-full h-full object-contain" />
+                            <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl || `https://makerdu.com/family/${classroom.access_code}/squad/${squad.id}`)}`" alt="QR Verificado" class="w-full h-full object-contain" />
                         </div>
                     </div>
                 </div>
