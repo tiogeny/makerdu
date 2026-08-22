@@ -30,34 +30,64 @@ class AiTutorChatController extends Controller
         $activeStudentId = session('active_student_id', auth()->id());
         $activeStudent = $squad->members->firstWhere('id', $activeStudentId) ?? auth()->user();
         $studentRole = $activeStudent->pivot->current_role ?? 'Maker';
+        $firstName = explode(' ', trim($activeStudent->name))[0] ?? 'Maker';
 
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
 
-        $systemInstruction = "Eres el Tutor Inteligente y Copiloto de Fabricación Digital de Makerdu (un FabLab para escuelas y talleres figitales). "
-            . "Estás guiando a la escuadra '{$squad->name}'. "
-            . "El alumno que te habla se llama {$activeStudent->name} y tiene el rol activo de '{$studentRole}'. "
-            . ($level ? "Están trabajando en el Nivel {$level->level_number}: '{$level->title_json['es']}'. Guía del nivel: {$level->toolbox_json['guide']}. " : "")
-            . "Tu objetivo es ayudarlos a resolver problemas de modelado 3D (TinkerCAD, Blender), parámetros de impresión (PLA, temperaturas, adhesión a la cama, soportes, boquillas), corte láser, tolerancias y optimización de FabCoins. "
-            . "Sé pedagógico, motivador, técnico pero fácil de entender para estudiantes y responde siempre en español conciso (2 a 4 párrafos cortos).";
+        $systemInstruction = "Eres el Tutor Inteligente y Mentor Senior de Fabricación Digital de Makerdu (un FabLab y LMS Figital de clase mundial). "
+            . "Estás guiando a {$firstName}, integrante de la '{$squad->name}' con rol de {$studentRole}. "
+            . ($level ? "Actualmente están en el Nivel {$level->level_number}: '{$level->title_json['es']}'. " : "")
+            . "Tu misión es resolver cualquier duda técnica de impresión 3D (PLA, PETG, temperaturas, adherencia, boquillas 0.4mm, alturas de capa 0.2mm vs 0.12mm, warping, soportes), modelado CAD en TinkerCAD/Blender, corte láser, acabado artesanal y economía de FabCoins. "
+            . "Reglas de conversación: "
+            . "1. Trata a {$firstName} por su nombre con naturalidad y calidez. NO repitas su rol ni el nombre de su escuadra a cada momento. "
+            . "2. Responde como un mentor entusiasta de innovación y FabLab. "
+            . "3. Usa formato Markdown con negritas, listas o viñetas y emojis para que las explicaciones sean muy visuales y claras. "
+            . "4. Da siempre recomendaciones prácticas reales de taller (por ejemplo, cambios de color con pausa de filamento M600, truco de pintar a mano, laca/pegamento para la cama, etc.).";
 
         if ($apiKey) {
             try {
+                $rawHistory = $request->input('history', []);
                 $contents = [];
 
-                if ($request->filled('history') && is_array($request->history)) {
-                    foreach ($request->history as $h) {
-                        $role = ($h['sender'] === 'user') ? 'user' : 'model';
-                        $contents[] = [
+                // Gemini requiere que el historial comience siempre con el rol 'user' y alterne
+                $validHistory = [];
+                $firstUserFound = false;
+
+                foreach ($rawHistory as $h) {
+                    $role = ($h['sender'] === 'user') ? 'user' : 'model';
+                    if (!$firstUserFound && $role !== 'user') {
+                        continue; // Omitir mensajes de bienvenida del modelo iniciales
+                    }
+                    $firstUserFound = true;
+                    $text = trim($h['text'] ?? '');
+                    if (!empty($text)) {
+                        $validHistory[] = [
                             'role' => $role,
-                            'parts' => [['text' => $h['text']]],
+                            'parts' => [['text' => $text]],
                         ];
                     }
                 }
 
-                $contents[] = [
-                    'role' => 'user',
-                    'parts' => [['text' => $request->message]],
-                ];
+                // Asegurar alternancia limpia user -> model -> user
+                $lastRole = null;
+                foreach ($validHistory as $item) {
+                    if ($item['role'] !== $lastRole) {
+                        $contents[] = $item;
+                        $lastRole = $item['role'];
+                    }
+                }
+
+                // Agregar el mensaje actual del usuario si no fue el último
+                if ($lastRole !== 'user') {
+                    $contents[] = [
+                        'role' => 'user',
+                        'parts' => [['text' => $request->message]],
+                    ];
+                } else {
+                    // Si el último era user, actualizamos el texto
+                    $lastIdx = count($contents) - 1;
+                    $contents[$lastIdx]['parts'][0]['text'] .= "\n" . $request->message;
+                }
 
                 $response = Http::withHeaders(['Content-Type' => 'application/json'])
                     ->timeout(20)
@@ -90,18 +120,31 @@ class AiTutorChatController extends Controller
             }
         }
 
-        // Fallback pedagógico inteligente
+        // Fallback pedagógico contextual
         $msgLower = strtolower($request->message);
-        $fallbackReply = "¡Hola {$activeStudent->name}! Como {$studentRole} de la escuadra '{$squad->name}', ";
+        $fallbackReply = "¡Hola {$firstName}! ";
 
-        if (str_contains($msgLower, 'pega') || str_contains($msgLower, 'cama') || str_contains($msgLower, 'warping')) {
-            $fallbackReply .= "si tu pieza se despega de la cama de impresión, verifica: 1) Calibrar la altura de la boquilla (nivelación Z=0), 2) Usar temperatura de cama de 55-60°C para PLA, y 3) Limpiar la superficie magnética con alcohol isopropílico antes de imprimir.";
+        if (str_contains($msgLower, 'pega') || str_contains($msgLower, 'cama') || str_contains($msgLower, 'despega') || str_contains($msgLower, 'warping')) {
+            $fallbackReply .= "Para que no se despegue tu pieza:\n\n"
+                . "1. **Calibra la cama (Z=0):** Asegúrate de que la boquilla pase rozando una hoja de papel en las 4 esquinas.\n"
+                . "2. **Temperatura de cama:** Usa entre **55°C y 60°C** para filamento PLA.\n"
+                . "3. **Limpieza:** Limpia la superficie magnética con alcohol isopropílico para retirar grasa o polvo.\n"
+                . "4. **Adhesión extra:** Activa la opción **Brim (Borde)** de 4-5 mm en tu laminador.";
+        } elseif (str_contains($msgLower, 'color') || str_contains($msgLower, 'colores') || str_contains($msgLower, 'pintar')) {
+            $fallbackReply .= "Si buscas ahorrar FabCoins, te recomiendo imprimir en **1 solo color** y pintarlo a mano después con acrílicos.\n\n"
+                . "💡 **Truco Maker:** Si tu diseño tiene relieves en diferentes alturas, puedes configurar una **pausa de capa (M600)** para cambiar el rollo de filamento a mitad de impresión sin gastar material extra en purgas.";
         } elseif (str_contains($msgLower, 'agujero') || str_contains($msgLower, 'hueco') || str_contains($msgLower, 'tinkercad')) {
-            $fallbackReply .= "para hacer un orificio en TinkerCAD: crea la forma cilíndrica del tamaño deseado, cámbiala a tipo 'Hueco' (Hole), alíneala con tu pieza sólida y presiona el botón 'Agrupar' (Ctrl + G).";
+            $fallbackReply .= "Para hacer un orificio en TinkerCAD:\n\n"
+                . "1. Coloca un **Cilindro** sobre tu diseño y ajústale el diámetro.\n"
+                . "2. En el panel superior derecho, cambia su propiedad a **'Hueco' (Hole)**.\n"
+                . "3. Selecciona ambas piezas y pulsa **Agrupar (Ctrl + G)**. ¡Verás el agujero perfecto de inmediato!";
         } elseif (str_contains($msgLower, 'fabcoin') || str_contains($msgLower, 'ahorrar') || str_contains($msgLower, 'costo')) {
-            $fallbackReply .= "para optimizar FabCoins: reduce el grosor de paredes innecesarias, mantén la altura Z en lo mínimo indispensable y usa un porcentaje de relleno (infill) del 15% al 20%.";
+            $fallbackReply .= "Para optimizar tus FabCoins al máximo:\n\n"
+                . "• **Relleno (Infill):** Usa entre **10% y 15%** (suficiente para piezas decorativas y aretes).\n"
+                . "• **Altura Z:** Mantén el grosor del arete o relieve entre **3 y 4 mm**.\n"
+                . "• **Paredes:** 2 perímetros de pared (0.8 mm) son ideales para que sea resistente y muy liviano.";
         } else {
-            $fallbackReply .= "recuerda que el diseño figital requiere verificar siempre las medidas máximas en el visor 3D antes de mandar a fabricar. ¡Cuéntame qué herramienta o reto de este nivel estás modelando!";
+            $fallbackReply .= "El modelado de tu pieza va por excelente camino. Recuerda verificar las medidas máximas en la pestaña de inspección 3D antes de mandar a imprimir. ¿Qué técnica o detalle quieres perfeccionar?";
         }
 
         return response()->json([

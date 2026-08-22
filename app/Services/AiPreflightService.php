@@ -31,10 +31,10 @@ class AiPreflightService
         }
 
         // Métricas de estimación de fabricación
-        $volumeCm3 = ($metrics['x_mm'] * $metrics['y_mm'] * $metrics['z_mm']) / 1000.0 * 0.45; // 45% de relleno estimado
+        $volumeCm3 = ($metrics['x_mm'] * $metrics['y_mm'] * $metrics['z_mm']) / 1000.0 * 0.45;
         $materialGrams = round(max(4, $volumeCm3 * 1.25), 1); // PLA ~1.25 g/cm3
         $estimatedTimeMinutes = round(max(12, ($materialGrams * 2.2)));
-        $fcCost = ceil($materialGrams * 1.2); // 1.2 FC por gramo de filamento
+        $fcCost = ceil($materialGrams * 1.2);
 
         $metrics['material_grams'] = $materialGrams;
         $metrics['print_time_minutes'] = $estimatedTimeMinutes;
@@ -213,19 +213,23 @@ class AiPreflightService
 
         if ($apiKey) {
             try {
-                $promptText = "Eres el Copiloto Experto de Fabricación Digital y Control de Calidad de Makerdu (un FabLab para escuelas y talleres). "
-                    . "Estás analizando el diseño 3D/vectorial: '{$fileName}'. "
-                    . "Métricas detectadas: Ancho X: {$metrics['x_mm']} mm, Largo Y: {$metrics['y_mm']} mm, Altura Z: {$metrics['z_mm']} mm, Material: {$metrics['material_grams']} g, Triángulos: " . ($metrics['triangles'] ?? 0) . ". "
-                    . "Tolerancias del reto: Máximo {$rules['max_x_mm']}x{$rules['max_y_mm']}x{$rules['max_z_mm']} mm. "
-                    . "Estado de tolerancias: " . ($isValid ? "APROBADO DENTRO DE LÍMITES" : "RECHAZADO: " . implode(', ', $violations)) . ". "
-                    . "Observa la imagen adjunta del modelo en la bandeja de impresión 3D. "
-                    . "Escribe un diagnóstico pedagógico y técnico en español (máximo 3 oraciones). "
-                    . "Identifica la forma del objeto (si es arete, sello, llavero, relieve escalonado, agujeros o detalles), felicita por las decisiones de diseño si es válido o explica cómo corregirlo en TinkerCAD si excede los límites.";
+                $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu (un FabLab y LMS Figital de clase mundial). "
+                    . "Estás realizando una inspección pre-flight del diseño 3D/CAD: '{$fileName}'. "
+                    . "Datos técnicos del archivo: "
+                    . "• Dimensiones reales: {$metrics['x_mm']} mm (ancho X) x {$metrics['y_mm']} mm (largo Y) x {$metrics['z_mm']} mm (altura Z). "
+                    . "• Peso estimado: {$metrics['material_grams']} g de filamento PLA. "
+                    . "• Densidad geométrica: " . ($metrics['triangles'] ?? 0) . " triángulos en la malla. "
+                    . "• Límites máximos del reto: {$rules['max_x_mm']} x {$rules['max_y_mm']} x {$rules['max_z_mm']} mm. "
+                    . "• Estado de validación: " . ($isValid ? "APROBADO (Cumple 100% de tolerancias)" : "RECHAZADO: " . implode('; ', $violations)) . ". "
+                    . "\nObserva con atención la imagen adjunta de la pieza renderizada sobre la bandeja magnética del visor 3D. "
+                    . "Escribe un diagnóstico profesional, detallado y pedagógico (en 1 a 2 párrafos concisos en español) que incluya: "
+                    . "1. Identificación precisa de la geometría y diseño (ej: silueta, relieves escalonados, orificios para aro/enganche, texturas, detalles grabados). "
+                    . "2. Evaluación de imprimibilidad (adherencia de la base, necesidad o ausencia de soportes, recomendación de boquilla de 0.4mm o altura de capa recomendada de 0.16mm-0.20mm). "
+                    . "3. Veredicto final motivador (si es válido, autoriza la producción; si no, indica exactamente cómo corregir en TinkerCAD/Blender).";
 
                 $parts = [];
                 $parts[] = ['text' => $promptText];
 
-                // Adjuntar imagen snapshot base64 para Gemini Vision
                 if ($imageBase64) {
                     $cleanBase64 = preg_replace('/^data:image\/\w+;base64,/', '', $imageBase64);
                     $parts[] = [
@@ -258,7 +262,7 @@ class AiPreflightService
             }
         }
 
-        // Fallback pedagógico contextual inteligente según el tipo de archivo y proporciones
+        // Fallback pedagógico contextual
         $isJewelryOrRelief = stripos($fileName, 'arete') !== false || stripos($fileName, 'pendant') !== false || stripos($fileName, 'relic') !== false || $metrics['z_mm'] <= 8.0;
         
         if ($isValid) {
