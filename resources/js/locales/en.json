@@ -2,111 +2,94 @@
   "app": {
     "name": "MAKERDU",
     "version": "v2.6",
-    "subtitle": "Phygital Learning Platform & Digital Fabrication Orchestrator"
+    "subtitle": "Phygital LMS & Digital Fabrication Orchestrator"
   },
-  "auth": {
-    "student_title": "Maker Squads Portal",
-    "student_subtitle": "Student & Team Workshop Login",
-    "class_code": "Class or Workshop Code",
-    "class_code_placeholder": "Ex: MK-402",
-    "secret_pin": "Your 4-Digit PIN",
-    "enter_btn": "ENTER WORKSHOP",
-    "entering": "Connecting to Workshop...",
-    "demo_accounts": "Quick Demo Accounts (Classroom MK-402):",
-    "teacher_login": "Teacher Control Tower Login",
+  "nav": {
+    "home": "Home",
+    "student_portal": "Student Portal",
+    "teacher_portal": "Teacher Access",
+    "passport": "Maker Passport",
+    "warroom": "Control Tower",
+    "courses": "Course Builder",
+    "classrooms": "Classroom Manager",
     "logout": "Log Out"
   },
+  "welcome": {
+    "badge": "Phygital LMS Platform & Digital Fabrication Orchestrator",
+    "hero_title": "Learn in the cloud.",
+    "hero_highlight": "Fabricate in the real world.",
+    "hero_subtitle": "Connect digital pedagogical challenges with 3D printing, laser cutting, and AI validation. Collaborative squad workflows with active rotating roles.",
+    "card_student_title": "Maker Squad Portal",
+    "card_student_desc": "Access for students and kids using Classroom Code (MK-402) and 4-digit PIN. 1-PC rule with rotating roles.",
+    "card_student_btn": "Enter my Squad",
+    "card_teacher_title": "Teacher War Room",
+    "card_teacher_desc": "Access for teachers, instructors, and adult learners via email. Fabrication .ZIP batches, PDF labels, and Course Builder.",
+    "card_teacher_btn": "Sign in as Teacher / Adult",
+    "stats_phygital": "Phygital Approach",
+    "stats_phygital_desc": "From 3D digital model to real physical part",
+    "stats_ai": "Gemini 3.5 AI",
+    "stats_ai_desc": "Quality control and 3D computer vision",
+    "stats_cneb": "STEAM Passport",
+    "stats_cneb_desc": "Certification and verified learning evidence"
+  },
+  "auth": {
+    "portal_title": "MAKERDU UNIVERSAL ACCESS",
+    "portal_subtitle": "Choose your sign-in method according to your workshop setup",
+    "tab_student": "Workshop Student (PIN)",
+    "tab_adult": "Adult / Teacher (Email)",
+    "class_code": "Classroom or Workshop Code",
+    "class_code_placeholder": "e.g. MK-402",
+    "secret_pin": "Your Secret 4-Digit PIN",
+    "clear_btn": "Clear",
+    "email": "Email Address",
+    "email_placeholder": "user@example.com",
+    "password": "Password",
+    "password_placeholder": "Your secure password",
+    "remember_me": "Remember me on this device",
+    "forgot_password": "Forgot your password?",
+    "login_btn_student": "ENTER THE SQUAD",
+    "login_btn_adult": "SIGN IN",
+    "entering": "Connecting to Workshop...",
+    "demo_title": "⚡ Quick test credentials (Class MK-402):",
+    "teacher_demo": "Demo Teacher: profesor@makerdu.com (pass: password)"
+  },
   "roles": {
-    "title": "Squad Dashboard: Active Device Role",
+    "title": "Squad Panel: Active Device Role",
     "rule_1pc": "1-PC Rule",
     "active_badge": "ACTIVE ROLE",
-    "switch_hint": "Click your card to take the active turn for logging and operations.",
+    "switch_hint": "Click on your name to take over registration and active operation.",
     "Architect": {
       "name": "3D Designer",
-      "desc": "Leads digital modeling and technical schematics"
+      "desc": "Leads digital modeling and fabrication blueprints"
     },
     "Quality": {
       "name": "Quality Inspector",
-      "desc": "Verifies mechanical tolerances, fits, and pre-printing"
+      "desc": "Verifies tolerances, fit, and pre-print specifications"
     },
     "Finance": {
       "name": "FabCoins Manager",
       "desc": "Optimizes real material consumption and budget"
     },
     "Relator": {
-      "name": "Logbook Chronicler",
-      "desc": "Documents team evidence, photos, and key insights"
+      "name": "Log Chronicler",
+      "desc": "Documents team evidence, photos, and learnings"
     }
   },
   "hud": {
     "fabcoins_budget": "FabCoins (Real Materials)",
     "xp_score": "XP Progress Points",
     "tinkercad_link": "Open Workshop TinkerCAD",
-    "tabs": {
-      "mission": "1. Mission & Tutorials",
-      "inspection_3d": "2. 3D Inspection & AI Quality",
-      "bitacora": "3. Digital Logbook & Portfolio"
+    "stepper": {
+      "step1": "1. Mission & Video",
+      "step2": "2. Creation & AI",
+      "step3": "3. Self-Reflection (+50 XP)",
+      "step4": "4. Fabricate / Complete"
     }
   },
-  "roadmap": {
-    "title": "Project Levels Roadmap",
-    "levels_count": "Levels",
-    "cost_free": "No material cost",
-    "cost_required": "Requires"
-  },
-  "inspection_3d": {
-    "title": "3D Inspection Lab & AI Quality Control",
-    "subtitle": "Inspect the actual 3D model on the build plate and validate tolerances before manufacturing.",
-    "upload_zone_title": "Upload .STL (3D) or .SVG (Laser Cut) file",
-    "upload_zone_hint": "Drag your file here or click to browse (up to 25MB)",
-    "current_file": "Selected file:",
-    "btn_analyze": "Run AI Quality Check",
-    "btn_analyzing": "Analyzing 3D geometry...",
-    "quick_tests": "Quick simulation tests:",
-    "btn_test_valid": "✓ Test Valid STL (40x40mm)",
-    "btn_test_invalid": "✕ Test Oversized STL (75mm)",
-    "viewer_title": "Interactive WebGL 3D Viewer",
-    "viewer_hint": "Left-click and drag to rotate the entire bed 360°. Scroll to zoom.",
-    "status_approved": "DESIGN APPROVED FOR MANUFACTURING",
-    "status_rejected": "TOLERANCE ADJUSTMENT REQUIRED",
-    "specs": {
-      "dimensions": "Real Dimensions",
-      "material": "Estimated Material",
-      "time": "Print Time",
-      "fabcoins": "Material Cost"
-    },
-    "ai_feedback_title": "AI Fabrication Copilot Diagnosis:",
-    "btn_send_fabrication": "AUTHORIZE & SEND TO FABRICATION",
-    "bed_info": "Bed: 100x100mm • Limits:"
-  },
-  "bitacora": {
-    "title": "Digital Project Logbook",
-    "subtitle": "Photographic portfolio and team design decisions record.",
-    "form_label": "Submit new evidence as:",
-    "form_placeholder": "What decisions did the team make in this level? What mechanical or geometric challenges did you solve?",
-    "photo_label": "Process or real product photo (optional):",
-    "btn_submit": "SAVE EVIDENCE TO LOGBOOK (+25 XP)",
-    "history_title": "Saved Evidence Timeline:",
-    "empty_history": "No evidence logged yet for this level.",
-    "status_approved": "Approved by Teacher / AI",
-    "status_rejected": "Flagged for Adjustment",
-    "ai_feedback": "AI Pedagogical Feedback:"
-  },
-  "tutorials": {
-    "title": "Level Guide & Tutorials",
-    "bunny_player": "Workshop Video Tutorial (Bunny Stream)",
-    "animation_guide": "Step-by-Step Animation",
-    "resources": "Downloadable Documents & Resources:"
-  },
-  "teacher": {
-    "tower_title": "MAKER CONTROL TOWER",
-    "tower_badge": "Curriculum & Workshop Monitor",
-    "tower_desc": "Live monitoring of squads, material budgets, and machine dispatch",
-    "heatmap_title": "Classroom Progress Radar (Levels vs. Squads)",
-    "btn_generate_batch": "PACKAGE FABLAB BATCH (.ZIP + PDF LABELS)",
-    "cneb_title": "Curriculum Competencies Translator",
-    "batches_title": "Generated Digital Fabrication Batches",
-    "download_zip": "Download .ZIP with 3D Models",
-    "print_pdf": "Print PDF Fabrication Labels"
+  "deliverables": {
+    "stl_3d": "3D Printing STL",
+    "photo_sketch": "Sketch / Ideation",
+    "svg_laser": "Laser Cutting 2D",
+    "checklist_assembly": "Physical Assembly"
   }
 }
