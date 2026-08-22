@@ -14,7 +14,7 @@
 * **Stack Tecnológico:**
   * **Backend:** Laravel 11 (Inertia.js + REST API)
   * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls 360° + Slicer + Gemini Vision) + Bunny Player + Lucide Icons + i18n
-  * **Motor IA:** Gemini 2.0 Flash Multimodal Vision / OpenAI (para Pre-flight Check de STL/SVG)
+  * **Motor IA:** Gemini 2.0 Flash (Visión Multimodal para STL/SVG y Tutor Chatbot en Vivo)
   * **Generación de Archivos:** DomPDF (Hojas de Rotulado, Tarjetas PIN en PDF) + ZipArchive (Batches de fabricación)
 
 ---
@@ -48,7 +48,8 @@
 | **Módulo 5**| **Simulador de Capas (Slicing 3D Preview) & Gemini Vision Multimodal** | ✅ Completado |
 | **Módulo 6**| **Pasaporte Maker Digital Verificable y Tarjetas PIN en PDF** | ✅ Completado |
 | **Módulo 7**| **Diseñador Web de Cursos (Course Builder) & Gestor de Aulas/PINs** | ✅ Completado |
-| **Módulo 8**| **Script Automatizado de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
+| **Módulo 8**| **Chatbot Tutor Maker IA en Vivo (Gemini 2.0 Flash) en la Cabina** | ✅ Completado |
+| **Módulo 9**| **Script Automatizado de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
 
 ---
 
