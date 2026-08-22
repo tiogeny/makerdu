@@ -5,7 +5,7 @@ import {
     Sparkles, School, Users, Layers, Trophy, Coins, CheckCircle2,
     Clock, Lock, FileText, Download, Package, Truck, Printer,
     Flame, ArrowRight, ExternalLink, ShieldCheck, ChevronRight, BarChart3,
-    Share2, MessageCircle, Award, CreditCard
+    Share2, MessageCircle, Award, CreditCard, FolderPlus, UserPlus
 } from 'lucide-vue-next';
 import { t } from '@/i18n.js';
 
@@ -93,7 +93,7 @@ const getBatchStatusBadge = (status) => {
                 </div>
 
                 <!-- Selector de Aula & Acciones -->
-                <div class="flex items-center gap-2.5">
+                <div class="flex flex-wrap items-center gap-2">
                     <select
                         :value="activeClassroom?.id"
                         @change="changeClassroom($event.target.value)"
@@ -104,6 +104,24 @@ const getBatchStatusBadge = (status) => {
                         </option>
                     </select>
 
+                    <!-- Link Diseñador de Cursos -->
+                    <Link
+                        :href="route('admin.projects.index')"
+                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-cyan-300 border border-cyan-500/30 transition flex items-center gap-1.5"
+                    >
+                        <FolderPlus class="w-3.5 h-3.5" />
+                        <span>Cursos</span>
+                    </Link>
+
+                    <!-- Link Gestor de Aulas -->
+                    <Link
+                        :href="route('admin.classrooms.index')"
+                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-purple-300 border border-purple-500/30 transition flex items-center gap-1.5"
+                    >
+                        <UserPlus class="w-3.5 h-3.5" />
+                        <span>Aulas & PINs</span>
+                    </Link>
+
                     <!-- Descargar Tarjetas PIN en PDF -->
                     <a
                         v-if="activeClassroom"
@@ -111,7 +129,7 @@ const getBatchStatusBadge = (status) => {
                         class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5"
                     >
                         <CreditCard class="w-3.5 h-3.5" />
-                        <span>Tarjetas PIN (PDF)</span>
+                        <span>Tarjetas PDF</span>
                     </a>
 
                     <Link
@@ -289,7 +307,6 @@ const getBatchStatusBadge = (status) => {
                                 <span>{{ t('teacher.print_pdf') }}</span>
                             </a>
 
-                            <!-- Selector de estado rápido -->
                             <select
                                 :value="b.status"
                                 @change="updateStatus(b.id, $event.target.value)"

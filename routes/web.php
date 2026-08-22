@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\ClassroomManagerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectBuilderController;
 use App\Http\Controllers\StudentAuthController;
 use App\Http\Controllers\SquadController;
 use App\Http\Controllers\TeacherWarRoomController;
@@ -39,6 +41,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teacher/classroom/{classroom}/pin-cards', [TeacherWarRoomController::class, 'downloadPinCards'])->name('teacher.pin-cards');
     Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
     Route::post('/teacher/batch/{batch}/status', [TeacherWarRoomController::class, 'updateBatchStatus'])->name('teacher.batch-status');
+
+    // Diseñador de Cursos / Proyectos (Course Builder)
+    Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
+
+    // Gestor de Aulas y Matrícula Masiva con PINs
+    Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
+    Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');
+    Route::post('/admin/classrooms/{classroom}/enroll', [ClassroomManagerController::class, 'enrollStudents'])->name('admin.classrooms.enroll');
 
     // Dashboard general
     Route::get('/dashboard', function () {
