@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "MAKERDU",
+    "version": "v2.6",
+    "subtitle": "Plataforma Figital y Orquestador de Fabricación Digital"
+  },
+  "auth": {
+    "student_title": "Portal de Escuadras Maker",
+    "student_subtitle": "Ingreso para Estudiantes y Equipos de Taller",
+    "class_code": "Código de Clase o Taller",
+    "class_code_placeholder": "Ej. MK-402",
+    "secret_pin": "Tu PIN de 4 Dígitos",
+    "enter_btn": "INGRESAR AL TALLER",
+    "entering": "Conectando con el Taller...",
+    "demo_accounts": "Acceso Rápido de Prueba (Aula MK-402):",
+    "teacher_login": "Acceso a Torre de Control Docente",
+    "logout": "Cerrar Sesión"
+  },
+  "roles": {
+    "title": "Panel de Escuadra: Rol Activo en Dispositivo",
+    "rule_1pc": "Regla 1-PC",
+    "active_badge": "ROL ACTIVO",
+    "switch_hint": "Haz clic en tu nombre para asumir el turno de registro y operación.",
+    "Architect": {
+      "name": "Diseñador 3D",
+      "desc": "Lidera el modelado digital y planos de fabricación"
+    },
+    "Quality": {
+      "name": "Inspector de Calidad",
+      "desc": "Verifica tolerancias, ensamble y pre-impresión"
+    },
+    "Finance": {
+      "name": "Gestor de FabCoins",
+      "desc": "Optimiza el consumo y presupuesto de insumos reales"
+    },
+    "Relator": {
+      "name": "Cronista de Bitácora",
+      "desc": "Documenta evidencias, fotos y aprendizajes del equipo"
+    }
+  },
+  "hud": {
+    "fabcoins_budget": "FabCoins (Insumos Reales)",
+    "xp_score": "Puntos de Avance XP",
+    "tinkercad_link": "Abrir TinkerCAD del Taller",
+    "tabs": {
+      "mission": "1. Misión y Tutoriales",
+      "inspection_3d": "2. Inspección 3D y Calidad IA",
+      "bitacora": "3. Bitácora Digital y Portafolio"
+    }
+  },
+  "roadmap": {
+    "title": "Malla de Niveles del Proyecto",
+    "levels_count": "Niveles",
+    "cost_free": "Sin consumo de insumos",
+    "cost_required": "Requiere"
+  },
+  "inspection_3d": {
+    "title": "Laboratorio de Inspección 3D y Control de Calidad IA",
+    "subtitle": "Inspecciona el modelo 3D real en la cama de impresión y valida tolerancias antes de fabricar.",
+    "upload_zone_title": "Cargar archivo .STL (3D) o .SVG (Corte Láser)",
+    "upload_zone_hint": "Arrastra tu archivo aquí o haz clic para seleccionarlo (hasta 25MB)",
+    "current_file": "Archivo seleccionado:",
+    "btn_analyze": "Ejecutar Control de Calidad IA",
+    "btn_analyzing": "Analizando geometría en 3D...",
+    "quick_tests": "Pruebas rápidas de simulación:",
+    "btn_test_valid": "✓ Probar STL Válido (40x40mm)",
+    "btn_test_invalid": "✕ Probar STL Excedido (75mm)",
+    "viewer_title": "Visor 3D Interactivo WebGL",
+    "viewer_hint": "Arrastra con clic izquierdo para rotar toda la bandeja 360°. Rueda para zoom.",
+    "status_approved": "DISEÑO APROBADO PARA FABRICACIÓN",
+    "status_rejected": "CORRECCIÓN REQUERIDA DE TOLERANCIAS",
+    "specs": {
+      "dimensions": "Dimensiones Reales",
+      "material": "Material Estimado",
+      "time": "Tiempo de Impresión",
+      "fabcoins": "Insumo Real"
+    },
+    "ai_feedback_title": "Diagnóstico del Copiloto de Fabricación IA:",
+    "btn_send_fabrication": "AUTORIZAR Y ENVIAR A FABRICACIÓN",
+    "bed_info": "Cama: 100x100mm • Límites:"
+  },
+  "bitacora": {
+    "title": "Bitácora Digital del Proyecto",
+    "subtitle": "Portafolio fotográfico y registro de decisiones de la escuadra.",
+    "form_label": "Registrar nueva evidencia como:",
+    "form_placeholder": "¿Qué decisiones tomó el equipo en este nivel? ¿Qué problemas mecánicos o geométricos resolvieron?",
+    "photo_label": "Foto del proceso o producto real (opcional):",
+    "btn_submit": "GUARDAR EVIDENCIA EN LA BITÁCORA (+25 XP)",
+    "history_title": "Línea de Tiempo de Evidencias Guardadas:",
+    "empty_history": "Aún no hay evidencias registradas en este nivel.",
+    "status_approved": "Aprobado por Docente / IA",
+    "status_rejected": "Observado para Ajuste",
+    "ai_feedback": "Comentario Pedagógico IA:"
+  },
+  "tutorials": {
+    "title": "Guía y Tutoriales del Nivel",
+    "bunny_player": "Video Tutorial del Taller (Bunny Stream)",
+    "animation_guide": "Animación de Pasos",
+    "resources": "Documentos y Recursos Descargables:"
+  },
+  "teacher": {
+    "tower_title": "TORRE DE CONTROL MAKER",
+    "tower_badge": "Supervisión CNEB & Taller",
+    "tower_desc": "Monitoreo en vivo de escuadras, consumo de insumos y despacho a máquinas",
+    "heatmap_title": "Radar de Avance del Aula (Niveles vs. Escuadras)",
+    "btn_generate_batch": "EMPAQUETAR LOTE FABLAB (.ZIP + HOJA DE ROTULADO PDF)",
+    "cneb_title": "Traductor Curricular a Competencias CNEB / MINEDU",
+    "batches_title": "Lotes de Fabricación Digital Generados",
+    "download_zip": "Descargar .ZIP con Diseños 3D",
+    "print_pdf": "Imprimir Hojas de Rotulado (PDF)"
+  }
+}

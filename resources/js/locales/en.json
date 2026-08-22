@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "MAKERDU",
+    "version": "v2.6",
+    "subtitle": "Phygital Learning Platform & Digital Fabrication Orchestrator"
+  },
+  "auth": {
+    "student_title": "Maker Squads Portal",
+    "student_subtitle": "Student & Team Workshop Login",
+    "class_code": "Class or Workshop Code",
+    "class_code_placeholder": "Ex: MK-402",
+    "secret_pin": "Your 4-Digit PIN",
+    "enter_btn": "ENTER WORKSHOP",
+    "entering": "Connecting to Workshop...",
+    "demo_accounts": "Quick Demo Accounts (Classroom MK-402):",
+    "teacher_login": "Teacher Control Tower Login",
+    "logout": "Log Out"
+  },
+  "roles": {
+    "title": "Squad Dashboard: Active Device Role",
+    "rule_1pc": "1-PC Rule",
+    "active_badge": "ACTIVE ROLE",
+    "switch_hint": "Click your card to take the active turn for logging and operations.",
+    "Architect": {
+      "name": "3D Designer",
+      "desc": "Leads digital modeling and technical schematics"
+    },
+    "Quality": {
+      "name": "Quality Inspector",
+      "desc": "Verifies mechanical tolerances, fits, and pre-printing"
+    },
+    "Finance": {
+      "name": "FabCoins Manager",
+      "desc": "Optimizes real material consumption and budget"
+    },
+    "Relator": {
+      "name": "Logbook Chronicler",
+      "desc": "Documents team evidence, photos, and key insights"
+    }
+  },
+  "hud": {
+    "fabcoins_budget": "FabCoins (Real Materials)",
+    "xp_score": "XP Progress Points",
+    "tinkercad_link": "Open Workshop TinkerCAD",
+    "tabs": {
+      "mission": "1. Mission & Tutorials",
+      "inspection_3d": "2. 3D Inspection & AI Quality",
+      "bitacora": "3. Digital Logbook & Portfolio"
+    }
+  },
+  "roadmap": {
+    "title": "Project Levels Roadmap",
+    "levels_count": "Levels",
+    "cost_free": "No material cost",
+    "cost_required": "Requires"
+  },
+  "inspection_3d": {
+    "title": "3D Inspection Lab & AI Quality Control",
+    "subtitle": "Inspect the actual 3D model on the build plate and validate tolerances before manufacturing.",
+    "upload_zone_title": "Upload .STL (3D) or .SVG (Laser Cut) file",
+    "upload_zone_hint": "Drag your file here or click to browse (up to 25MB)",
+    "current_file": "Selected file:",
+    "btn_analyze": "Run AI Quality Check",
+    "btn_analyzing": "Analyzing 3D geometry...",
+    "quick_tests": "Quick simulation tests:",
+    "btn_test_valid": "✓ Test Valid STL (40x40mm)",
+    "btn_test_invalid": "✕ Test Oversized STL (75mm)",
+    "viewer_title": "Interactive WebGL 3D Viewer",
+    "viewer_hint": "Left-click and drag to rotate the entire bed 360°. Scroll to zoom.",
+    "status_approved": "DESIGN APPROVED FOR MANUFACTURING",
+    "status_rejected": "TOLERANCE ADJUSTMENT REQUIRED",
+    "specs": {
+      "dimensions": "Real Dimensions",
+      "material": "Estimated Material",
+      "time": "Print Time",
+      "fabcoins": "Material Cost"
+    },
+    "ai_feedback_title": "AI Fabrication Copilot Diagnosis:",
+    "btn_send_fabrication": "AUTHORIZE & SEND TO FABRICATION",
+    "bed_info": "Bed: 100x100mm • Limits:"
+  },
+  "bitacora": {
+    "title": "Digital Project Logbook",
+    "subtitle": "Photographic portfolio and team design decisions record.",
+    "form_label": "Submit new evidence as:",
+    "form_placeholder": "What decisions did the team make in this level? What mechanical or geometric challenges did you solve?",
+    "photo_label": "Process or real product photo (optional):",
+    "btn_submit": "SAVE EVIDENCE TO LOGBOOK (+25 XP)",
+    "history_title": "Saved Evidence Timeline:",
+    "empty_history": "No evidence logged yet for this level.",
+    "status_approved": "Approved by Teacher / AI",
+    "status_rejected": "Flagged for Adjustment",
+    "ai_feedback": "AI Pedagogical Feedback:"
+  },
+  "tutorials": {
+    "title": "Level Guide & Tutorials",
+    "bunny_player": "Workshop Video Tutorial (Bunny Stream)",
+    "animation_guide": "Step-by-Step Animation",
+    "resources": "Downloadable Documents & Resources:"
+  },
+  "teacher": {
+    "tower_title": "MAKER CONTROL TOWER",
+    "tower_badge": "Curriculum & Workshop Monitor",
+    "tower_desc": "Live monitoring of squads, material budgets, and machine dispatch",
+    "heatmap_title": "Classroom Progress Radar (Levels vs. Squads)",
+    "btn_generate_batch": "PACKAGE FABLAB BATCH (.ZIP + PDF LABELS)",
+    "cneb_title": "Curriculum Competencies Translator",
+    "batches_title": "Generated Digital Fabrication Batches",
+    "download_zip": "Download .ZIP with 3D Models",
+    "print_pdf": "Print PDF Fabrication Labels"
+  }
+}
