@@ -14,7 +14,7 @@
 * **Stack Tecnológico:**
   * **Backend:** Laravel 11 (Inertia.js + REST API)
   * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls 360° + Slicer + Gemini Vision) + Bunny Player + Lucide Icons + i18n
-  * **Motor IA:** Gemini 2.0 Flash (Visión Multimodal para STL/SVG y Tutor Chatbot en Vivo)
+  * **Motor IA:** Gemini 3.6 Flash / Multimodal (Mini-Dashboard de Calidad, Tutor Chatbot en Vivo con Markdown y Contador de Tokens)
   * **Generación de Archivos:** DomPDF (Hojas de Rotulado, Tarjetas PIN en PDF) + ZipArchive (Batches de fabricación)
 
 ---
@@ -23,7 +23,7 @@
 1. **Regla de 1-PC (Equipo en 1 Computadora):** La interfaz del estudiante permite alternar el *Rol Activo* (`Architect`, `Quality`, `Finance`, `Relator`) dentro de la misma pantalla sin destruir la sesión de Laravel.
 2. **Separación Económica:** 
    - `FabCoins (FC)` = Insumos Físicos Reales (filamento, corte láser, placas). No se regalan con trivias. La IA de validación protege este balance.
-   - `XP Points` = Puntos Pedagógicos de reputación virtual (bitácoras, rotación de rol, colaboración).
+   - `XP Points` = Puntos Pedagógicos de reputación virtual (bitácoras, rotación de rol, colaboración, autoreflexión metacognitiva).
 3. **Internacionalización Modular (`i18n`):** 
    - `resources/js/locales/es.json` (Español completo y estructurado por secciones).
    - `resources/js/locales/en.json` (Inglés estructurado).
@@ -48,8 +48,10 @@
 | **Módulo 5**| **Simulador de Capas (Slicing 3D Preview) & Gemini Vision Multimodal** | ✅ Completado |
 | **Módulo 6**| **Pasaporte Maker Digital Verificable y Tarjetas PIN en PDF** | ✅ Completado |
 | **Módulo 7**| **Diseñador Web de Cursos (Course Builder) & Gestor de Aulas/PINs** | ✅ Completado |
-| **Módulo 8**| **Chatbot Tutor Maker IA en Vivo (Gemini 2.0 Flash) en la Cabina** | ✅ Completado |
-| **Módulo 9**| **Script Automatizado de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
+| **Módulo 8**| **Mini-Dashboard Visual de Calidad IA (Tarjetas de Puntos Fuertes y Slicing)** | ✅ Completado |
+| **Módulo 9**| **Ficha de Autoevaluación & Reflexión Metacognitiva (+50 XP)** | ✅ Completado |
+| **Módulo 10**| **Tutor Maker IA con Formato Markdown y Contador de Tokens en Vivo** | ✅ Completado |
+| **Módulo 11**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
 
 ---
 
