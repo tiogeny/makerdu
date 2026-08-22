@@ -13,9 +13,9 @@
 * **Servicio de Video Streaming:** Bunny.net (Bunny Stream / Storage)
 * **Stack Tecnológico:**
   * **Backend:** Laravel 11 (Inertia.js + REST API)
-  * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls) + Bunny Player + Lucide Icons + i18n
-  * **Motor IA:** Gemini 2.0 Flash / OpenAI (para Pre-flight Check de STL/SVG)
-  * **Generación de Archivos:** DomPDF (Hojas de Rotulado) + ZipArchive (Batches de fabricación)
+  * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls 360° + Slicer + Gemini Vision) + Bunny Player + Lucide Icons + i18n
+  * **Motor IA:** Gemini 2.0 Flash Multimodal Vision / OpenAI (para Pre-flight Check de STL/SVG)
+  * **Generación de Archivos:** DomPDF (Hojas de Rotulado, Tarjetas PIN en PDF) + ZipArchive (Batches de fabricación)
 
 ---
 
@@ -41,10 +41,14 @@
 | **Fase 2** | Autenticación (Código Clase + PIN 4 dígitos) y HUD Escuadra (1-PC) | ✅ Completado |
 | **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG + Gemini API) | ✅ Completado |
 | **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ✅ Completado |
-| **Módulo 1**| **Visor 3D Real (STLLoader + OrbitControls 360°)** | ✅ Completado |
+| **Módulo 1**| **Visor 3D Real (STLLoader + OrbitControls 360° + Apoyo Magnético Y=0)** | ✅ Completado |
 | **Módulo 2**| **Internacionalización Estructurada (`es.json` / `en.json`)** | ✅ Completado |
-| **Módulo 3**| **Layout Profesional en 3 Pestañas + Bunny.net Video Player** | ✅ Completado |
+| **Módulo 3**| **Navegación Doble (World Roadmap vs. Studio) + Bunny.net Stream** | ✅ Completado |
 | **Módulo 4**| **Bitácora Digital Multimedia (Fotos, Ficha Técnica y Portafolio)** | ✅ Completado |
+| **Módulo 5**| **Simulador de Capas (Slicing 3D Preview) & Gemini Vision Multimodal** | ✅ Completado |
+| **Módulo 6**| **Pasaporte Maker Digital Verificable y Tarjetas PIN en PDF** | ✅ Completado |
+| **Módulo 7**| **Diseñador Web de Cursos (Course Builder) & Gestor de Aulas/PINs** | ✅ Completado |
+| **Módulo 8**| **Script Automatizado de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
 
 ---
 
@@ -57,6 +61,7 @@
   - Camila Díaz: PIN `3456` (Rol: *Cronista de Bitácora*, XP: 110)
 * **Docente / Torre de Control:** `profesor@makerdu.com` (Password: `password`)
 * **Portal Familiar:** Accesible vía `/family/MK402/squad/1`
+* **Pasaporte Maker:** Accesible vía `/squad/1/passport`
 
 ---
 
