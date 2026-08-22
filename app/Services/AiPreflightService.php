@@ -61,7 +61,7 @@ class AiPreflightService
 
         $isValid = count($violations) === 0;
 
-        // 3. Generar feedback con Visión Artificial (Gemini 2.0 Flash Multimodal)
+        // 3. Generar feedback con Visión Artificial (Gemini 3.6 Flash Multimodal)
         $aiFeedback = $this->generateAiFeedback($originalFilename, $metrics, $violations, $isValid, $rules, $imageBase64);
 
         return [
@@ -237,8 +237,8 @@ class AiPreflightService
                 }
 
                 $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->timeout(10)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}", [
+                    ->timeout(20)
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}", [
                         'contents' => [
                             ['parts' => $parts]
                         ]
@@ -250,6 +250,8 @@ class AiPreflightService
                     if ($text) {
                         return trim($text);
                     }
+                } else {
+                    Log::warning("Gemini Vision API error: " . $response->body());
                 }
             } catch (\Exception $e) {
                 Log::warning("Error al consultar Gemini Vision API: " . $e->getMessage());

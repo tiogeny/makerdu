@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class AiTutorChatController extends Controller
 {
     /**
-     * Chatbot Tutor de Fabricación Digital con Gemini 2.0 Flash
+     * Chatbot Tutor de Fabricación Digital con Gemini 3.6 Flash
      */
     public function chat(Request $request, Squad $squad)
     {
@@ -60,8 +60,8 @@ class AiTutorChatController extends Controller
                 ];
 
                 $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->timeout(12)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}", [
+                    ->timeout(20)
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}", [
                         'system_instruction' => [
                             'parts' => [['text' => $systemInstruction]]
                         ],
