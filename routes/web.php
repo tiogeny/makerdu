@@ -1,16 +1,16 @@
 <?php
 
-use AppHttpControllersAdminDashboardController;
-use AppHttpControllersAiTutorChatController;
-use AppHttpControllersClassroomManagerController;
-use AppHttpControllersProfileController;
-use AppHttpControllersProjectBuilderController;
-use AppHttpControllersStudentAuthController;
-use AppHttpControllersSquadController;
-use AppHttpControllersTeacherWarRoomController;
-use IlluminateFoundationApplication;
-use IlluminateSupportFacadesRoute;
-use InertiaInertia;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AiTutorChatController;
+use App\Http\Controllers\ClassroomManagerController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectBuilderController;
+use App\Http\Controllers\StudentAuthController;
+use App\Http\Controllers\SquadController;
+use App\Http\Controllers\TeacherWarRoomController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // Landing / Welcome
 Route::get('/', function () {
@@ -30,7 +30,7 @@ Route::post('/student-logout', [StudentAuthController::class, 'logout'])->name('
 // Rutas Autenticadas con Redirección Inteligente por Rol
 Route::middleware(['auth'])->group(function () {
     
-    // Dashboard Centralizador Inteligente
+    // Dashboard Centralizador Inteligente por Rol
     Route::get('/dashboard', function () {
         $user = auth()->user();
         if ($user->role_type === 'admin') {
@@ -41,14 +41,14 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('student.hud');
     })->name('dashboard');
 
-    // Super Administrador (Makerdu Core & Master Catalog)
+    // Super Administrador (Catálogo Maestro y Centro de Mando)
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
     Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
     Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');
     Route::post('/admin/classrooms/{classroom}/enroll', [ClassroomManagerController::class, 'enrollStudents'])->name('admin.classrooms.enroll');
 
-    // Docente / Instructor (Torre de Control & Lotes FabLab)
+    // Docente / Instructor (Torre de Control de su Aula & Lotes FabLab)
     Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
     Route::get('/teacher/classroom/{classroom}/pin-cards', [TeacherWarRoomController::class, 'downloadPinCards'])->name('teacher.pin-cards');
     Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
