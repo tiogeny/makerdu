@@ -11,8 +11,9 @@ return new class extends Migration
         Schema::create('classrooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('project_id')->nullable();
             $table->string('name');
-            $table->string('access_code', 5)->unique(); // Ej: 'MK-402'
+            $table->string('access_code', 20)->unique();
             $table->enum('mode', ['school_squads', 'private_workshop'])->default('school_squads');
             $table->string('tinkercad_link')->nullable();
             $table->timestamps();

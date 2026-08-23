@@ -8,6 +8,7 @@ import {
 
 const props = defineProps({
     classrooms: Array,
+    projects: Array,
 });
 
 const showNewClassModal = ref(false);
@@ -17,6 +18,7 @@ const selectedClassroom = ref(null);
 const classroomForm = useForm({
     name: '',
     access_code: '',
+    project_id: props.projects?.[0]?.id || null,
     mode: 'school_squads',
     tinkercad_link: '',
 });

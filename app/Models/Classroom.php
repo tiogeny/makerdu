@@ -11,6 +11,7 @@ class Classroom extends Model
 
     protected $fillable = [
         'teacher_id',
+        'project_id',
         'name',
         'access_code',
         'mode',
@@ -20,6 +21,11 @@ class Classroom extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
     public function squads()

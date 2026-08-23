@@ -20,15 +20,15 @@ class TeacherWarRoomController extends Controller
      */
     public function index(Request $request)
     {
-        $classrooms = Classroom::with(['teacher', 'squads.members'])->get();
+        $classrooms = Classroom::with(['teacher', 'project.levels', 'squads.members'])->get();
         $selectedClassroomId = $request->input('classroom_id', $classrooms->first()->id ?? null);
-        $activeClassroom = Classroom::with(['teacher', 'squads.members'])->find($selectedClassroomId);
+        $activeClassroom = Classroom::with(['teacher', 'project.levels', 'squads.members'])->find($selectedClassroomId);
 
-        $project = Project::with('levels')->first();
+        $project = $activeClassroom?->project ?? Project::with('levels')->first();
 
         // Mapa de calor: Estado de cada escuadra por cada nivel
         $heatmapData = [];
-        if ($activeClassroom) {
+        if ($activeClassroom && $project) {
             foreach ($activeClassroom->squads as $squad) {
                 $levelsProgress = [];
                 $bitacoras = BitacoraEntry::where('squad_id', $squad->id)->get();
@@ -119,9 +119,9 @@ class TeacherWarRoomController extends Controller
      */
     public function passport(Squad $squad)
     {
-        $squad->load(['classroom.teacher', 'members']);
+        $squad->load(['classroom.teacher', 'classroom.project.levels', 'members']);
         $classroom = $squad->classroom;
-        $project = Project::with('levels')->first();
+        $project = $classroom->project ?? Project::with('levels')->first();
 
         $bitacoras = BitacoraEntry::with(['activeRoleUser', 'level'])
             ->where('squad_id', $squad->id)
@@ -147,13 +147,16 @@ class TeacherWarRoomController extends Controller
             ],
         ];
 
+        $currentDomain = request()->getSchemeAndHttpHost();
+        $familyPortalUrl = "{$currentDomain}/family/{$classroom->access_code}/squad/{$squad->id}";
+
         return Inertia::render('Student/MakerPassport', [
             'squad' => $squad,
             'classroom' => $classroom,
             'project' => $project,
             'bitacoras' => $bitacoras,
             'competencies' => $competencies,
-            'qrUrl' => request()->getSchemeAndHttpHost() . "/family/{$classroom->access_code}/squad/{$squad->id}",
+            'qrUrl' => $familyPortalUrl,
         ]);
     }
 
@@ -163,7 +166,7 @@ class TeacherWarRoomController extends Controller
     public function generateBatch(Request $request, Classroom $classroom)
     {
         $classroom->load(['squads.members']);
-        $project = Project::with('levels')->first();
+        $project = $classroom->project ?? Project::with('levels')->first();
 
         $batch = FabricationBatch::create([
             'classroom_id' => $classroom->id,
@@ -239,8 +242,8 @@ class TeacherWarRoomController extends Controller
      */
     public function familyPortal($accessCode, Squad $squad)
     {
-        $squad->load(['classroom', 'members']);
-        $project = Project::with('levels')->first();
+        $squad->load(['classroom.teacher', 'classroom.project', 'members']);
+        $project = $squad->classroom->project ?? Project::with('levels')->first();
 
         $bitacoras = BitacoraEntry::with(['activeRoleUser', 'level'])
             ->where('squad_id', $squad->id)

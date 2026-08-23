@@ -41,7 +41,7 @@ class SquadController extends Controller
         }
 
         // Obtener proyecto activo
-        $project = Project::with('levels')->first();
+        $project = $squad->classroom->project ?? Project::with('levels')->first();
 
         // Obtener bitácoras de la escuadra
         $bitacoras = BitacoraEntry::with(['activeRoleUser', 'level'])

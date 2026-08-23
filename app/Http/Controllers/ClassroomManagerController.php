@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Classroom;
+use App\Models\Project;
 use App\Models\Squad;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -17,15 +18,26 @@ class ClassroomManagerController extends Controller
      */
     public function index()
     {
-        $classrooms = Classroom::with(['teacher', 'squads.members'])->latest()->get();
+        $classrooms = Classroom::with(['teacher', 'project', 'squads.members'])->latest()->get();
+        $projects = Project::all(['id', 'title_json', 'type', 'total_levels']);
 
         return Inertia::render('Admin/Classrooms/Index', [
+            'projects' => $projects->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'title' => $p->title_json['es'] ?? 'Curso Maker',
+                    'type' => $p->type,
+                    'total_levels' => $p->total_levels,
+                ];
+            }),
             'classrooms' => $classrooms->map(function ($c) {
                 return [
                     'id' => $c->id,
                     'name' => $c->name,
                     'access_code' => $c->access_code,
                     'mode' => $c->mode,
+                    'project_id' => $c->project_id,
+                    'project_title' => $c->project->title_json['es'] ?? 'Sellos y Relieves 2.5D',
                     'tinkercad_link' => $c->tinkercad_link,
                     'teacher_name' => $c->teacher->name ?? 'Docente',
                     'squads_count' => $c->squads->count(),
@@ -58,12 +70,14 @@ class ClassroomManagerController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'access_code' => ['required', 'string', 'max:20', 'unique:classrooms,access_code'],
+            'project_id' => ['nullable', 'exists:projects,id'],
             'mode' => ['required', 'in:school_squads,private_workshop'],
             'tinkercad_link' => ['nullable', 'url'],
         ]);
 
         $classroom = Classroom::create([
-            'teacher_id' => auth()->id() ?? 1,
+            'teacher_id' => auth()->id() ?? 2,
+            'project_id' => $request->project_id ?: Project::first()?->id,
             'name' => $request->name,
             'access_code' => strtoupper(trim($request->access_code)),
             'mode' => $request->mode,

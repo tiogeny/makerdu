@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Super Administrador Makerdu
+        // 1. Super Administrador Makerdu (Creador de Cursos y Gestor Maestro)
         $admin = User::create([
             'name' => 'Admin FabLab Lima',
             'email' => 'contacto@fablablima.org',
@@ -33,16 +33,7 @@ class DatabaseSeeder extends Seeder
             'language' => 'es',
         ]);
 
-        // 3. Aula / Taller FabLab asignado al docente
-        $classroom = Classroom::create([
-            'teacher_id' => $teacher->id,
-            'name' => 'Laboratorio FabLab - 4to Grado A',
-            'access_code' => 'MK402',
-            'mode' => 'school_squads',
-            'tinkercad_link' => 'https://www.tinkercad.com/joinclass/MK402DEMO',
-        ]);
-
-        // 4. Proyecto Dinámico (Sellos y Relieves 2.5D)
+        // 3. Proyecto Maestro creado por el Admin (Sellos y Relieves 2.5D)
         $project = Project::create([
             'title_json' => [
                 'es' => 'Sellos y Relieves de Fabricación 2.5D',
@@ -151,6 +142,16 @@ class DatabaseSeeder extends Seeder
                 'max_z_mm' => 15,
             ],
             'fabcoins_cost' => 0,
+        ]);
+
+        // 4. Aula / Taller FabLab asignado al docente con el proyecto elegido
+        $classroom = Classroom::create([
+            'teacher_id' => $teacher->id,
+            'project_id' => $project->id,
+            'name' => 'Laboratorio FabLab - 4to Grado A',
+            'access_code' => 'MK402',
+            'mode' => 'school_squads',
+            'tinkercad_link' => 'https://www.tinkercad.com/joinclass/MK402DEMO',
         ]);
 
         // 5. Escuadra Maker
