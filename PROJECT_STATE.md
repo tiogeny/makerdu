@@ -1,79 +1,88 @@
-# Makerdu v2.6 - Estado del Proyecto & Guía para Asistentes IA
+# Makerdu v2.6 - Estado Integral del Proyecto & Guía de Arquitectura
 
-> **IMPORTANTE PARA ASISTENTES IA (Antigravity / Cursor / Windsurf / Claude Code):**
-> Al abrir este repositorio en cualquier computadora, lee este archivo primero para entender la arquitectura, el estado actual del desarrollo y los siguientes pasos a ejecutar sin romper la sincronización.
-
----
-
-## 1. Información General
-* **Proyecto:** Makerdu v2.6 - Plataforma LMS Figital y Orquestador de Fabricación Digital
-* **Repositorio Git:** `https://github.com/tiogeny/makerdu.git`
-* **Entorno de Desarrollo:** Laragon local (PHP 8.3 / MySQL / Node.js v22)
-* **Hosting Producción:** BanaHosting (cPanel / LiteSpeed / PHP 8.3 / MySQL)
-* **Servicio de Video Streaming:** Bunny.net (Bunny Stream / Storage)
-* **Stack Tecnológico:**
-  * **Backend:** Laravel 11 (Inertia.js + REST API)
-  * **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS + Three.js (STLLoader + OrbitControls 360° + Slicer + Gemini Vision) + Bunny Player + Lucide Icons + i18n
-  * **Motor IA:** Gemini 3.5 Flash / 3.6 Multimodal (Mini-Dashboard de Calidad, Tutor Chatbot en Vivo con Markdown y Memoria de Diseño 3D)
-  * **Generación de Archivos:** DomPDF (Hojas de Rotulado, Tarjetas PIN en PDF) + ZipArchive (Batches de fabricación)
+> **DOCUMENTO MAESTRO DE CONTINUIDAD:**
+> Este documento resume la arquitectura, la lógica de negocio pedagógica y el estado del código de Makerdu v2.6. Es la referencia oficial tanto para el equipo humano como para cualquier sesión de IA (Antigravity, Gemini, Cursor, Windsurf, Claude Code).
 
 ---
 
-## 2. Reglas Arquitectónicas Inquebrantables
-1. **Regla de 1-PC (Equipo en 1 Computadora):** La interfaz del estudiante permite alternar el *Rol Activo* (`Architect`, `Quality`, `Finance`, `Relator`) dentro de la misma pantalla sin destruir la sesión de Laravel.
-2. **Separación Económica:** 
-   - `FabCoins (FC)` = Insumos Físicos Reales (filamento, corte láser, placas). No se regalan con trivias. La IA de validación protege este balance.
-   - `XP Points` = Puntos Pedagógicos de reputación virtual (bitácoras, rotación de rol, colaboración, autoreflexión metacognitiva).
-3. **Internacionalización Modular (`i18n`):** 
-   - `resources/js/locales/es.json` (Español completo y estructurado por secciones).
-   - `resources/js/locales/en.json` (Inglés estructurado).
-   - Helper reactivo `t('section.key')` con memoria en `localStorage`.
-4. **Deploy en BanaHosting (cPanel):** Nunca compilar en el cPanel. El workflow de deploy usa `npm run build` en local/GitHub Actions para subir `public/build/`.
+## 1. Información General del Proyecto
+* **Nombre:** Makerdu v2.6 - Plataforma LMS Figital y Orquestador de Fabricación Digital
+* **Repositorio Oficial:** `https://github.com/tiogeny/makerdu.git`
+* **Entorno Local:** Windows / Laragon (PHP 8.3 / MySQL / Node.js 22)
+* **Entorno Producción:** BanaHosting cPanel (LiteSpeed / PHP 8.3 / MySQL)
+* **Dominio Producción:** `https://makerdu.com`
+* **Streaming de Video:** Bunny.net (Bunny Stream / Storage)
+* **Motor IA:** Google Gemini 3.5 / 3.6 Multimodal (Vision 3D, Mini-Dashboard de Calidad, Tutor Chatbot en Vivo)
 
 ---
 
-## 3. Estado de Avance por Fases y Módulos
+## 2. Los 4 Perfiles / Arquetipos de Usuario y sus Ciclos de Vida Actuales
 
-| Fase / Módulo | Descripción | Estado |
-| :--- | :--- | :--- |
-| **Fase 0** | Scaffold Laravel 11 + Vue 3 + Inertia + Tailwind + Git | ✅ Completado |
-| **Fase 1** | Migraciones de Base de Datos y Modelos Eloquent | ✅ Completado |
-| **Fase 2** | Autenticación (Código Clase + PIN 4 dígitos) y HUD Escuadra (1-PC) | ✅ Completado |
-| **Fase 3** | Motor Pre-flight Check con IA (Validación STL/SVG + Gemini API) | ✅ Completado |
-| **Fase 4** | Consumo FabCoins, Batches ZIP, Rotulado PDF y War Room Docente | ✅ Completado |
-| **Módulo 1**| **Visor 3D Real (STLLoader + OrbitControls 360° + Apoyo Magnético Y=0)** | ✅ Completado |
-| **Módulo 2**| **Internacionalización Estructurada (`es.json` / `en.json`)** | ✅ Completado |
-| **Módulo 3**| **Navegación Doble (World Roadmap vs. Studio) + Bunny.net Stream** | ✅ Completado |
-| **Módulo 4**| **Bitácora Digital Multimedia (Fotos, Ficha Técnica y Portafolio)** | ✅ Completado |
-| **Módulo 5**| **Simulador de Capas (Slicing 3D Preview) & Gemini Vision Multimodal** | ✅ Completado |
-| **Módulo 6**| **Pasaporte Maker Digital Verificable y Tarjetas PIN en PDF** | ✅ Completado |
-| **Módulo 7**| **Diseñador Web de Cursos (Course Builder) & Gestor de Aulas/PINs** | ✅ Completado |
-| **Módulo 8**| **Mini-Dashboard Visual de Calidad IA (Tarjetas de Puntos Fuertes y Slicing)** | ✅ Completado |
-| **Módulo 9**| **Ficha de Autoevaluación & Reflexión Metacognitiva (+50 XP)** | ✅ Completado |
-| **Módulo 10**| **Tutor Maker IA con Formato Markdown y Memoria de Modelo 3D en Vivo** | ✅ Completado |
-| **Módulo 11**| **Barra de Pasos Guiados (Mission Stepper 1-2-3-4) & Modal de Victoria (Level Clear)** | ✅ Completado |
-| **Módulo 12**| **Entregables Dinámicos por Nivel (Boceto / STL 3D / Láser SVG / Ensamble Físico)** | ✅ Completado |
-| **Módulo 13**| **Script de Despliegue para BanaHosting (`scripts/deploy_banahosting.ps1`)** | ✅ Completado |
+### 👑 1. Super Administrador (Makerdu Core / FabLab Lima)
+* **Credencial Inicial:** `contacto@fablablima.org` | `password` (Rol: `admin`)
+* **Portal:** Centro de Mando Maestro (`/admin/dashboard`)
+* **Responsabilidades:**
+  1. **Catálogo Maestro de Cursos:** Diseña los proyectos oficiales (`/admin/projects`) con sus 4 niveles, tolerancias físicas, videos Bunny Stream, tipo de entregable y costos en FabCoins.
+  2. **Gestión de Aulas & Asignaciones:** Crea talleres/colegios (`/admin/classrooms`) y vincula a qué profesor y curso pertenece cada aula.
+  3. **Supervisión Global:** Métricas de colegios, escuadras, alumnos y FabCoins circulantes.
 
 ---
 
-## 4. Credenciales de Prueba en Local (Seeder)
-* **Aula / Taller:** Código `MK-402` (o `MK402`)
-* **Alumnos de la Escuadra Titanes Maker:**
-  - Mateo Alarcón: PIN `1234` (Rol: *Diseñador 3D*, XP: 120)
-  - Sofía Chang: PIN `5678` (Rol: *Inspector de Calidad*, XP: 150)
-  - Lucas Ramos: PIN `9012` (Rol: *Gestor de FabCoins*, XP: 95)
-  - Camila Díaz: PIN `3456` (Rol: *Cronista de Bitácora*, XP: 110)
-* **Docente / Torre de Control:** `profesor@makerdu.com` (Password: `password`)
-* **Portal Familiar:** Accesible vía `/family/MK402/squad/1`
-* **Pasaporte Maker:** Accesible vía `/squad/1/passport`
+### 👨‍🏫 2. Docente / Profesor de Aula (Historia, Arte, Ciencias, Tecnología)
+* **Credencial Inicial:** `profesor@makerdu.com` | `password` (Rol: `teacher`)
+* **Portal:** Taller del Docente (`/teacher/war-room`) con 3 Pestañas Clave:
+  1. **📚 Catálogo de Proyectos Makerdu:** Explora los cursos maestros creados por el Admin y con 1 clic selecciona *"Usar este Proyecto con mi Aula"*.
+  2. **📊 Torre de Control (Radar en Vivo):** Monitorea el mapa de calor de las escuadras en tiempo real, audita bitácoras y genera Lotes de Producción (`.ZIP` de modelos 3D + Hoja de Rotulado PDF para el FabLab).
+  3. **🏫 Escuadras & Tarjetas PIN:** Pega la lista de alumnos en bloque para generar escuadras de 4 y descarga los carnets PIN en PDF listos para imprimir.
 
 ---
 
-## 5. Instrucciones para Continuar en Otra Computadora
-1. `git clone https://github.com/tiogeny/makerdu.git`
-2. `composer install && npm install`
-3. `cp .env.example .env && php artisan key:generate`
-4. `php artisan migrate:fresh --seed`
-5. `npm run build`
-6. Decirle a la IA: *"Lee PROJECT_STATE.md y continuemos con el siguiente sprint de Makerdu."*
+### 🧒 3. Alumno / Escuadras Maker (Mateo, Sofía, Lucas, Camila)
+* **Credencial Inicial:** Código de Aula (ej. `MK402`) + PIN de 4 dígitos (ej. `1234`) (Rol: `student`)
+* **Portal:** Cabina del Estudiante (`/hud`)
+* **Mecánica de Trabajo (Regla de 1-PC):**
+  * 4 Alumnos comparten 1 computadora alternando el **Rol Activo** (`Architect`, `Quality`, `Finance`, `Relator`) con 1 clic.
+* **Stepper Guiado de 4 Pasos Adaptable:**
+  * **Paso 1 (Comprender):** Misión pedagógica y video tutorial en Bunny Stream.
+  * **Paso 2 (Crear & Auditar):** Adaptable dinámicamente al tipo de entregable:
+    * `photo_sketch`: Lienzo de ideación y subida de foto de la libreta en papel (0 FC).
+    * `stl_3d`: Visor 3D Three.js 360°, simulador de capas y control de calidad IA con Gemini Vision.
+    * `svg_laser`: Inspección vectorial 2D para corte y grabado láser.
+    * `checklist_assembly`: Checklist interactivo de pruebas físicas y post-procesado (0 FC).
+  * **Paso 3 (Reflexionar):** Ficha de Autoevaluación & Pensamiento Crítico (+50 XP).
+  * **Paso 4 (Fabricar / Finalizar):** Autorización de consumo de FabCoins para insumos reales o confirmación directa (+100 XP) y modal de victoria.
+* **Tutor IA Flotante:** Chatbot con memoria del modelo 3D activo y respuestas en Markdown concisas (<120 palabras).
+* **Pasaporte Maker:** Certificado digital verificable con código QR dinámico para celular.
+
+---
+
+### 👨‍👩‍👧 4. Familia / Padres de Familia
+* **Portal:** Portal Familiar Seguro (`/family/{accessCode}/squad/{squadId}`)
+* **Acceso:** Vía enlace de WhatsApp compartido por el docente o escaneando el código QR del Pasaporte Maker.
+* **Contenido:** Visualización del portafolio digital, fotos del prototipo real y sello de competencias curriculares CNEB / STEAM logradas por su hijo.
+
+---
+
+## 3. Catálogo de Proyectos Sembrados en Base de Datos
+
+1. 🔏 **Sellos y Relieves 2.5D:** Arte y Ergonomía (4 niveles: Boceto ➔ TinkerCAD ➔ Gemini Vision ➔ Ensamble).
+2. 💍 **Bio-joyería Amazónica en 3D:** Naturaleza y Bisutería (4 niveles: Silueta ➔ Ojal de Enganche ➔ Base Plana IA ➔ Herrajes).
+3. 🏺 **Patrimonio Chavín en Corte Láser:** Historia y Encastre MDF 3mm (4 niveles: Iconografía ➔ Vectores SVG ➔ Ranuras Kerf ➔ Maqueta).
+
+---
+
+## 4. Estructura de Producción en BanaHosting (cPanel)
+
+```
+📁 /home/discoper/
+   ├── 📁 makerdu_core/           <-- (Repositorio Git clonado con Laravel: app, database, routes, vendor, .env)
+   └── 📁 makerdu.com/ (o public) <-- (Contenido web público: index.php, build/, storage)
+```
+
+### Comandos de Actualización en Servidor (15 segundos):
+```bash
+cd /home/discoper/makerdu_core
+git pull origin main
+cp -r /home/discoper/makerdu_core/public/build /home/discoper/makerdu.com/
+ea-php83 artisan optimize:clear
+```
