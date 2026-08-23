@@ -57,6 +57,15 @@ const props = defineProps({
                         <span>Micro-Apps Store</span>
                     </Link>
 
+                                        <!-- AI Sandbox -->
+                    <Link
+                        :href="route('admin.ai-sandbox.index')"
+                        class="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                        <Cpu class="w-3.5 h-3.5" />
+                        <span>AI Sandbox</span>
+                    </Link>
+
                     <!-- Acceso Diseñador de Cursos -->
                     <Link
                         :href="route('admin.projects.index')"

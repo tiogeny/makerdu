@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AiSandboxController;
 use App\Http\Controllers\AiTutorChatController;
 use App\Http\Controllers\ClassroomManagerController;
 use App\Http\Controllers\MicroAppManagerController;
@@ -42,7 +43,7 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('student.hud');
     })->name('dashboard');
 
-    // Super Administrador (Catálogo Maestro, Centro de Mando & App Store)
+    // Super Administrador (Catálogo Maestro, Centro de Mando, App Store & AI Sandbox)
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
     Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
@@ -53,6 +54,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/apps', [MicroAppManagerController::class, 'index'])->name('admin.apps.index');
     Route::post('/admin/apps', [MicroAppManagerController::class, 'store'])->name('admin.apps.store');
     Route::post('/admin/apps/{app}/toggle', [MicroAppManagerController::class, 'toggle'])->name('admin.apps.toggle');
+
+    // Sandbox de Calibración de IA (Gemini Vision)
+    Route::get('/admin/ai-sandbox', [AiSandboxController::class, 'index'])->name('admin.ai-sandbox.index');
+    Route::post('/admin/ai-sandbox/test', [AiSandboxController::class, 'test'])->name('admin.ai-sandbox.test');
 
     // Docente / Instructor (Torre de Control, Catálogo de Proyectos & Lotes FabLab)
     Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
