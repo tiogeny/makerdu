@@ -30,6 +30,19 @@ const currentMode = ref('roadmap');
 // Paso activo del Stepper Guiado dentro del Estudio: 1, 2, 3 o 4
 const currentStep = ref(2);
 
+// Estado para Micro-Apps Autónomas Overlay
+const activeMicroApp = ref(null);
+
+const openMicroApp = (name, url, icon = '⚡') => {
+    activeMicroApp.value = { name, url, icon };
+};
+
+const handleMicroAppAsset = (asset) => {
+    if (asset && asset.content) {
+        bitacoraForm.content_text = `Entregable generado con Micro-App '${asset.appName}': ${asset.fileName} (${asset.depth_mm || 5}mm de altura).`;
+    }
+};
+
 // Modal de Celebración de Nivel Superado
 const showVictoryModal = ref(false);
 

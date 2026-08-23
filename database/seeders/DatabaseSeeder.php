@@ -8,6 +8,7 @@ use App\Models\Squad;
 use App\Models\Project;
 use App\Models\ProjectLevel;
 use App\Models\BitacoraEntry;
+use App\Models\MicroApp;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,6 +16,42 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // =====================================================================
+        // 0. CATÁLOGO INICIAL DE MICRO-APPS AUTÓNOMAS
+        // =====================================================================
+        MicroApp::create([
+            'name' => 'Vectorizador Cámara B/N & Editor Bézier 2D/3D',
+            'slug' => 'vectorizer',
+            'category' => '2.5D',
+            'description' => 'Convierte bocetos en papel a vectores limpios SVG mediante cámara web o pluma Bézier y genera extrusión 3D instantánea.',
+            'embed_path' => '/apps/vectorizer',
+            'output_type' => 'svg',
+            'icon' => '🎨',
+            'is_active' => true,
+        ]);
+
+        MicroApp::create([
+            'name' => 'Visor 3D WebGL Autónomo',
+            'slug' => 'viewer-3d',
+            'category' => '3D',
+            'description' => 'Inspección 360° de mallas STL, cotas físicas X/Y/Z, cálculo volumétrico y validación de grosor.',
+            'embed_path' => '/apps/viewer-3d',
+            'output_type' => 'stl',
+            'icon' => '🧊',
+            'is_active' => true,
+        ]);
+
+        MicroApp::create([
+            'name' => 'Generador de Cajas Láser con Encastre',
+            'slug' => 'box-generator',
+            'category' => 'Laser',
+            'description' => 'Calculadora paramétrica de ranuras de ensamble finger-joint con compensación de kerf para corte láser en MDF/acrílico.',
+            'embed_path' => '/apps/box-generator',
+            'output_type' => 'svg',
+            'icon' => '📦',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================

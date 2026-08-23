@@ -48,6 +48,15 @@ const props = defineProps({
                         <span>{{ currentLang.toUpperCase() }}</span>
                     </button>
 
+                                        <!-- Micro-Apps Store -->
+                    <Link
+                        :href="route('admin.apps.index')"
+                        class="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                        <Sparkles class="w-3.5 h-3.5" />
+                        <span>Micro-Apps Store</span>
+                    </Link>
+
                     <!-- Acceso Diseñador de Cursos -->
                     <Link
                         :href="route('admin.projects.index')"

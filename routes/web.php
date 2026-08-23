@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AiTutorChatController;
 use App\Http\Controllers\ClassroomManagerController;
+use App\Http\Controllers\MicroAppManagerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectBuilderController;
 use App\Http\Controllers\StudentAuthController;
@@ -41,12 +42,17 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('student.hud');
     })->name('dashboard');
 
-    // Super Administrador (Catálogo Maestro y Centro de Mando)
+    // Super Administrador (Catálogo Maestro, Centro de Mando & App Store)
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
     Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
     Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');
     Route::post('/admin/classrooms/{classroom}/enroll', [ClassroomManagerController::class, 'enrollStudents'])->name('admin.classrooms.enroll');
+    
+    // Catálogo y Gestión de Micro-Apps
+    Route::get('/admin/apps', [MicroAppManagerController::class, 'index'])->name('admin.apps.index');
+    Route::post('/admin/apps', [MicroAppManagerController::class, 'store'])->name('admin.apps.store');
+    Route::post('/admin/apps/{app}/toggle', [MicroAppManagerController::class, 'toggle'])->name('admin.apps.toggle');
 
     // Docente / Instructor (Torre de Control, Catálogo de Proyectos & Lotes FabLab)
     Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
