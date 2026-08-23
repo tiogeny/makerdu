@@ -101,5 +101,15 @@
     "cneb_title": "CNEB / STEAM Curricular Alignment",
     "batches_title": "Workshop Fabrication Batches",
     "batches_desc": "Production packages history dispatched to 3D printer / laser cutting farm."
+  },
+  "admin": {
+    "dashboard_title": "Makerdu Command Center",
+    "badge_superadmin": "SUPER ADMINISTRATOR",
+    "dashboard_desc": "Global platform governance, master course design, and classroom management.",
+    "hero_badge": "Master Operations Console",
+    "hero_title": "Global STEAM Ecosystem Governance",
+    "hero_subtitle": "Manage digital fabrication project catalog, monitor active workshops, and assign teachers to schools.",
+    "btn_create_course": "Create Master Course",
+    "btn_new_classroom": "New Classroom / Workshop"
   }
 }

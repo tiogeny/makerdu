@@ -101,5 +101,15 @@
     "cneb_title": "Vinculación Curricular CNEB / STEAM",
     "batches_title": "Lotes de Fabricación en Taller",
     "batches_desc": "Historial de paquetes de producción enviados a la granja de impresión 3D / corte láser."
+  },
+  "admin": {
+    "dashboard_title": "Centro de Mando Makerdu",
+    "badge_superadmin": "SUPER ADMINISTRADOR",
+    "dashboard_desc": "Control global de la plataforma, diseño de cursos maestros y gestión de aulas.",
+    "hero_badge": "Consola Maestra de Operaciones",
+    "hero_title": "Gestión Global del Ecosistema STEAM",
+    "hero_subtitle": "Administra el catálogo de proyectos de fabricación digital, supervisa los talleres activos y asigna profesores a los colegios.",
+    "btn_create_course": "Crear Nuevo Curso Maestro",
+    "btn_new_classroom": "Nueva Aula / Taller"
   }
 }
