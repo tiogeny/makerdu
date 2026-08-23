@@ -48,8 +48,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');
     Route::post('/admin/classrooms/{classroom}/enroll', [ClassroomManagerController::class, 'enrollStudents'])->name('admin.classrooms.enroll');
 
-    // Docente / Instructor (Torre de Control de su Aula & Lotes FabLab)
+    // Docente / Instructor (Torre de Control, Catálogo de Proyectos & Lotes FabLab)
     Route::get('/teacher/war-room', [TeacherWarRoomController::class, 'index'])->name('teacher.war-room');
+    Route::post('/teacher/classroom/{classroom}/assign-project', [TeacherWarRoomController::class, 'assignProject'])->name('teacher.assign-project');
     Route::get('/teacher/classroom/{classroom}/pin-cards', [TeacherWarRoomController::class, 'downloadPinCards'])->name('teacher.pin-cards');
     Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
     Route::post('/teacher/batch/{batch}/status', [TeacherWarRoomController::class, 'updateBatchStatus'])->name('teacher.batch-status');

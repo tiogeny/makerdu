@@ -97,6 +97,25 @@ class TeacherWarRoomController extends Controller
             'heatmap' => $heatmapData,
             'competencies' => $competencies,
             'batches' => $batches,
+            'allProjects' => Project::with('levels')->get()->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'title' => $p->title_json['es'] ?? 'Curso Maker',
+                    'title_en' => $p->title_json['en'] ?? '',
+                    'description' => $p->description_json['es'] ?? '',
+                    'type' => $p->type,
+                    'total_levels' => $p->total_levels,
+                    'levels' => $p->levels->map(function ($l) {
+                        return [
+                            'id' => $l->id,
+                            'level_number' => $l->level_number,
+                            'title' => $l->title_json['es'] ?? '',
+                            'deliverable_type' => $l->toolbox_json['deliverable_type'] ?? 'stl_3d',
+                            'fabcoins_cost' => $l->fabcoins_cost,
+                        ];
+                    }),
+                ];
+            }),
         ]);
     }
 
@@ -240,6 +259,23 @@ class TeacherWarRoomController extends Controller
     /**
      * Portal Familiar Seguro
      */
+    
+    /**
+     * Asignar o Cambiar el Proyecto de un Aula (Acción del Docente)
+     */
+    public function assignProject(Request $request, Classroom $classroom)
+    {
+        $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+        ]);
+
+        $classroom->update(['project_id' => $request->project_id]);
+        $project = Project::find($request->project_id);
+        $title = $project->title_json['es'] ?? 'Proyecto';
+
+        return back()->with('success', "¡Excelente! Has asignado el proyecto '{$title}' al aula '{$classroom->name}'.");
+    }
+
     public function familyPortal($accessCode, Squad $squad)
     {
         $squad->load(['classroom.teacher', 'classroom.project', 'members']);
