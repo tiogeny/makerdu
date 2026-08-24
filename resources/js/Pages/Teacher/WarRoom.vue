@@ -17,6 +17,7 @@ const props = defineProps({
     heatmap: Array,
     competencies: Object,
     batches: Array,
+    redemptions: Array,
     allProjects: Array,
 });
 
@@ -55,6 +56,36 @@ const generateFabricationBatch = () => {
 
 const updateStatus = (batchId, status) => {
     router.post(route('teacher.batch-status', { batch: batchId }), { status }, { preserveScroll: true });
+};
+
+// Acciones de canje de recompensas (Paso 6)
+const handleRedemption = (redemptionId, action) => {
+    router.post(route('teacher.redemption.action', { redemption: redemptionId }), { action }, { preserveScroll: true });
+};
+
+// Modal de Otorgar Bonus FabCoins
+const showBonusModal = ref(false);
+const selectedBonusSquad = ref(null);
+const bonusForm = useForm({
+    amount: 15,
+    reason: '',
+});
+
+const openBonusModal = (squad) => {
+    selectedBonusSquad.value = squad;
+    bonusForm.reason = 'Excelente trabajo en equipo y proactividad Maker';
+    showBonusModal.value = true;
+};
+
+const submitBonus = () => {
+    if (!selectedBonusSquad.value) return;
+    bonusForm.post(route('teacher.squad.bonus', { squad: selectedBonusSquad.value.id || selectedBonusSquad.value.squad_id }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showBonusModal.value = false;
+            bonusForm.reset();
+        },
+    });
 };
 
 // Matrícula rápida
@@ -456,28 +487,107 @@ const getTypeBadge = (type) => {
                                         </span>
                                     </td>
                                     <td class="p-4 text-center">
-                                        <Link
-                                            :href="route('squad.passport', { squad: sq.squad_id })"
-                                            target="_blank"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-600/40 text-[11px] font-bold transition"
-                                        >
-                                            <Award class="w-3.5 h-3.5" />
-                                            <span>Certificado</span>
-                                        </Link>
-                                    </td>
-                                    <td class="p-4 text-center">
-                                        <Link
-                                            :href="route('family.portal', { accessCode: activeClassroom.access_code, squad: sq.squad_id })"
-                                            target="_blank"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 border border-emerald-600/40 text-[11px] font-bold transition"
-                                        >
-                                            <MessageCircle class="w-3.5 h-3.5" />
-                                            <span>WhatsApp</span>
-                                        </Link>
+                                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                            <button
+                                                type="button"
+                                                @click="openBonusModal(sq)"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-950/50 hover:bg-amber-900/60 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition"
+                                                title="Otorgar Bonus FabCoins"
+                                            >
+                                                <Coins class="w-3.5 h-3.5" />
+                                                <span>+Bonus FC</span>
+                                            </button>
+
+                                            <Link
+                                                :href="route('squad.passport', { squad: sq.squad_id })"
+                                                target="_blank"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-600/40 text-[11px] font-bold transition"
+                                            >
+                                                <Award class="w-3.5 h-3.5" />
+                                                <span>Certificado</span>
+                                            </Link>
+
+                                            <Link
+                                                :href="route('family.portal', { accessCode: activeClassroom.access_code, squad: sq.squad_id })"
+                                                target="_blank"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 border border-emerald-600/40 text-[11px] font-bold transition"
+                                            >
+                                                <MessageCircle class="w-3.5 h-3.5" />
+                                                <span>WhatsApp</span>
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- SOLICITUDES DE CANJES DE RECOMPENSAS (FABCOINS) -->
+                <div v-if="redemptions?.length" class="bg-slate-900/80 border border-amber-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <Gift class="w-5 h-5 text-amber-400" />
+                            <h3 class="text-base font-black text-white">Canjes de Recompensas FabCoins</h3>
+                        </div>
+                        <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {{ redemptions.filter(r => r.status === 'pending').length }} pendientes
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Revisa y aprueba los canjes solicitados por las escuadras con sus FabCoins acumulados.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div
+                            v-for="r in redemptions"
+                            :key="r.id"
+                            class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 flex flex-col justify-between"
+                        >
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl">{{ r.reward_icon }}</span>
+                                        <span class="font-bold text-xs text-white">{{ r.reward_name }}</span>
+                                    </div>
+                                    <span class="font-mono font-bold text-xs text-amber-400">{{ r.fabcoins_spent }} FC</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">
+                                    <strong>{{ r.squad_name }}</strong> (por {{ r.student_name }}) • {{ r.created_at }}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-2 border-t border-slate-900">
+                                <template v-if="r.status === 'pending'">
+                                    <button
+                                        type="button"
+                                        @click="handleRedemption(r.id, 'approve')"
+                                        class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1"
+                                    >
+                                        <Check class="w-3.5 h-3.5" />
+                                        <span>Aprobar</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="handleRedemption(r.id, 'reject')"
+                                        class="px-3 py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/50 text-red-400 border border-red-500/30 text-xs font-bold transition"
+                                    >
+                                        Rechazar
+                                    </button>
+                                </template>
+                                <template v-else-if="r.status === 'approved'">
+                                    <button
+                                        type="button"
+                                        @click="handleRedemption(r.id, 'deliver')"
+                                        class="flex-1 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center justify-center gap-1"
+                                    >
+                                        <CheckCircle2 class="w-3.5 h-3.5" />
+                                        <span>Marcar Entregado</span>
+                                    </button>
+                                </template>
+                                <template v-else>
+                                    <span class="text-[11px] text-slate-500 font-bold capitalize">Estado: {{ r.status }}</span>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -827,6 +937,76 @@ const getTypeBadge = (type) => {
                         class="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition shadow-lg shadow-purple-500/20 disabled:opacity-50"
                     >
                         <span>GENERAR ESCUADRAS Y TARJETAS PIN</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL DE OTORGAR BONUS FABCOINS -->
+        <div
+            v-if="showBonusModal"
+            class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+        >
+            <div class="w-full max-w-md bg-slate-900 border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-base font-black text-white flex items-center gap-2">
+                        <Coins class="w-5 h-5 text-amber-400" />
+                        <span>Otorgar Bonus FabCoins</span>
+                    </h3>
+                    <button type="button" @click="showBonusModal = false" class="text-slate-500 hover:text-white text-xs font-bold">Cerrar</button>
+                </div>
+
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Premia el esfuerzo, colaboración o creatividad de la escuadra <strong class="text-white">{{ selectedBonusSquad?.squad_name || selectedBonusSquad?.name }}</strong>.
+                </p>
+
+                <form @submit.prevent="submitBonus" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Cantidad de FabCoins (+FC)</label>
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <button
+                                v-for="amt in [10, 15, 25, 50]"
+                                :key="amt"
+                                type="button"
+                                @click="bonusForm.amount = amt"
+                                :class="[
+                                    'py-2 rounded-xl text-xs font-mono font-bold transition border',
+                                    bonusForm.amount === amt
+                                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
+                                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
+                                ]"
+                            >
+                                +{{ amt }} FC
+                            </button>
+                        </div>
+                        <input
+                            v-model.number="bonusForm.amount"
+                            type="number"
+                            min="1"
+                            max="500"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Motivo del Reconocimiento *</label>
+                        <input
+                            v-model="bonusForm.reason"
+                            type="text"
+                            placeholder="Ej: Excelente diseño de unión clip o apoyo al equipo vecino"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        :disabled="bonusForm.processing || !bonusForm.amount || !bonusForm.reason"
+                        class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs transition shadow-lg shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        <Coins class="w-4 h-4" />
+                        <span>ENTREGAR +{{ bonusForm.amount }} FABCOINS</span>
                     </button>
                 </form>
             </div>

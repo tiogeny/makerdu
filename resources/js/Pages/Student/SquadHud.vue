@@ -350,16 +350,23 @@ const getDeliverableBadge = (type) => {
 
                 <!-- Economic Badges & Actions -->
                 <div class="flex items-center gap-3 sm:gap-4">
-                    <!-- Billetera FabCoins -->
-                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/40 shadow-inner">
-                        <div class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
+                    <!-- Billetera FabCoins (Link to Panel) -->
+                    <Link
+                        :href="route('student.fabcoins')"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/40 hover:border-amber-400 shadow-inner transition group cursor-pointer"
+                        title="Ver Tienda de Recompensas y Libro Contable"
+                    >
+                        <div class="w-7 h-7 rounded-lg bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center text-amber-400 transition">
                             <Coins class="w-4 h-4" />
                         </div>
                         <div>
-                            <p class="text-[9px] font-bold uppercase tracking-wider text-amber-400/80 leading-none">{{ t('hud.fabcoins_budget') }}</p>
+                            <p class="text-[9px] font-bold uppercase tracking-wider text-amber-400/80 leading-none flex items-center gap-1">
+                                <span>{{ t('hud.fabcoins_budget') }}</span>
+                                <ArrowUpRight class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition" />
+                            </p>
                             <p class="text-sm font-mono font-black text-amber-300">{{ squad.fabcoins_balance }} <span class="text-[10px] font-normal">FC</span></p>
                         </div>
-                    </div>
+                    </Link>
 
                     <!-- XP Points -->
                     <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-950/40 border border-purple-500/40 shadow-inner">

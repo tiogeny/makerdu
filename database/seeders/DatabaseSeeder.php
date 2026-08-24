@@ -9,6 +9,8 @@ use App\Models\Project;
 use App\Models\ProjectLevel;
 use App\Models\BitacoraEntry;
 use App\Models\MicroApp;
+use App\Models\RewardCatalog;
+use App\Models\FabCoinTransaction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -619,5 +621,78 @@ class DatabaseSeeder extends Seeder
             'ai_feedback'         => '✅ Excelente boceto con partes claramente diferenciadas. Las articulaciones están bien documentadas. Proporción estimada 80×120mm dentro del rango permitido.',
             'status'              => 'approved',
         ]);
+
+        // =====================================================================
+        // 4. CATÁLOGO DE RECOMPENSAS FABCOINS (TIENDA MAKER)
+        // =====================================================================
+        $rewards = [
+            [
+                'name_json' => ['es' => 'Filamento Seda Bicolor (100g Extra)', 'en' => 'Silk Dual-Color Filament (100g Extra)'],
+                'description_json' => ['es' => 'Bobina especial de PLA con efecto tornasol para acabados premium en ferias.', 'en' => 'Special PLA spool with iridescent effect for premium finishes.'],
+                'cost' => 35,
+                'category' => 'material',
+                'icon' => '🧵',
+                'stock' => 10,
+            ],
+            [
+                'name_json' => ['es' => 'Corte Láser Express (Sin Cola)', 'en' => 'Express Laser Cutting (Priority Queue)'],
+                'description_json' => ['es' => 'Pase directo al cabezal láser de CO2 para fabricar piezas sin esperar el turno general.', 'en' => 'Direct access to CO2 laser cutter without general queue wait.'],
+                'cost' => 25,
+                'category' => 'time',
+                'icon' => '⚡',
+                'stock' => 5,
+            ],
+            [
+                'name_json' => ['es' => 'DJ del Taller Maker (1 Sesión)', 'en' => 'Maker Lab DJ (1 Session)'],
+                'description_json' => ['es' => 'Tu escuadra elige la playlist de música ambiental durante toda la clase de fabricación.', 'en' => 'Your squad picks the ambient music playlist for the whole class.'],
+                'cost' => 20,
+                'category' => 'privilege',
+                'icon' => '🎧',
+                'stock' => null,
+            ],
+            [
+                'name_json' => ['es' => 'Pack de Stickers Holográficos Makerdu', 'en' => 'Makerdu Holographic Sticker Pack'],
+                'description_json' => ['es' => 'Set de 4 calcomanías holográficas resistentes al agua con insignias de rol Maker.', 'en' => 'Set of 4 waterproof holographic stickers with Maker role badges.'],
+                'cost' => 15,
+                'category' => 'recognition',
+                'icon' => '✨',
+                'stock' => 25,
+            ],
+            [
+                'name_json' => ['es' => 'Acceso a Boquilla de Alta Precisión 0.2mm', 'en' => 'High-Precision 0.2mm Nozzle Access'],
+                'description_json' => ['es' => 'Imprime detalles ultra-finos (hasta 50 micras) para micro-mecanismos y miniaturas.', 'en' => 'Print ultra-fine details (down to 50 microns) for micro-mechanisms.'],
+                'cost' => 40,
+                'category' => 'tool',
+                'icon' => '🔬',
+                'stock' => 3,
+            ],
+            [
+                'name_json' => ['es' => 'Pack de Plantillas CAD Paramétricas', 'en' => 'Parametric CAD Template Pack'],
+                'description_json' => ['es' => 'Descarga de 8 archivos STL/STEP de engranajes y articulaciones optimizadas.', 'en' => 'Download 8 optimized gear and joint STL/STEP files.'],
+                'cost' => 30,
+                'category' => 'digital',
+                'icon' => '📦',
+                'stock' => null,
+            ],
+        ];
+
+        foreach ($rewards as $r) {
+            RewardCatalog::create($r);
+        }
+
+        // =====================================================================
+        // 5. REGISTROS INICIALES DEL LIBRO CONTABLE (LEDGER TRANSACTIONS)
+        // =====================================================================
+        $squadsList = [$sq1, $sq2, $sq3, $sq4];
+        foreach ($squadsList as $sq) {
+            FabCoinTransaction::create([
+                'squad_id' => $sq->id,
+                'amount' => $sq->fabcoins_balance,
+                'type' => 'earn_bonus',
+                'description' => 'Presupuesto inicial de apertura de escuadra',
+                'balance_after' => $sq->fabcoins_balance,
+                'created_at' => now()->subDays(3),
+            ]);
+        }
     }
 }

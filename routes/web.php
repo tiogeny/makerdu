@@ -78,6 +78,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/squad/{squad}/ai-chat', [AiTutorChatController::class, 'chat'])->name('squad.ai-chat');
     Route::get('/squad/{squad}/passport', [TeacherWarRoomController::class, 'passport'])->name('squad.passport');
 
+    // Economía FabCoins & Panel de Recompensas (Paso 6)
+    Route::get('/fabcoins', [FabCoinController::class, 'panel'])->name('student.fabcoins');
+    Route::post('/squad/{squad}/redeem', [FabCoinController::class, 'redeem'])->name('squad.redeem');
+    Route::post('/teacher/redemption/{redemption}/action', [FabCoinController::class, 'approveRedemption'])->name('teacher.redemption.action');
+    Route::post('/teacher/squad/{squad}/grant-bonus', [FabCoinController::class, 'grantBonus'])->name('teacher.squad.bonus');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

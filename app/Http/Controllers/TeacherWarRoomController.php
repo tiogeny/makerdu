@@ -90,6 +90,24 @@ class TeacherWarRoomController extends Controller
             ],
         ];
 
+        // Canjes de recompensas de las escuadras del aula seleccionada
+        $squadIds = $activeClassroom ? $activeClassroom->squads->pluck('id')->toArray() : [];
+        $redemptions = \App\Models\RewardRedemption::with(['squad', 'reward', 'redeemedBy'])
+            ->whereIn('squad_id', $squadIds)
+            ->latest()
+            ->get()
+            ->map(fn($r) => [
+                'id'             => $r->id,
+                'squad_name'     => $r->squad?->name,
+                'squad_id'       => $r->squad_id,
+                'reward_name'    => $r->reward?->name_json['es'] ?? 'Recompensa',
+                'reward_icon'    => $r->reward?->icon ?? '🎁',
+                'fabcoins_spent' => $r->fabcoins_spent,
+                'student_name'   => $r->redeemedBy?->name ?? 'Alumno',
+                'status'         => $r->status,
+                'created_at'     => $r->created_at->diffForHumans(),
+            ]);
+
         return Inertia::render('Teacher/WarRoom', [
             'classrooms' => $classrooms,
             'activeClassroom' => $activeClassroom,
@@ -97,6 +115,7 @@ class TeacherWarRoomController extends Controller
             'heatmap' => $heatmapData,
             'competencies' => $competencies,
             'batches' => $batches,
+            'redemptions' => $redemptions,
             'allProjects' => Project::with('levels')->get()->map(function ($p) {
                 return [
                     'id' => $p->id,

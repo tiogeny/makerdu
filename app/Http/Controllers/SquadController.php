@@ -198,7 +198,7 @@ class SquadController extends Controller
     /**
      * Confirmar Fabricación y Descontar FabCoins (Paso 4)
      */
-    public function confirmFabrication(Request $request, Squad $squad, ProjectLevel $level)
+    public function confirmFabrication(Request $request, Squad $squad, ProjectLevel $level, \App\Services\FabCoinService $fabCoinService)
     {
         $cost = $level->fabcoins_cost;
 
@@ -206,7 +206,17 @@ class SquadController extends Controller
             return back()->withErrors(['general' => "Balance insuficiente de FabCoins. Requiere {$cost} FC y dispones de {$squad->fabcoins_balance} FC."]);
         }
 
-        $squad->decrement('fabcoins_balance', $cost);
+        // Registrar transacción de gasto en el ledger
+        if ($cost > 0) {
+            $fabCoinService->record(
+                $squad,
+                -$cost,
+                'spend_fabrication',
+                "🏭 Fabricación autorizada para {$level->title_json['es']}",
+                'project_level',
+                $level->id
+            );
+        }
 
         $activeStudentId = session('active_student_id', Auth::id());
         $user = User::find($activeStudentId);
