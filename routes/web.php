@@ -65,6 +65,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teacher/classroom/{classroom}/pin-cards', [TeacherWarRoomController::class, 'downloadPinCards'])->name('teacher.pin-cards');
     Route::post('/teacher/classroom/{classroom}/generate-batch', [TeacherWarRoomController::class, 'generateBatch'])->name('teacher.generate-batch');
     Route::post('/teacher/batch/{batch}/status', [TeacherWarRoomController::class, 'updateBatchStatus'])->name('teacher.batch-status');
+    // Carrocería Pedagógica (Paso 4)
+    Route::post('/teacher/classroom/{classroom}/customize', [TeacherWarRoomController::class, 'customize'])->name('teacher.customize');
+    Route::post('/teacher/classroom/{classroom}/reset-customization', [TeacherWarRoomController::class, 'resetCustomization'])->name('teacher.reset-customization');
 
     // HUD de la Escuadra y Operaciones Maker
     Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud');

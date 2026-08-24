@@ -16,7 +16,38 @@ class Classroom extends Model
         'access_code',
         'mode',
         'tinkercad_link',
+        // Carrocería Pedagógica (Paso 4)
+        'custom_title',
+        'custom_description',
+        'custom_video_url',
+        'custom_context_image_url',
+        'custom_welcome_message',
+        'custom_accent_color',
     ];
+
+    /**
+     * Retorna el título efectivo: custom del aula o el del proyecto maestro.
+     */
+    public function effectiveTitle(): string
+    {
+        return $this->custom_title ?: ($this->project->title ?? 'Proyecto Makerdu');
+    }
+
+    /**
+     * Retorna la descripción efectiva: custom del aula o la del proyecto maestro.
+     */
+    public function effectiveDescription(): string
+    {
+        return $this->custom_description ?: ($this->project->description ?? '');
+    }
+
+    /**
+     * Retorna el color de acento efectivo (hex).
+     */
+    public function effectiveAccentColor(): string
+    {
+        return $this->custom_accent_color ?: '#06b6d4';
+    }
 
     public function teacher()
     {

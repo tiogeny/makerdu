@@ -293,4 +293,53 @@ class TeacherWarRoomController extends Controller
             'bitacoras' => $bitacoras,
         ]);
     }
+
+    /**
+     * ================================================================
+     * CARROCERÍA PEDAGÓGICA (Paso 4)
+     * Permite al docente personalizar el contexto visual y narrativo
+     * de SU aula sin tocar el chasis técnico del SuperAdmin.
+     * ================================================================
+     */
+    public function customize(Request $request, Classroom $classroom)
+    {
+        // Solo el docente propietario del aula puede personalizar
+        if ($classroom->teacher_id !== auth()->id()) {
+            abort(403, 'Solo el docente responsable puede personalizar esta aula.');
+        }
+
+        $validated = $request->validate([
+            'custom_title'             => ['nullable', 'string', 'max:120'],
+            'custom_description'       => ['nullable', 'string', 'max:800'],
+            'custom_video_url'         => ['nullable', 'url', 'max:500'],
+            'custom_context_image_url' => ['nullable', 'url', 'max:500'],
+            'custom_welcome_message'   => ['nullable', 'string', 'max:400'],
+            'custom_accent_color'      => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
+
+        $classroom->update($validated);
+
+        return back()->with('success', "✅ Carrocería pedagógica del aula '{$classroom->name}' actualizada. Los alumnos verán los cambios al recargar.");
+    }
+
+    /**
+     * Resetear la carrocería al estado por defecto del proyecto maestro.
+     */
+    public function resetCustomization(Classroom $classroom)
+    {
+        if ($classroom->teacher_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $classroom->update([
+            'custom_title'             => null,
+            'custom_description'       => null,
+            'custom_video_url'         => null,
+            'custom_context_image_url' => null,
+            'custom_welcome_message'   => null,
+            'custom_accent_color'      => '#06b6d4',
+        ]);
+
+        return back()->with('success', '🔄 Carrocería reseteada al diseño maestro del SuperAdmin.');
+    }
 }

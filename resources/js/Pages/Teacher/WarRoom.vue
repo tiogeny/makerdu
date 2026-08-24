@@ -75,6 +75,49 @@ const submitEnroll = () => {
     });
 };
 
+// ============================================================
+// CARROCERÍA PEDAGÓGICA (Paso 4)
+// ============================================================
+const customizeForm = useForm({
+    custom_title:             props.activeClassroom?.custom_title             || '',
+    custom_description:       props.activeClassroom?.custom_description       || '',
+    custom_video_url:         props.activeClassroom?.custom_video_url         || '',
+    custom_context_image_url: props.activeClassroom?.custom_context_image_url || '',
+    custom_welcome_message:   props.activeClassroom?.custom_welcome_message   || '',
+    custom_accent_color:      props.activeClassroom?.custom_accent_color      || '#06b6d4',
+});
+
+const saveCustomization = () => {
+    if (!props.activeClassroom) return;
+    customizeForm.post(route('teacher.customize', { classroom: props.activeClassroom.id }), {
+        preserveScroll: true,
+    });
+};
+
+const resetCustomization = () => {
+    if (!props.activeClassroom) return;
+    if (!confirm('¿Resetear al diseño maestro del SuperAdmin? Se perderán tus personalizaciones.')) return;
+    router.post(route('teacher.reset-customization', { classroom: props.activeClassroom.id }), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            customizeForm.reset();
+            customizeForm.custom_accent_color = '#06b6d4';
+        },
+    });
+};
+
+// Colores de acento predefinidos para el selector rápido
+const accentColors = [
+    { hex: '#06b6d4', name: 'Cyan (defecto)' },
+    { hex: '#8b5cf6', name: 'Violeta' },
+    { hex: '#f59e0b', name: 'Ámbar' },
+    { hex: '#10b981', name: 'Esmeralda' },
+    { hex: '#ef4444', name: 'Rojo' },
+    { hex: '#ec4899', name: 'Rosa' },
+    { hex: '#f97316', name: 'Naranja' },
+    { hex: '#3b82f6', name: 'Azul' },
+];
+
 const getStatusBadge = (status) => {
     switch (status) {
         case 'completed':
@@ -224,6 +267,21 @@ const getTypeBadge = (type) => {
                     >
                         <Users class="w-4 h-4" />
                         <span>3. Escuadras & Tarjetas PIN</span>
+                    </button>
+
+                    <!-- Pestaña 4: Carrocería Pedagógica -->
+                    <button
+                        type="button"
+                        @click="activeTab = 'customize'"
+                        :class="[
+                            'px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2',
+                            activeTab === 'customize'
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                                : 'text-slate-400 hover:text-white bg-slate-950/50 border border-slate-800'
+                        ]"
+                    >
+                        <Palette class="w-4 h-4" />
+                        <span>4. 🎨 Personalizar Aula</span>
                     </button>
                 </div>
 
@@ -545,6 +603,180 @@ const getTypeBadge = (type) => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- PESTAÑA 4: CARROCERÍA PEDAGÓGICA -->
+            <section v-else-if="activeTab === 'customize'" class="space-y-6 animate-fade-in">
+                <div class="p-6 rounded-3xl bg-slate-900/80 border border-emerald-500/30 shadow-xl space-y-6">
+
+                    <!-- Header -->
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <Palette class="w-5 h-5 text-emerald-400" />
+                                <h2 class="text-lg font-black text-white">Carrocería Pedagógica</h2>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                                    {{ activeClassroom?.name || 'Sin aula' }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 max-w-xl">
+                                Personaliza el título, video, imagen de contexto y color de tu aula sin tocar el diseño técnico del proyecto maestro.
+                                El chasis (validación IA, rúbricas, FabCoins) lo gestiona el SuperAdmin.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="resetCustomization"
+                            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-red-950/50 hover:text-red-400 text-slate-400 text-xs font-bold border border-slate-700 transition flex items-center gap-1.5"
+                        >
+                            <span>🔄 Resetear al diseño maestro</span>
+                        </button>
+                    </div>
+
+                    <!-- Preview strip con el color actual -->
+                    <div
+                        class="h-2 rounded-full w-full transition-all duration-300"
+                        :style="{ background: `linear-gradient(to right, ${customizeForm.custom_accent_color}, transparent)` }"
+                    ></div>
+
+                    <div v-if="!activeClassroom" class="p-8 text-center rounded-2xl bg-slate-950/60 border border-slate-800">
+                        <p class="text-sm text-slate-400">Selecciona un aula primero desde el selector superior.</p>
+                    </div>
+
+                    <form v-else @submit.prevent="saveCustomization" class="space-y-5">
+
+                        <!-- Título personalizado -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                <span>📌 Título del Proyecto para esta Aula</span>
+                                <span class="text-slate-500 font-normal">(opcional — si está vacío usa el título maestro)</span>
+                            </label>
+                            <input
+                                v-model="customizeForm.custom_title"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Ej: Sellos de Arcilla — Colegio San Ignacio 4to B"
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white text-sm placeholder-slate-600 outline-none transition"
+                            />
+                            <p v-if="customizeForm.errors.custom_title" class="text-xs text-red-400">{{ customizeForm.errors.custom_title }}</p>
+                        </div>
+
+                        <!-- Descripción contextual -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300">
+                                📝 Descripción Contextual del Reto
+                            </label>
+                            <textarea
+                                v-model="customizeForm.custom_description"
+                                rows="3"
+                                maxlength="800"
+                                placeholder="Ej: En este proyecto diseñaremos sellos inspirados en los patrones de la textilería andina de nuestra región..."
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white text-sm placeholder-slate-600 outline-none transition resize-none"
+                            ></textarea>
+                        </div>
+
+                        <!-- Video de YouTube personalizado -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                <span>🎬 URL del Video Tutorial (YouTube)</span>
+                                <span class="text-slate-500 font-normal">reemplaza el video del proyecto maestro</span>
+                            </label>
+                            <input
+                                v-model="customizeForm.custom_video_url"
+                                type="url"
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white text-sm placeholder-slate-600 outline-none transition font-mono"
+                            />
+                            <!-- Preview del video si hay URL -->
+                            <div v-if="customizeForm.custom_video_url" class="mt-2 rounded-2xl overflow-hidden border border-slate-800 aspect-video">
+                                <iframe
+                                    :src="'https://www.youtube.com/embed/' + (customizeForm.custom_video_url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] || '')"
+                                    class="w-full h-full"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Imagen de contexto -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                <span>🖼️ URL de Imagen de Contexto del Reto</span>
+                                <span class="text-slate-500 font-normal">foto del producto final esperado</span>
+                            </label>
+                            <input
+                                v-model="customizeForm.custom_context_image_url"
+                                type="url"
+                                placeholder="https://i.imgur.com/ejemplo.jpg"
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white text-sm placeholder-slate-600 outline-none transition font-mono"
+                            />
+                            <div v-if="customizeForm.custom_context_image_url" class="mt-2 rounded-2xl overflow-hidden border border-slate-800 max-h-48">
+                                <img :src="customizeForm.custom_context_image_url" class="w-full h-full object-cover" />
+                            </div>
+                        </div>
+
+                        <!-- Mensaje de bienvenida -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300">
+                                👋 Mensaje de Bienvenida para los Alumnos
+                            </label>
+                            <textarea
+                                v-model="customizeForm.custom_welcome_message"
+                                rows="2"
+                                maxlength="400"
+                                placeholder="Ej: ¡Bienvenidos Titanes! Este trimestre vamos a fabricar objetos reales para nuestra feria STEAM. ¡Manos a la obra!"
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white text-sm placeholder-slate-600 outline-none transition resize-none"
+                            ></textarea>
+                        </div>
+
+                        <!-- Selector de color de acento -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-300">🎨 Color Temático del Aula</label>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button
+                                    v-for="color in accentColors"
+                                    :key="color.hex"
+                                    type="button"
+                                    @click="customizeForm.custom_accent_color = color.hex"
+                                    :title="color.name"
+                                    :style="{ backgroundColor: color.hex }"
+                                    :class="[
+                                        'w-8 h-8 rounded-full transition ring-offset-2 ring-offset-slate-900',
+                                        customizeForm.custom_accent_color === color.hex
+                                            ? 'ring-2 ring-white scale-110'
+                                            : 'hover:scale-105'
+                                    ]"
+                                ></button>
+                                <!-- Input hex personalizado -->
+                                <div class="flex items-center gap-2 ml-2">
+                                    <input
+                                        v-model="customizeForm.custom_accent_color"
+                                        type="color"
+                                        class="w-8 h-8 rounded-full cursor-pointer border-0 bg-transparent"
+                                    />
+                                    <span class="text-xs font-mono text-slate-400">{{ customizeForm.custom_accent_color }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón guardar -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                            <p class="text-[11px] text-slate-500">Los cambios se reflejan en el HUD del alumno al guardar.</p>
+                            <button
+                                type="submit"
+                                :disabled="customizeForm.processing"
+                                class="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                            >
+                                <Check class="w-4 h-4" />
+                                <span>{{ customizeForm.processing ? 'Guardando...' : 'GUARDAR CARROCERÍA' }}</span>
+                            </button>
+                        </div>
+
+                        <!-- Mensaje de éxito -->
+                        <div v-if="$page.props.flash?.success" class="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 text-xs text-emerald-300 font-semibold">
+                            {{ $page.props.flash.success }}
+                        </div>
+                    </form>
                 </div>
             </section>
         </main>
