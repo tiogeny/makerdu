@@ -1,88 +1,166 @@
-# Makerdu v2.6 - Estado Integral del Proyecto & Guía de Arquitectura
+# MAKERDU PROJECT STATE — v3.0 "Nebula"
+Last Updated: 2026-08-24
 
-> **DOCUMENTO MAESTRO DE CONTINUIDAD:**
-> Este documento resume la arquitectura, la lógica de negocio pedagógica y el estado del código de Makerdu v2.6. Es la referencia oficial tanto para el equipo humano como para cualquier sesión de IA (Antigravity, Gemini, Cursor, Windsurf, Claude Code).
-
----
-
-## 1. Información General del Proyecto
-* **Nombre:** Makerdu v2.6 - Plataforma LMS Figital y Orquestador de Fabricación Digital
-* **Repositorio Oficial:** `https://github.com/tiogeny/makerdu.git`
-* **Entorno Local:** Windows / Laragon (PHP 8.3 / MySQL / Node.js 22)
-* **Entorno Producción:** BanaHosting cPanel (LiteSpeed / PHP 8.3 / MySQL)
-* **Dominio Producción:** `https://makerdu.com`
-* **Streaming de Video:** Bunny.net (Bunny Stream / Storage)
-* **Motor IA:** Google Gemini 3.5 / 3.6 Multimodal (Vision 3D, Mini-Dashboard de Calidad, Tutor Chatbot en Vivo)
+## Resumen del Proyecto
+Makerdu es un LMS Figital (Físico+Digital) para talleres de fabricación digital escolar (impresión 3D, corte láser, vectorización).
+Conecta retos pedagógicos con Gemini Vision IA, FabCoins y un ecosistema de Micro-Apps autónomas que funcionan 100% en el navegador.
 
 ---
 
-## 2. Los 4 Perfiles / Arquetipos de Usuario y sus Ciclos de Vida Actuales
+## Arquitectura de Roles
 
-### 👑 1. Super Administrador (Makerdu Core / FabLab Lima)
-* **Credencial Inicial:** `contacto@fablablima.org` | `password` (Rol: `admin`)
-* **Portal:** Centro de Mando Maestro (`/admin/dashboard`)
-* **Responsabilidades:**
-  1. **Catálogo Maestro de Cursos:** Diseña los proyectos oficiales (`/admin/projects`) con sus 4 niveles, tolerancias físicas, videos Bunny Stream, tipo de entregable y costos en FabCoins.
-  2. **Gestión de Aulas & Asignaciones:** Crea talleres/colegios (`/admin/classrooms`) y vincula a qué profesor y curso pertenece cada aula.
-  3. **Supervisión Global:** Métricas de colegios, escuadras, alumnos y FabCoins circulantes.
+| Rol | Acceso | Funciones Clave |
+|-----|--------|-----------------|
+| **SuperAdmin** | `/admin/dashboard` | Crea cursos maestros, gestiona aulas, calibra IA, administra Micro-Apps |
+| **Docente** | `/teacher/war-room` | Elige proyecto del catálogo, matricula alumnos, genera lotes .ZIP, monitorea avance |
+| **Alumno** | `/hud` (PIN) | Completa misiones por niveles, usa Micro-Apps, acumula XP y FabCoins |
 
 ---
 
-### 👨‍🏫 2. Docente / Profesor de Aula (Historia, Arte, Ciencias, Tecnología)
-* **Credencial Inicial:** `profesor@makerdu.com` | `password` (Rol: `teacher`)
-* **Portal:** Taller del Docente (`/teacher/war-room`) con 3 Pestañas Clave:
-  1. **📚 Catálogo de Proyectos Makerdu:** Explora los cursos maestros creados por el Admin y con 1 clic selecciona *"Usar este Proyecto con mi Aula"*.
-  2. **📊 Torre de Control (Radar en Vivo):** Monitorea el mapa de calor de las escuadras en tiempo real, audita bitácoras y genera Lotes de Producción (`.ZIP` de modelos 3D + Hoja de Rotulado PDF para el FabLab).
-  3. **🏫 Escuadras & Tarjetas PIN:** Pega la lista de alumnos en bloque para generar escuadras de 4 y descarga los carnets PIN en PDF listos para imprimir.
+## Stack Tecnológico
+- **Backend:** PHP 8.3/8.4 · Laravel 11 · Inertia.js
+- **Frontend:** Vue 3 (Composition API) · Tailwind CSS · Lucide Icons
+- **IA:** Google Gemini 2.0 Flash Vision (validación de mallas 3D y bocetos)
+- **3D/Gráficos:** Three.js (WebGL) · OrbitControls · STL parser en browser
+- **Vectorización:** Canvas API + algoritmo de Bézier propio (sin dependencias externas)
+- **PDF:** Laravel DomPDF (rotulado de lotes, tarjetas PIN)
+- **QR:** API pública qrserver.com (generación dinámica del QR del pasaporte)
+- **Hosting:** BanaHosting cPanel (Usuario: discoper, PHP: ea-php84, Dominio: makerdu.com)
+- **Repositorio:** https://github.com/tiogeny/makerdu (rama: main)
 
 ---
 
-### 🧒 3. Alumno / Escuadras Maker (Mateo, Sofía, Lucas, Camila)
-* **Credencial Inicial:** Código de Aula (ej. `MK402`) + PIN de 4 dígitos (ej. `1234`) (Rol: `student`)
-* **Portal:** Cabina del Estudiante (`/hud`)
-* **Mecánica de Trabajo (Regla de 1-PC):**
-  * 4 Alumnos comparten 1 computadora alternando el **Rol Activo** (`Architect`, `Quality`, `Finance`, `Relator`) con 1 clic.
-* **Stepper Guiado de 4 Pasos Adaptable:**
-  * **Paso 1 (Comprender):** Misión pedagógica y video tutorial en Bunny Stream.
-  * **Paso 2 (Crear & Auditar):** Adaptable dinámicamente al tipo de entregable:
-    * `photo_sketch`: Lienzo de ideación y subida de foto de la libreta en papel (0 FC).
-    * `stl_3d`: Visor 3D Three.js 360°, simulador de capas y control de calidad IA con Gemini Vision.
-    * `svg_laser`: Inspección vectorial 2D para corte y grabado láser.
-    * `checklist_assembly`: Checklist interactivo de pruebas físicas y post-procesado (0 FC).
-  * **Paso 3 (Reflexionar):** Ficha de Autoevaluación & Pensamiento Crítico (+50 XP).
-  * **Paso 4 (Fabricar / Finalizar):** Autorización de consumo de FabCoins para insumos reales o confirmación directa (+100 XP) y modal de victoria.
-* **Tutor IA Flotante:** Chatbot con memoria del modelo 3D activo y respuestas en Markdown concisas (<120 palabras).
-* **Pasaporte Maker:** Certificado digital verificable con código QR dinámico para celular.
+## Credenciales de Prueba (post migrate:fresh --seed)
+- **SuperAdmin:** contacto@fablablima.org / password → /admin/dashboard
+- **Docente 1:** profesor@makerdu.com / password → /teacher/war-room
+- **Docente 2:** maria.torres@colegio.edu / password → /teacher/war-room
+- **Alumno:** Código MK402 / PIN 1234 → /student-login → /hud
 
 ---
 
-### 👨‍👩‍👧 4. Familia / Padres de Familia
-* **Portal:** Portal Familiar Seguro (`/family/{accessCode}/squad/{squadId}`)
-* **Acceso:** Vía enlace de WhatsApp compartido por el docente o escaneando el código QR del Pasaporte Maker.
-* **Contenido:** Visualización del portafolio digital, fotos del prototipo real y sello de competencias curriculares CNEB / STEAM logradas por su hijo.
+## Estructura de Carpetas Clave
 
----
-
-## 3. Catálogo de Proyectos Sembrados en Base de Datos
-
-1. 🔏 **Sellos y Relieves 2.5D:** Arte y Ergonomía (4 niveles: Boceto ➔ TinkerCAD ➔ Gemini Vision ➔ Ensamble).
-2. 💍 **Bio-joyería Amazónica en 3D:** Naturaleza y Bisutería (4 niveles: Silueta ➔ Ojal de Enganche ➔ Base Plana IA ➔ Herrajes).
-3. 🏺 **Patrimonio Chavín en Corte Láser:** Historia y Encastre MDF 3mm (4 niveles: Iconografía ➔ Vectores SVG ➔ Ranuras Kerf ➔ Maqueta).
-
----
-
-## 4. Estructura de Producción en BanaHosting (cPanel)
-
+### Backend (Laravel)
 ```
-📁 /home/discoper/
-   ├── 📁 makerdu_core/           <-- (Repositorio Git clonado con Laravel: app, database, routes, vendor, .env)
-   └── 📁 makerdu.com/ (o public) <-- (Contenido web público: index.php, build/, storage)
+app/Http/Controllers/
+├── AdminDashboardController.php    # KPIs del SuperAdmin
+├── AiSandboxController.php         # Consola calibración Gemini Vision
+├── AiTutorChatController.php       # Chat tutor IA del alumno
+├── ClassroomManagerController.php  # Gestión de aulas y matrícula
+├── MicroAppManagerController.php   # App Store del SuperAdmin
+├── ProjectBuilderController.php    # CRUD cursos maestros
+├── SquadController.php             # HUD alumno, preflight, bitácora
+├── StudentAuthController.php       # Login PIN de alumnos
+└── TeacherWarRoomController.php    # Torre de control docente
+
+app/Models/
+├── BitacoraEntry.php, Classroom.php, FabricationBatch.php
+├── MicroApp.php, ParentProfile.php, Project.php
+├── ProjectLevel.php, Squad.php, User.php
 ```
 
-### Comandos de Actualización en Servidor (15 segundos):
+### Frontend (Vue 3 / Inertia)
+```
+resources/js/
+├── Pages/
+│   ├── Admin/
+│   │   ├── Dashboard.vue           # Centro de Mando SuperAdmin (KPIs + accesos rápidos)
+│   │   ├── Apps/Index.vue          # Micro-Apps Store & Sandbox
+│   │   ├── AiSandbox/Index.vue     # Calibración Gemini Vision en vivo
+│   │   ├── CourseBuilder/          # CRUD cursos maestros (Create/Edit/Index)
+│   │   └── ClassroomManager/       # Gestión de aulas
+│   ├── Teacher/
+│   │   └── WarRoom.vue             # Torre de Control (3 pestañas: Catálogo, Radar, Escuadras)
+│   ├── Student/
+│   │   ├── SquadHud.vue            # HUD del alumno (Roadmap + Studio de 4 pasos)
+│   │   ├── MakerPassport.vue       # Certificado imprimible con QR dinámico
+│   │   ├── Login.vue               # Login PIN
+│   │   └── Portal.vue              # Portal familiar
+│   ├── Auth/Login.vue              # Login docente/admin
+│   └── Welcome.vue                 # Landing page
+├── Components/
+│   ├── AiTutorChatModal.vue        # Chat Gemini tutor en el HUD
+│   ├── MicroAppOverlay.vue         # Shell fullscreen postMessage para Micro-Apps
+│   ├── StlViewer3D.vue             # Visor 3D embebido en el HUD
+│   └── VideoTutorialPlayer.vue     # Player de video tutorial
+├── locales/
+│   ├── es.json                     # Traducciones ES (v3.0 completo)
+│   └── en.json                     # Traducciones EN (v3.0 completo)
+└── i18n.js                         # Motor de internacionalización
+
+public/apps/                        # Micro-Apps autónomas (100% browser)
+├── vectorizer/                     # Vectorizador Cámara B/N + Bézier 2D→3D
+├── viewer-3d/                      # Visor 3D WebGL (STL + cotas)
+└── box-generator/                  # Generador Cajas Láser finger-joint (SVG/DXF)
+```
+
+---
+
+## Rutas Principales
+
+| Ruta | Controlador | Rol |
+|------|-------------|-----|
+| `/` | Welcome.vue | Público |
+| `/login` | Auth/Login.vue | Admin/Docente |
+| `/student-login` | Student/Login.vue | Alumno |
+| `/admin/dashboard` | AdminDashboardController | SuperAdmin |
+| `/admin/apps` | MicroAppManagerController | SuperAdmin |
+| `/admin/ai-sandbox` | AiSandboxController | SuperAdmin |
+| `/admin/projects` | ProjectBuilderController | SuperAdmin |
+| `/admin/classrooms` | ClassroomManagerController | SuperAdmin |
+| `/teacher/war-room` | TeacherWarRoomController | Docente |
+| `/hud` | SquadController | Alumno |
+| `/apps/vectorizer` | Static (public/) | Público |
+| `/apps/viewer-3d` | Static (public/) | Público |
+| `/apps/box-generator` | Static (public/) | Público |
+
+---
+
+## Protocolo postMessage (Micro-Apps → LMS)
+
+```json
+{
+  "type": "MAKERDU_MICROAPP_ASSET",
+  "appName": "box-generator",
+  "fileType": "svg",
+  "fileName": "caja_makerdu_120x80x50mm.svg",
+  "content": "<svg ...>...</svg>",
+  "box_L_mm": 120, "box_A_mm": 80, "box_H_mm": 50,
+  "material_thickness_mm": 3,
+  "kerf_mm": 0.1,
+  "fabcoins_cost": 12
+}
+```
+
+---
+
+## Guía de Despliegue a Producción (cPanel ea-php84)
+
 ```bash
 cd /home/discoper/makerdu_core
 git pull origin main
-cp -r /home/discoper/makerdu_core/public/build /home/discoper/makerdu.com/
-ea-php83 artisan optimize:clear
+cp -r public/build/* /home/discoper/makerdu.com/build/
+cp -r public/apps /home/discoper/makerdu.com/
+ea-php84 artisan migrate:fresh --seed --force  # ⚠️ borra datos
+ea-php84 artisan optimize:clear
+ea-php84 artisan config:cache && ea-php84 artisan route:cache
 ```
+
+---
+
+## Changelog v3.0 "Nebula"
+
+### Nuevas Funcionalidades
+- **Micro-App Vectorizador** (`/apps/vectorizer`): Cámara → B/N → Bézier 2D → Extrusor 3D Three.js
+- **Micro-App Visor 3D WebGL** (`/apps/viewer-3d`): Carga STL, cotas X/Y/Z, wireframe, volumen
+- **Micro-App Box Generator** (`/apps/box-generator`): Cajas finger-joint SVG/DXF con kerf compensation
+- **Shell Overlay postMessage** (`MicroAppOverlay.vue`): Fullscreen 100vw×100vh sin pestañas
+- **App Store SuperAdmin** (`/admin/apps`): Registro y sandbox de micro-apps
+- **AI Sandbox** (`/admin/ai-sandbox`): Calibración en vivo de Gemini Vision + sliders de tolerancias
+- **i18n completo v3.0**: ES+EN con todas las claves nuevas (studio, micro_apps, passport, admin KPIs)
+- **Pasaporte Maker v3.0**: QR dinámico correcto en producción, i18n completo, v3.0 branding
+
+### Correcciones
+- QR en pasaporte usaba `makerdu.test` en producción → corregido con `request()->getSchemeAndHttpHost()`
+- Contraseñas admin: `password` (no `makerdu2025`)
+- Version string actualizado a v3.0 en locales ES y EN
