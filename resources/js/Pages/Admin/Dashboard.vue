@@ -130,72 +130,99 @@ const props = defineProps({
                         class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-xl shadow-amber-500/20"
                     >
                         <Plus class="w-4 h-4" />
-                        <span>CREAR NUEVO CURSO MAESTRO</span>
+                        <span>{{ t('admin.btn_create_course').toUpperCase() }}</span>
                     </Link>
                 </div>
             </div>
 
             <!-- KPI STATS CARDS -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                <!-- Cursos Maestros -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-cyan-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cursos</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_projects') }}</span>
                         <FolderPlus class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-white font-mono">{{ stats.total_projects }}</p>
-                    <p class="text-[10px] text-slate-500">En catálogo maestro</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'En catálogo maestro' : 'In master catalog' }}</p>
                 </div>
 
-                <!-- Aulas / Talleres -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-purple-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Aulas</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_classrooms') }}</span>
                         <School class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-white font-mono">{{ stats.total_classrooms }}</p>
-                    <p class="text-[10px] text-slate-500">Talleres activos</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Talleres activos' : 'Active workshops' }}</p>
                 </div>
 
-                <!-- Docentes -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-emerald-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Docentes</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_teachers') }}</span>
                         <Users class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-white font-mono">{{ stats.total_teachers }}</p>
-                    <p class="text-[10px] text-slate-500">Instructores asignados</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Instructores asignados' : 'Assigned instructors' }}</p>
                 </div>
 
-                <!-- Escuadras -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-sky-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Escuadras</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_squads') }}</span>
                         <Layers class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-white font-mono">{{ stats.total_squads }}</p>
-                    <p class="text-[10px] text-slate-500">Equipos de 4 alumnos</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Equipos de 4 alumnos' : 'Teams of 4 students' }}</p>
                 </div>
 
-                <!-- Alumnos -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-amber-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Alumnos</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_students') }}</span>
                         <Award class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-white font-mono">{{ stats.total_students }}</p>
-                    <p class="text-[10px] text-slate-500">Con PINs generados</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Con PINs generados' : 'With generated PINs' }}</p>
                 </div>
 
-                <!-- FabCoins Circulantes -->
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                     <div class="flex items-center justify-between text-amber-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">FabCoins</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_fabcoins') }}</span>
                         <Coins class="w-4 h-4" />
                     </div>
                     <p class="text-2xl font-black text-amber-300 font-mono">{{ stats.total_fabcoins }}</p>
-                    <p class="text-[10px] text-slate-500">Insumos físicos reales</p>
+                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Insumos físicos reales' : 'Real physical materials' }}</p>
                 </div>
+            </div>
+
+            <!-- ACCESOS RÁPIDOS: MICRO-APPS STORE & AI SANDBOX (solo SuperAdmin) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Micro-Apps Store Card -->
+                <Link
+                    :href="route('admin.apps.index')"
+                    class="group p-5 rounded-3xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/30 hover:border-amber-400/60 shadow-xl flex items-center gap-4 transition"
+                >
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition">
+                        ⚡
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-black text-sm text-white">{{ t('admin.apps_store_title') }}</p>
+                        <p class="text-[11px] text-slate-400 leading-snug mt-0.5">{{ t('admin.apps_store_desc') }}</p>
+                    </div>
+                    <ArrowRight class="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition shrink-0" />
+                </Link>
+
+                <!-- AI Sandbox Card -->
+                <Link
+                    :href="route('admin.ai-sandbox.index')"
+                    class="group p-5 rounded-3xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 hover:border-cyan-400/60 shadow-xl flex items-center gap-4 transition"
+                >
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition">
+                        <Cpu class="w-6 h-6 text-cyan-400" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-black text-sm text-white">{{ t('admin.ai_sandbox_title') }}</p>
+                        <p class="text-[11px] text-slate-400 leading-snug mt-0.5">{{ t('admin.ai_sandbox_desc') }}</p>
+                    </div>
+                    <ArrowRight class="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition shrink-0" />
+                </Link>
             </div>
 
             <!-- SECCIÓN DE 2 COLUMNAS: CURSOS MAESTROS Y AULAS ACTIVAS -->

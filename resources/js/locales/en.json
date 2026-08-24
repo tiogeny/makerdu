@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "MAKERDU",
-    "version": "v2.6",
+    "version": "v3.0",
     "subtitle": "Phygital LMS & Digital Fabrication Orchestrator"
   },
   "nav": {
@@ -27,7 +27,7 @@
     "card_teacher_btn": "Sign in as Teacher / Adult",
     "stats_phygital": "Phygital Approach",
     "stats_phygital_desc": "From 3D digital model to real physical part",
-    "stats_ai": "Gemini 3.5 AI",
+    "stats_ai": "Gemini 2.0 Flash AI",
     "stats_ai_desc": "Quality control and 3D computer vision",
     "stats_cneb": "STEAM Passport",
     "stats_cneb_desc": "Certification and verified learning evidence"
@@ -79,11 +79,44 @@
     "fabcoins_budget": "FabCoins (Real Materials)",
     "xp_score": "XP Progress Points",
     "tinkercad_link": "Open Workshop TinkerCAD",
+    "back_to_roadmap": "Back to Adventure Map",
+    "start_level": "Start Mission",
+    "continue_level": "Continue Mission",
     "stepper": {
       "step1": "1. Mission & Video",
       "step2": "2. Creation & AI",
       "step3": "3. Self-Reflection (+50 XP)",
       "step4": "4. Fabricate / Complete"
+    },
+    "micro_apps": {
+      "suite_title": "Makerdu Creative Tools Suite:",
+      "suite_badge": "Zero Downloads · 100% Browser-Based",
+      "vectorizer_title": "Camera Vectorizer & Bézier",
+      "vectorizer_desc": "Draw on paper or trace 2D/3D curves",
+      "viewer3d_title": "3D WebGL Viewer",
+      "viewer3d_desc": "STL mesh inspection and dimensions",
+      "boxgen_title": "Laser Box Generator",
+      "boxgen_desc": "Parametric finger-joint · SVG/DXF",
+      "send_to_log": "Send to Makerdu Log",
+      "back_to_mission": "Back to Mission"
+    },
+    "studio": {
+      "step1_title": "Mission & Video Tutorial",
+      "step2_title": "Create & Audit with AI",
+      "step3_title": "Team Self-Reflection",
+      "step4_title": "Request Fabrication",
+      "log_title": "Record Evidence in Log",
+      "log_placeholder": "Describe what you created, what you learned, and how you designed it...",
+      "log_btn": "Save to Log",
+      "log_saving": "Saving...",
+      "fab_title": "Request Physical Fabrication",
+      "fab_desc": "Authorize sending your model to the 3D printing farm or FabLab laser cutter.",
+      "fab_btn": "Request Fabrication",
+      "fab_pending": "Fabrication Pending Approval",
+      "reflection_title": "Maker Team Self-Reflection",
+      "reflection_q1": "What was the hardest part of the design?",
+      "reflection_q2": "What would you change if you did it again?",
+      "reflection_q3": "What STEAM skill did you practice today?"
     }
   },
   "deliverables": {
@@ -91,6 +124,20 @@
     "photo_sketch": "Sketch / Ideation",
     "svg_laser": "Laser Cutting 2D",
     "checklist_assembly": "Physical Assembly"
+  },
+  "passport": {
+    "title": "Verified Digital Fabrication Passport",
+    "xp_total": "Total Score",
+    "team_title": "Maker Team Members",
+    "portfolio_title": "Fabricated Parts Portfolio",
+    "competencies_title": "Demonstrated CNEB Curricular Competencies",
+    "teacher_label": "Innovation & Digital Fabrication Teacher",
+    "approved_badge": "Approved",
+    "ai_diagnosis": "AI Diagnosis",
+    "print_btn": "Print Certificate & Portfolio",
+    "back_btn": "Back to Cockpit",
+    "version_label": "Makerdu Phygital LMS v3.0",
+    "cert_label": "School Certification of STEAM Digital Fabrication"
   },
   "teacher": {
     "tower_title": "Teacher Control Tower",
@@ -100,16 +147,32 @@
     "btn_generate_batch": "Generate Fabrication Batch (.ZIP + PDF)",
     "cneb_title": "CNEB / STEAM Curricular Alignment",
     "batches_title": "Workshop Fabrication Batches",
-    "batches_desc": "Production packages history dispatched to 3D printer / laser cutting farm."
+    "batches_desc": "Production packages history dispatched to 3D printer / laser cutting farm.",
+    "catalog_title": "Makerdu Project Catalog",
+    "catalog_desc": "Choose the master project to activate in your classroom this term.",
+    "use_in_classroom": "Use in My Classroom",
+    "squads_title": "Squads & PIN Cards",
+    "squads_desc": "Bulk student enrollment and individual PIN card downloads.",
+    "radar_title": "Control Tower · Live Radar"
   },
   "admin": {
     "dashboard_title": "Makerdu Command Center",
     "badge_superadmin": "SUPER ADMINISTRATOR",
     "dashboard_desc": "Global platform governance, master course design, and classroom management.",
-    "hero_badge": "Master Operations Console",
+    "hero_badge": "Master Operations Console · v3.0 Nebula",
     "hero_title": "Global STEAM Ecosystem Governance",
     "hero_subtitle": "Manage digital fabrication project catalog, monitor active workshops, and assign teachers to schools.",
     "btn_create_course": "Create Master Course",
-    "btn_new_classroom": "New Classroom / Workshop"
+    "btn_new_classroom": "New Classroom / Workshop",
+    "apps_store_title": "Micro-Apps Store",
+    "apps_store_desc": "Integrated creative tools catalog (Vectorizer, 3D Viewer, Laser Box Generator).",
+    "ai_sandbox_title": "AI Calibration Sandbox",
+    "ai_sandbox_desc": "Test and fine-tune Gemini Vision diagnostics and fabrication geometry rules in real time.",
+    "kpi_projects": "Master Projects",
+    "kpi_classrooms": "Active Classrooms",
+    "kpi_teachers": "Teachers",
+    "kpi_squads": "Squads",
+    "kpi_students": "Students",
+    "kpi_fabcoins": "FabCoins in Circulation"
   }
 }
