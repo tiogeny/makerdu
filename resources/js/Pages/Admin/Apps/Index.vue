@@ -5,6 +5,7 @@ import {
     Sparkles, Plus, ExternalLink, ArrowLeft, CheckCircle2,
     Layers, Scissors, Box, Cpu, Leaf, Play, Power, Globe
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 import MicroAppOverlay from '@/Components/MicroAppOverlay.vue';
 import { t } from '@/i18n.js';
 
@@ -58,38 +59,33 @@ const getCatBadge = (cat) => {
     <Head title="Ecosistema de Micro-Apps - Makerdu v3.0" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-        
-        <!-- TOPBAR -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Link
-                        :href="route('admin.dashboard')"
-                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
-                    >
-                        <ArrowLeft class="w-4 h-4" />
-                        <span>Centro de Mando</span>
-                    </Link>
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="apps" />
 
-                    <div>
-                        <h1 class="text-base font-black text-white flex items-center gap-2">
-                            <span>ECOSISTEMA DE MICRO-APPS AUTÓNOMAS</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">apps.makerdu.com</span>
-                        </h1>
-                        <p class="text-xs text-slate-400">Herramientas creativas WebGL/WASM desacopladas que operan 100% en el navegador</p>
-                    </div>
+        <!-- SUB-HEADER DE ACCIÓN -->
+        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-black text-white flex items-center gap-2">
+                        <Sparkles class="w-5 h-5 text-emerald-400" />
+                        <span>ECOSISTEMA DE MICRO-APPS AUTÓNOMAS</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/30">
+                            Standalone Web Apps
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Herramientas creativas WebGL/WASM desacopladas que operan 100% en el navegador del alumno.</p>
                 </div>
 
                 <button
                     type="button"
                     @click="showNewModal = true"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-500/20 shrink-0"
                 >
                     <Plus class="w-4 h-4" />
                     <span>REGISTRAR NUEVA MICRO-APP</span>
                 </button>
             </div>
-        </header>
+        </div>
 
         <!-- MAIN -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">

@@ -5,6 +5,7 @@ import {
     Plus, ArrowRight, ShieldCheck, BarChart3, FolderPlus,
     UserPlus, ExternalLink, Globe, LogOut, Award, Cpu, BookOpen
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 import { t, currentLang, setLanguage } from '@/i18n.js';
 
 const props = defineProps({
@@ -18,93 +19,8 @@ const props = defineProps({
     <Head :title="`${t('admin.dashboard_title')} - ${t('app.name')}`" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR SUPER ADMIN -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20">
-                        <Sparkles class="w-5 h-5" />
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="font-black text-lg tracking-tight text-white">{{ t('admin.dashboard_title') }}</h1>
-                            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/40">
-                                👑 {{ t('admin.badge_superadmin') }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-400">{{ t('admin.dashboard_desc') }}</p>
-                    </div>
-                </div>
-
-                <!-- Botones de Navegación Rápida -->
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <!-- Selector de Idioma -->
-                    <button
-                        type="button"
-                        @click="setLanguage(currentLang === 'es' ? 'en' : 'es')"
-                        class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold font-mono text-cyan-300 border border-slate-800 transition flex items-center gap-1.5"
-                    >
-                        <Globe class="w-3.5 h-3.5" />
-                        <span>{{ currentLang.toUpperCase() }}</span>
-                    </button>
-
-                                        <!-- Micro-Apps Store -->
-                    <Link
-                        :href="route('admin.apps.index')"
-                        class="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1.5"
-                    >
-                        <Sparkles class="w-3.5 h-3.5" />
-                        <span>Micro-Apps Store</span>
-                    </Link>
-
-                                        <!-- AI Sandbox -->
-                    <Link
-                        :href="route('admin.ai-sandbox.index')"
-                        class="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5"
-                    >
-                        <Cpu class="w-3.5 h-3.5" />
-                        <span>AI Sandbox</span>
-                    </Link>
-
-                    <!-- Acceso Diseñador de Cursos -->
-                    <Link
-                        :href="route('admin.projects.index')"
-                        class="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5"
-                    >
-                        <FolderPlus class="w-3.5 h-3.5" />
-                        <span>{{ t('nav.courses') }}</span>
-                    </Link>
-
-                    <!-- Acceso Gestor de Aulas -->
-                    <Link
-                        :href="route('admin.classrooms.index')"
-                        class="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-slate-950 border border-purple-500/30 text-xs font-bold transition flex items-center gap-1.5"
-                    >
-                        <UserPlus class="w-3.5 h-3.5" />
-                        <span>{{ t('nav.classrooms') }}</span>
-                    </Link>
-
-                    <!-- Torre de Control -->
-                    <Link
-                        :href="route('teacher.war-room')"
-                        class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition flex items-center gap-1.5"
-                    >
-                        <BarChart3 class="w-3.5 h-3.5" />
-                        <span>{{ t('nav.warroom') }}</span>
-                    </Link>
-
-                    <!-- Salir -->
-                    <button
-                        type="button"
-                        @click="router.post(route('logout'))"
-                        class="p-2 rounded-xl bg-slate-800 hover:bg-rose-950/50 hover:text-rose-400 text-slate-400 border border-slate-700 transition"
-                        title="Cerrar Sesión"
-                    >
-                        <LogOut class="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-        </header>
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="dashboard" />
 
         <!-- MAIN -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">

@@ -5,6 +5,7 @@ import {
     Sparkles, ArrowLeft, Bot, Play, CheckCircle2, XCircle,
     Sliders, Cpu, FileText, Code2, Clock, Zap, RefreshCw, Upload, Eye
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -90,36 +91,31 @@ const executeAiTest = async () => {
     <Head title="Sandbox de Calibración de IA - Makerdu v3.0" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-        
-        <!-- TOPBAR -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Link
-                        :href="route('admin.dashboard')"
-                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
-                    >
-                        <ArrowLeft class="w-4 h-4" />
-                        <span>Centro de Mando</span>
-                    </Link>
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="aisandbox" />
 
-                    <div>
-                        <h1 class="text-base font-black text-white flex items-center gap-2">
-                            <span>SANDBOX DE CALIBRACIÓN DE IA</span>
-                            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">Gemini 2.0 Flash Vision</span>
-                        </h1>
-                        <p class="text-xs text-slate-400">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real</p>
-                    </div>
+        <!-- SUB-HEADER DE ACCIÓN -->
+        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-black text-white flex items-center gap-2">
+                        <Cpu class="w-5 h-5 text-pink-400" />
+                        <span>SANDBOX DE CALIBRACIÓN DE IA MULTIMODAL</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-mono font-bold border border-pink-500/30">
+                            Gemini 2.0 Flash Vision
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5">
+                    <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5 shrink-0">
                         <Zap class="w-3.5 h-3.5" />
                         <span>Motor Activo: Gemini Vision API</span>
                     </span>
                 </div>
             </div>
-        </header>
+        </div>
 
         <!-- MAIN -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">

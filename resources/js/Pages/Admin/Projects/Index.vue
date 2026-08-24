@@ -4,6 +4,7 @@ import {
     Sparkles, Layers, Plus, Edit, Trash2, ArrowLeft,
     CheckCircle2, Box, Calendar, Clock
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 
 defineProps({
     projects: Array,
@@ -17,39 +18,35 @@ const deleteProject = (id, title) => {
 </script>
 
 <template>
-    <Head title="Diseñador de Cursos Maker - Makerdu" />
+    <Head title="Diseñador de Proyectos Maker - Makerdu" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Link
-                        :href="route('teacher.war-room')"
-                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
-                    >
-                        <ArrowLeft class="w-4 h-4" />
-                        <span>Torre de Control</span>
-                    </Link>
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="projects" />
 
-                    <div>
-                        <h1 class="text-base font-black text-white flex items-center gap-2">
-                            <span>DISEÑADOR DE CURSOS Y PROYECTOS</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">Course Builder</span>
-                        </h1>
-                        <p class="text-xs text-slate-400">Crea nuevos talleres, mallas de niveles y reglas de validación 3D</p>
-                    </div>
+        <!-- SUB-HEADER DE ACCIÓN -->
+        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-black text-white flex items-center gap-2">
+                        <Layers class="w-5 h-5 text-cyan-400" />
+                        <span>CATÁLOGO MAESTRO DE PROYECTOS MAKER</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">
+                            Course Builder
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Diseña los retos STEAM maestros, mallas de niveles y reglas de validación IA.</p>
                 </div>
 
                 <Link
                     :href="route('admin.projects.create')"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
                 >
                     <Plus class="w-4 h-4" />
-                    <span>NUEVO CURSO / PROYECTO</span>
+                    <span>NUEVO PROYECTO MAKER</span>
                 </Link>
             </div>
-        </header>
+        </div>
 
         <!-- MAIN -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">

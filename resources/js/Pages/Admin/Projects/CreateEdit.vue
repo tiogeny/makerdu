@@ -5,6 +5,7 @@ import {
     Sparkles, Layers, Plus, Trash2, ArrowLeft,
     Save, Film, Box, Coins, HelpCircle, Palette, Scissors, Wrench, CheckSquare
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 
 const props = defineProps({
     project: Object,
@@ -104,22 +105,25 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head :title="isEdit ? 'Editar Curso Maker' : 'Nuevo Curso Maker'" />
+    <Head :title="isEdit ? 'Editar Proyecto Maker' : 'Nuevo Proyecto Maker'" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="projects" />
+
+        <!-- SUB-HEADER DE ACCIÓN -->
+        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
+            <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
                 <Link
                     :href="route('admin.projects.index')"
                     class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
                 >
                     <ArrowLeft class="w-4 h-4" />
-                    <span>Volver a Cursos</span>
+                    <span>Volver a Proyectos</span>
                 </Link>
 
                 <h1 class="text-sm font-black text-white">
-                    {{ isEdit ? `EDITAR CURSO: ${form.title_es}` : 'CREAR NUEVO CURSO / PROYECTO' }}
+                    {{ isEdit ? `EDITAR PROYECTO: ${form.title_es}` : 'CREAR NUEVO PROYECTO MAKER' }}
                 </h1>
 
                 <button
@@ -132,7 +136,7 @@ const submitForm = () => {
                     <span>{{ form.processing ? 'Guardando...' : 'GUARDAR PROYECTO' }}</span>
                 </button>
             </div>
-        </header>
+        </div>
 
         <!-- MAIN FORM -->
         <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 space-y-8">

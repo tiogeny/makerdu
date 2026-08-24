@@ -5,6 +5,7 @@ import {
     Sparkles, School, Users, Plus, CreditCard, ExternalLink,
     CheckCircle2, ArrowLeft, Key, UserCheck, Shield
 } from 'lucide-vue-next';
+import AdminNavBar from '@/Components/AdminNavBar.vue';
 
 const props = defineProps({
     classrooms: Array,
@@ -59,37 +60,33 @@ const submitEnrollStudents = () => {
     <Head title="Gestor de Aulas y Escuadras - Makerdu" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR -->
-        <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Link
-                        :href="route('teacher.war-room')"
-                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
-                    >
-                        <ArrowLeft class="w-4 h-4" />
-                        <span>Torre de Control</span>
-                    </Link>
+        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
+        <AdminNavBar active-section="classrooms" />
 
-                    <div>
-                        <h1 class="text-base font-black text-white flex items-center gap-2">
-                            <span>GESTOR DE AULAS Y ESCUADRAS</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">Auto-Grouping & PINs</span>
-                        </h1>
-                        <p class="text-xs text-slate-400">Crea aulas, matricula alumnos en bloque y genera PINs automáticos</p>
-                    </div>
+        <!-- SUB-HEADER DE ACCIÓN -->
+        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-black text-white flex items-center gap-2">
+                        <School class="w-5 h-5 text-purple-400" />
+                        <span>GESTOR DE AULAS Y ESCUADRAS</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-bold border border-purple-500/30">
+                            Auto-Grouping & PINs
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Crea aulas, matricula alumnos en bloque y genera PINs automáticos para los colegios.</p>
                 </div>
 
                 <button
                     type="button"
                     @click="showNewClassModal = true"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-purple-500/20 shrink-0"
                 >
                     <Plus class="w-4 h-4" />
                     <span>NUEVA AULA / TALLER</span>
                 </button>
             </div>
-        </header>
+        </div>
 
         <!-- MAIN -->
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
