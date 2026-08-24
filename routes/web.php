@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AiSandboxController;
 use App\Http\Controllers\AiTutorChatController;
 use App\Http\Controllers\ClassroomManagerController;
+use App\Http\Controllers\FabCoinController;
 use App\Http\Controllers\MicroAppManagerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectBuilderController;
