@@ -328,7 +328,10 @@ const getDeliverableBadge = (type) => {
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <!-- Brand & Squad Info -->
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-amber-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-cyan-500/20">
+                    <div
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-black shadow-md"
+                        :style="{ background: `linear-gradient(135deg, ${squad.classroom.custom_accent_color || '#06b6d4'}, #f59e0b)`, boxShadow: `0 4px 12px ${squad.classroom.custom_accent_color || '#06b6d4'}40` }"
+                    >
                         <Sparkles class="w-5 h-5" />
                     </div>
                     <div>
@@ -339,7 +342,8 @@ const getDeliverableBadge = (type) => {
                             </span>
                         </div>
                         <p class="text-xs text-slate-400 flex items-center gap-1">
-                            {{ squad.classroom.name }} • Docente: {{ squad.classroom.teacher_name }}
+                            <!-- Muestra el título personalizado del docente o el nombre del aula -->
+                            {{ squad.classroom.custom_title || squad.classroom.name }} • {{ squad.classroom.teacher_name }}
                         </p>
                     </div>
                 </div>
@@ -472,13 +476,48 @@ const getDeliverableBadge = (type) => {
             <!-- MODO A: MAPA DE LA AVENTURA / WORLD ROADMAP PANORÁMICO -->
             <!-- ================================================================= -->
             <section v-if="currentMode === 'roadmap'" class="space-y-6 animate-fade-in">
-                <div class="bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <Layers class="w-5 h-5 text-amber-400" />
-                            <h2 class="text-xl font-black text-white">{{ project.title }}</h2>
+
+                <!-- Mensaje de Bienvenida del Docente (Carrocería Pedagógica) -->
+                <div
+                    v-if="squad.classroom.custom_welcome_message"
+                    class="px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-semibold border"
+                    :style="{
+                        background: `${squad.classroom.custom_accent_color || '#06b6d4'}15`,
+                        borderColor: `${squad.classroom.custom_accent_color || '#06b6d4'}40`,
+                        color: squad.classroom.custom_accent_color || '#06b6d4'
+                    }"
+                >
+                    <span class="text-xl">👋</span>
+                    <span>{{ squad.classroom.custom_welcome_message }}</span>
+                </div>
+
+                <div
+                    class="border rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    :style="{
+                        background: `linear-gradient(to right, rgb(15,23,42), ${squad.classroom.custom_accent_color || '#06b6d4'}18, rgb(15,23,42))`,
+                        borderColor: `${squad.classroom.custom_accent_color || '#06b6d4'}30`
+                    }"
+                >
+                    <div class="flex items-start gap-4 flex-1 min-w-0">
+                        <!-- Imagen de contexto del docente si existe -->
+                        <div
+                            v-if="squad.classroom.custom_context_image_url"
+                            class="w-20 h-20 rounded-2xl overflow-hidden border border-slate-700 shrink-0"
+                        >
+                            <img :src="squad.classroom.custom_context_image_url" class="w-full h-full object-cover" />
                         </div>
-                        <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">{{ project.description }}</p>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <Layers class="w-5 h-5" :style="{ color: squad.classroom.custom_accent_color || '#f59e0b' }" />
+                                <!-- Título personalizado del docente o el título maestro del proyecto -->
+                                <h2 class="text-xl font-black text-white">
+                                    {{ squad.classroom.custom_title || project.title }}
+                                </h2>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                                {{ squad.classroom.custom_description || project.description }}
+                            </p>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -715,10 +754,20 @@ const getDeliverableBadge = (type) => {
                         </div>
 
                         <div class="lg:col-span-6 space-y-4">
+                            <!-- Video del Docente (Carrocería) o Video Bunny Stream del proyecto maestro -->
+                            <div v-if="squad.classroom.custom_video_url" class="rounded-3xl overflow-hidden border border-slate-800 shadow-xl aspect-video">
+                                <iframe
+                                    :src="'https://www.youtube.com/embed/' + (squad.classroom.custom_video_url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] || '')"
+                                    class="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
                             <VideoTutorialPlayer
+                                v-else
                                 :title="`Video Tutorial: ${selectedLevel?.title}`"
                                 type="bunny_stream"
-                                source="https://iframe.mediadelivery.net/embed/demo"
+                                :source="selectedLevel?.toolbox?.bunny_video_url || 'https://iframe.mediadelivery.net/embed/demo'"
                             />
                         </div>
                     </div>

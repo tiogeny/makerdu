@@ -62,11 +62,18 @@ class SquadController extends Controller
                 'name' => $squad->name,
                 'fabcoins_balance' => $squad->fabcoins_balance,
                 'classroom' => [
-                    'id' => $squad->classroom->id,
-                    'name' => $squad->classroom->name,
-                    'access_code' => $squad->classroom->access_code,
-                    'tinkercad_link' => $squad->classroom->tinkercad_link,
-                    'teacher_name' => $squad->classroom->teacher->name ?? 'Profesor',
+                    'id'                       => $squad->classroom->id,
+                    'name'                     => $squad->classroom->name,
+                    'access_code'              => $squad->classroom->access_code,
+                    'tinkercad_link'           => $squad->classroom->tinkercad_link,
+                    'teacher_name'             => $squad->classroom->teacher->name ?? 'Profesor',
+                    // Carrocería Pedagógica (Paso 4)
+                    'custom_title'             => $squad->classroom->custom_title,
+                    'custom_description'       => $squad->classroom->custom_description,
+                    'custom_video_url'         => $squad->classroom->custom_video_url,
+                    'custom_context_image_url' => $squad->classroom->custom_context_image_url,
+                    'custom_welcome_message'   => $squad->classroom->custom_welcome_message,
+                    'custom_accent_color'      => $squad->classroom->custom_accent_color ?? '#06b6d4',
                 ],
                 'members' => $squad->members->map(function ($m) use ($activeStudentId) {
                     return [

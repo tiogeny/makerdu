@@ -284,16 +284,167 @@ class DatabaseSeeder extends Seeder
         ]);
 
         ProjectLevel::create([
-            'project_id' => $p3->id,
-            'level_number' => 4,
-            'title_json' => ['es' => 'Nivel 4: Armado Tridimensional y Portafolio', 'en' => 'Level 4: 3D Assembly & Portfolio'],
-            'toolbox_json' => [
+            'project_id'       => $p3->id,
+            'level_number'     => 4,
+            'title_json'       => ['es' => 'Nivel 4: Armado Tridimensional y Portafolio', 'en' => 'Level 4: 3D Assembly & Portfolio'],
+            'toolbox_json'     => [
                 'deliverable_type' => 'checklist_assembly',
-                'guide' => 'Ensambla las piezas por fricción sin pegamento y registra la maqueta terminada.',
-                'bunny_video_url' => 'https://iframe.mediadelivery.net/embed/demo',
-                'resources' => []
+                'guide'            => 'Ensambla las piezas por fricción sin pegamento y registra la maqueta terminada.',
+                'bunny_video_url'  => 'https://iframe.mediadelivery.net/embed/demo',
+                'resources'        => [],
             ],
             'validation_rules_json' => ['deliverable_type' => 'checklist_assembly', 'max_x_mm' => 60, 'max_y_mm' => 60, 'max_z_mm' => 12],
+            'fabcoins_cost'    => 0,
+        ]);
+
+        // =====================================================================
+        // PROYECTO MAESTRO 4 (FLAGSHIP v3.0): Digitoys 2.5D — Figuras Articuladas
+        // Curso estrella de Makerdu — diseñado para ferias STEAM y exhibiciones
+        // =====================================================================
+        $p4 = Project::create([
+            'title_json'       => [
+                'es' => 'Digitoys 2.5D — Figuras Articuladas & Juguetes de Precisión',
+                'en' => 'Digitoys 2.5D — Articulated Figures & Precision Toys',
+            ],
+            'description_json' => [
+                'es' => 'Diseña y fabrica tu propia figura articulada impresa en 3D con piezas intercambiables, uniones de clip y listo para exhibición en ferias STEAM. Combina modelado digital, validación IA de tolerancias y fabricación phygital completa.',
+                'en' => 'Design and fabricate your own articulated 3D-printed figure with interchangeable parts, clip joints, and ready for STEAM fair exhibition. Combines digital modeling, AI tolerance validation, and full phygital manufacturing.',
+            ],
+            'type'         => '2.5D',
+            'total_levels' => 4,
+        ]);
+
+        // NIVEL 1 — Concepto y Boceto del Digitoy
+        ProjectLevel::create([
+            'project_id'   => $p4->id,
+            'level_number' => 1,
+            'title_json'   => [
+                'es' => 'Nivel 1: Concepto & Boceto del Digitoy',
+                'en' => 'Level 1: Digitoy Concept & Sketch',
+            ],
+            'toolbox_json' => [
+                'deliverable_type' => 'photo_sketch',
+                'guide'            => 'Define el concepto de tu figura articulada en papel: ¿qué animal, personaje o forma será? Dibuja sus partes separadas (cabeza, torso, extremidades) indicando qué piezas se mueven. Usa la Micro-App Vectorizador para digitalizar tu boceto y exportarlo como SVG al log.',
+                'bunny_video_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'resources'        => [
+                    ['title' => 'Plantilla de Boceto Digitoy (PDF)', 'url' => 'https://drive.google.com/file/d/demo', 'type' => 'pdf'],
+                    ['title' => 'Galería de Digitoys de Referencia',  'url' => 'https://makerdu.com/gallery/digitoys', 'type' => 'link'],
+                    ['title' => 'Tutorial: Diseño de juguetes articulados', 'url' => 'https://www.tinkercad.com/learn', 'type' => 'link'],
+                ],
+                'cneb_competency'  => 'Crea proyectos usando tecnologías digitales (CNEB - Competencia 28)',
+                'xp_reward'        => 50,
+                'tips' => [
+                    '💡 Las extremidades articuladas necesitan al menos 5mm de separación entre piezas.',
+                    '🎨 Usa el Vectorizador para trazar el contorno de cada pieza y enviarla al log.',
+                    '📐 Escala estimada: figura de 80×80×120mm en total.',
+                ],
+            ],
+            'validation_rules_json' => [
+                'deliverable_type' => 'photo_sketch',
+                'max_x_mm'         => 80,
+                'max_y_mm'         => 80,
+                'max_z_mm'         => 120,
+            ],
+            'fabcoins_cost' => 0,
+        ]);
+
+        // NIVEL 2 — Modelado Digital con Uniones de Clip
+        ProjectLevel::create([
+            'project_id'   => $p4->id,
+            'level_number' => 2,
+            'title_json'   => [
+                'es' => 'Nivel 2: Modelado Digital con Uniones de Clip',
+                'en' => 'Level 2: Digital Modeling with Clip Joints',
+            ],
+            'toolbox_json' => [
+                'deliverable_type'   => 'stl_3d',
+                'guide'              => 'Modela en TinkerCAD al menos 2 piezas articuladas. Cada unión clip debe tener: macho de 4mm de diámetro, hembra de 4.3mm (tolerancia 0.3mm). Grosor mínimo de paredes: 2.5mm. Exporta el archivo STL completo y valídalo con el Visor 3D Makerdu para revisar cotas antes de enviarlo.',
+                'bunny_video_url'    => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'resources'          => [
+                    ['title' => 'TinkerCAD — Crear uniones clip', 'url' => 'https://www.tinkercad.com/learn/project-gallery/clips', 'type' => 'link'],
+                    ['title' => 'Guía de Tolerancias para Impresión 3D FDM (PDF)', 'url' => 'https://drive.google.com/file/d/demo2', 'type' => 'pdf'],
+                ],
+                'cneb_competency'    => 'Usa el pensamiento computacional y diseño CAD para resolver problemas reales (CNEB - Competencia 28)',
+                'xp_reward'          => 75,
+                'tips' => [
+                    '🔩 Tolerancia clip: macho=4.0mm, hembra=4.3mm para ajuste perfecto en PLA.',
+                    '📏 Grosor mínimo de pared: 2.5mm para piezas resistentes a la manipulación.',
+                    '🧊 Usa el Visor 3D para verificar que no hay geometría invertida antes de subir.',
+                ],
+            ],
+            'validation_rules_json' => [
+                'deliverable_type'       => 'stl_3d',
+                'max_x_mm'               => 80,
+                'max_y_mm'               => 80,
+                'max_z_mm'               => 120,
+                'min_wall_thickness_mm'  => 2.5,
+            ],
+            'fabcoins_cost' => 25,
+        ]);
+
+        // NIVEL 3 — Pre-flight Check IA de Tolerancias
+        ProjectLevel::create([
+            'project_id'   => $p4->id,
+            'level_number' => 3,
+            'title_json'   => [
+                'es' => 'Nivel 3: Pre-flight Check IA de Tolerancias',
+                'en' => 'Level 3: AI Tolerance Pre-flight Check',
+            ],
+            'toolbox_json' => [
+                'deliverable_type'   => 'stl_3d',
+                'guide'              => 'Sube tu STL al motor de Pre-flight Check IA. Gemini Vision analizará: (1) dimensiones dentro del rango permitido, (2) grosor de paredes ≥ 2.5mm, (3) que los conectores clip estén bien orientados para impresión sin soportes. Si el score IA es ≥ 80%, puedes solicitar fabricación.',
+                'bunny_video_url'    => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'resources'          => [
+                    ['title' => 'Cómo leer el reporte IA de Makerdu', 'url' => 'https://makerdu.com/docs/ai-preflight', 'type' => 'link'],
+                ],
+                'cneb_competency'    => 'Evalúa el funcionamiento y la calidad de sus producciones digitales (CNEB - Competencia 28)',
+                'xp_reward'          => 100,
+                'tips' => [
+                    '🤖 Score IA ≥ 80 = apto para fabricación. Entre 60-79 = correcciones menores.',
+                    '📐 Orienta las piezas con la cara plana más grande hacia abajo para evitar soportes.',
+                    '⚡ Puedes resubir el STL corregido cuantas veces necesites antes de fabricar.',
+                ],
+            ],
+            'validation_rules_json' => [
+                'deliverable_type'       => 'stl_3d',
+                'max_x_mm'               => 80,
+                'max_y_mm'               => 80,
+                'max_z_mm'               => 120,
+                'min_wall_thickness_mm'  => 2.5,
+            ],
+            'fabcoins_cost' => 30,
+        ]);
+
+        // NIVEL 4 — Ensamblaje, Feria STEAM y Portafolio
+        ProjectLevel::create([
+            'project_id'   => $p4->id,
+            'level_number' => 4,
+            'title_json'   => [
+                'es' => 'Nivel 4: Ensamblaje, Feria STEAM & Portafolio',
+                'en' => 'Level 4: Assembly, STEAM Fair & Portfolio',
+            ],
+            'toolbox_json' => [
+                'deliverable_type'   => 'checklist_assembly',
+                'guide'              => 'Ensambla todas las piezas de tu Digitoy. Verifica que las articulaciones clip funcionen con al menos 90° de rango de movimiento. Fotografía el Digitoy ensamblado desde 3 ángulos y súbelo al portafolio. Prepara una presentación de 2 minutos para explicar tu proceso de diseño y fabricación.',
+                'bunny_video_url'    => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'resources'          => [
+                    ['title' => 'Rúbrica de Evaluación Feria STEAM (PDF)', 'url' => 'https://drive.google.com/file/d/demo3', 'type' => 'pdf'],
+                    ['title' => 'Guía de Presentación Oral 2 Minutos',      'url' => 'https://makerdu.com/docs/presentacion', 'type' => 'link'],
+                ],
+                'cneb_competency'    => 'Comunica y sustenta sus producciones digitales ante una audiencia real (CNEB - Competencia 28 + 29)',
+                'xp_reward'          => 150,
+                'tips' => [
+                    '🏆 El Digitoy ensamblado suma +150 XP y 1 FabCoin de bonus por articulación funcional.',
+                    '📸 Fotografía desde: frontal, lateral y 3/4 para el portafolio completo.',
+                    '🎤 Estructura tu presentación: Problema → Diseño → Fabricación → Resultado.',
+                ],
+            ],
+            'validation_rules_json' => [
+                'deliverable_type' => 'checklist_assembly',
+                'max_x_mm'         => 80,
+                'max_y_mm'         => 80,
+                'max_z_mm'         => 120,
+            ],
             'fabcoins_cost' => 0,
         ]);
 
@@ -413,5 +564,60 @@ class DatabaseSeeder extends Seeder
             ]);
             $sq3->members()->attach($u->id, ['current_role' => $s['role'], 'active_minutes' => rand(15, 30)]);
         }
+
+        // =====================================================================
+        // AULA 4: Prof. Henry Sánchez → Flagship Digitoys 2.5D
+        // Demo de Carrocería Pedagógica con personalización completa
+        // =====================================================================
+        $c4 = Classroom::create([
+            'teacher_id'               => $teacher1->id,
+            'project_id'               => $p4->id,
+            'name'                     => 'Taller Flagship Digitoys — 6to Grado STEAM',
+            'access_code'              => 'MK601',
+            'mode'                     => 'school_squads',
+            'tinkercad_link'           => 'https://www.tinkercad.com/joinclass/MK601DIGITOY',
+            // Carrocería Pedagógica ya aplicada como demo
+            'custom_title'             => 'Digitoys de Selva Amazónica — 6to B Coliseo Maker',
+            'custom_description'       => 'Este trimestre fabricaremos figuras articuladas inspiradas en la fauna amazónica del Perú: el otorongo, el guacamayo y el caimán. Cada figura debe articular al menos 2 extremidades.',
+            'custom_video_url'         => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'custom_context_image_url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Panthera_onca_at_the_Los_Angeles_Zoo.jpg/640px-Panthera_onca_at_the_Los_Angeles_Zoo.jpg',
+            'custom_welcome_message'   => '¡Bienvenidos Hacedores del 6toB! Esta semana iniciamos el reto Digitoys. ¡A crear figuras articuladas de la selva peruana! 🦜🐆',
+            'custom_accent_color'      => '#10b981',
+        ]);
+
+        $sq4 = Squad::create([
+            'classroom_id'    => $c4->id,
+            'name'            => 'Escuadra Otorongo STEAM',
+            'fabcoins_balance' => 150,
+        ]);
+
+        $students4 = [
+            ['name' => 'Adriana Quispe',  'pin' => '2468', 'role' => 'Architect', 'xp' => 180],
+            ['name' => 'Bruno Castillo',  'pin' => '1357', 'role' => 'Quality',   'xp' => 165],
+            ['name' => 'Daniela Huanca',  'pin' => '9753', 'role' => 'Finance',   'xp' => 140],
+            ['name' => 'Emilio Soto',     'pin' => '8642', 'role' => 'Relator',   'xp' => 155],
+        ];
+
+        foreach ($students4 as $s) {
+            $u = User::create([
+                'name'      => $s['name'],
+                'pin'       => $s['pin'],
+                'role_type' => 'student',
+                'xp_points' => $s['xp'],
+                'language'  => 'es',
+            ]);
+            $sq4->members()->attach($u->id, ['current_role' => $s['role'], 'active_minutes' => rand(20, 55)]);
+        }
+
+        // Bitácora inicial del Aula 4 (flagship)
+        BitacoraEntry::create([
+            'squad_id'            => $sq4->id,
+            'level_id'            => $p4->levels->first()->id,
+            'active_role_user_id' => $sq4->members()->first()->id,
+            'content_text'        => 'Completamos el boceto de nuestro Digitoy: un otorongo articulado con cabeza, torso y 4 patas móviles. Usamos el Vectorizador Makerdu para digitalizar el boceto.',
+            'ai_score'            => true,
+            'ai_feedback'         => '✅ Excelente boceto con partes claramente diferenciadas. Las articulaciones están bien documentadas. Proporción estimada 80×120mm dentro del rango permitido.',
+            'status'              => 'approved',
+        ]);
     }
 }
