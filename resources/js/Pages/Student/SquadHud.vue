@@ -12,6 +12,7 @@ import {
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
 import AiTutorChatModal from '@/Components/AiTutorChatModal.vue';
+import MicroAppOverlay from '@/Components/MicroAppOverlay.vue';
 import { t, currentLang, setLanguage } from '@/i18n.js';
 
 const props = defineProps({
@@ -740,7 +741,60 @@ const getDeliverableBadge = (type) => {
                 <!-- PASO 2: CREACIÓN ADAPTABLE SEGÚN DELIVERABLE_TYPE -->
                 <!-- ========================================================= -->
                 <div v-else-if="currentStep === 2" class="space-y-6 animate-fade-in">
-                    
+
+                    <!-- ================================================================= -->
+                    <!-- BANNER LANZADOR DE MICRO-APPS AUTÓNOMAS (Suite Makerdu v3.0)     -->
+                    <!-- ================================================================= -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-950 to-purple-950/60 border border-cyan-500/40 space-y-3 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <Sparkles class="w-4 h-4 text-cyan-400 animate-pulse" />
+                                <span class="text-xs font-black text-white uppercase tracking-wider">Suite de Herramientas Creativas Makerdu:</span>
+                            </div>
+                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">Cero Descargas · 100% en el Navegador</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <!-- Vectorizador -->
+                            <button
+                                type="button"
+                                @click="openMicroApp('Vectorizador Cámara B/N & Bézier', '/apps/vectorizer', '🎨')"
+                                class="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 text-left transition flex items-center justify-between group"
+                            >
+                                <div>
+                                    <p class="font-bold text-xs text-cyan-300 group-hover:text-white transition">📷 Vectorizador Cámara & Bézier</p>
+                                    <p class="text-[10px] text-slate-400">Dibuja en papel o traza curvas 2D/3D</p>
+                                </div>
+                                <ArrowRight class="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition flex-shrink-0 ml-1" />
+                            </button>
+
+                            <!-- Visor 3D -->
+                            <button
+                                type="button"
+                                @click="openMicroApp('Visor 3D WebGL Autónomo', '/apps/viewer-3d', '🧊')"
+                                class="p-3 rounded-xl bg-slate-900 border border-purple-500/30 hover:border-purple-400 text-left transition flex items-center justify-between group"
+                            >
+                                <div>
+                                    <p class="font-bold text-xs text-purple-300 group-hover:text-white transition">🧊 Visor 3D WebGL</p>
+                                    <p class="text-[10px] text-slate-400">Inspección de mallas STL y medidas</p>
+                                </div>
+                                <ArrowRight class="w-4 h-4 text-purple-400 group-hover:translate-x-1 transition flex-shrink-0 ml-1" />
+                            </button>
+
+                            <!-- Generador de Cajas Láser -->
+                            <button
+                                type="button"
+                                @click="openMicroApp('Generador de Cajas Láser con Encastre', '/apps/box-generator', '📦')"
+                                class="p-3 rounded-xl bg-slate-900 border border-amber-500/30 hover:border-amber-400 text-left transition flex items-center justify-between group"
+                            >
+                                <div>
+                                    <p class="font-bold text-xs text-amber-300 group-hover:text-white transition">📦 Generador de Cajas Láser</p>
+                                    <p class="text-[10px] text-slate-400">Finger-joint paramétrico · SVG/DXF</p>
+                                </div>
+                                <ArrowRight class="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition flex-shrink-0 ml-1" />
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- CASO A: BOCETO / IDEACIÓN (PHOTO_SKETCH) -->
                     <div v-if="levelDeliverableType === 'photo_sketch'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         <div class="lg:col-span-6 space-y-4">
@@ -1225,6 +1279,18 @@ const getDeliverableBadge = (type) => {
             </section>
 
         </main>
+
+        <!-- ================================================================= -->
+        <!-- OVERLAY FULLSCREEN DE MICRO-APPS AUTÓNOMAS (Makerdu v3.0)        -->
+        <!-- ================================================================= -->
+        <MicroAppOverlay
+            :is-open="!!activeMicroApp"
+            :app-name="activeMicroApp?.name"
+            :app-url="activeMicroApp?.url"
+            :app-icon="activeMicroApp?.icon"
+            @close="activeMicroApp = null"
+            @asset-ready="handleMicroAppAsset"
+        />
 
         <!-- ================================================================= -->
         <!-- MODAL DE VICTORIA & CELEBRACIÓN DE NIVEL COMPLETADO -->
