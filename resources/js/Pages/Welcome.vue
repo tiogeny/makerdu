@@ -26,7 +26,7 @@ defineProps({
                 <div>
                     <span class="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
                         MAKER<span class="text-amber-400">DU</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">v2.6</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">{{ t('app.version') }}</span>
                     </span>
                 </div>
             </div>
@@ -151,8 +151,8 @@ defineProps({
 
         <!-- FOOTER -->
         <footer class="max-w-7xl w-full mx-auto p-6 border-t border-slate-900 text-center text-xs text-slate-500 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>Makerdu v2.6 • Google DeepMind & STEAM Phygital Education Platform</p>
-            <p>Laravel v11 • Vue 3 • Three.js • Gemini Flash AI</p>
+            <p>Makerdu {{ t('app.version') }} • Google DeepMind &amp; STEAM Phygital Education Platform</p>
+            <p>Laravel v11 • Vue 3 • Three.js • Gemini 2.0 Flash AI</p>
         </footer>
     </div>
 </template>
