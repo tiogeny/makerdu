@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diseñador de Lámparas Waffle Grid · Makerdu Micro-App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 11px; }
+        input[type=range] { cursor: pointer; height: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-black overflow-x-hidden">
+
+    <!-- TOPBAR -->
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 sticky top-0 z-40 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 via-orange-500 to-yellow-300 flex items-center justify-center text-slate-950 font-black text-base shadow-md shadow-amber-500/20">
+                💡
+            </div>
+            <div>
+                <h1 class="font-black text-sm text-white tracking-tight flex items-center gap-2">
+                    <span>DISEÑADOR DE LÁMPARAS WAFFLE GRID</span>
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/40">
+                        Makerdu Micro-App
+                    </span>
+                </h1>
+                <p class="text-[10px] text-slate-400">Lámparas de Costillas Entrelazadas • Encastres por Fricción Láser • Simulación Lumínica 3D</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button
+                id="btnToggleLight"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-amber-950/50 text-slate-300 hover:text-amber-300 text-xs font-bold border border-slate-700 transition flex items-center gap-1.5"
+            >
+                <span id="lightIcon">💡</span>
+                <span id="lightLabel">Encender Bombilla</span>
+            </button>
+
+            <button
+                id="btnSendToLms"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse"
+            >
+                💾 ENVIAR A BITÁCORA MAKERDU
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+
+        <!-- COLUMNA IZQUIERDA: PARÁMETROS DE FORMA & CORTE (5 COLS) -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- SILUETA & CURVATURA -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <span>🏺 Perfil & Silueta de la Lámpara:</span>
+                </h3>
+
+                <!-- Estilos de Silueta Predefinidos -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" class="btn-shape p-2 rounded-xl text-xs font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300" data-shape="cylinder">Cilíndrica</button>
+                    <button type="button" class="btn-shape p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400" data-shape="hourglass">Reloj de Arena</button>
+                    <button type="button" class="btn-shape p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400" data-shape="bulb">Bombilla/Gota</button>
+                </div>
+
+                <!-- Altura Total -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Altura Total ($H$):</span>
+                        <span id="valHeight" class="font-mono text-amber-400 font-bold">180 mm</span>
+                    </div>
+                    <input type="range" id="sliderHeight" min="100" max="300" step="10" value="180" class="w-full accent-amber-400" />
+                </div>
+
+                <!-- Radio Superior / Cintura / Inferior -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Radio Sup.:</span>
+                            <span id="valRadiusTop" class="font-mono text-amber-400 font-bold">45 mm</span>
+                        </div>
+                        <input type="range" id="sliderRadiusTop" min="25" max="90" value="45" class="w-full accent-amber-400" />
+                    </div>
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Radio Base:</span>
+                            <span id="valRadiusBottom" class="font-mono text-amber-400 font-bold">60 mm</span>
+                        </div>
+                        <input type="range" id="sliderRadiusBottom" min="30" max="100" value="60" class="w-full accent-amber-400" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESTRUCTURA WAFFLE GRID & ENCASTRES -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                    <span>🪚 Encastres & Costillas Entrelazadas:</span>
+                </h3>
+
+                <!-- Número de Costillas Verticales -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Costillas Verticales ($N$):</span>
+                        <span id="valRibs" class="font-mono text-cyan-300 font-bold">12 costillas</span>
+                    </div>
+                    <input type="range" id="sliderRibs" min="6" max="24" step="2" value="12" class="w-full accent-cyan-400" />
+                </div>
+
+                <!-- Número de Anillos Horizontales -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Anillos Horizontales ($M$):</span>
+                        <span id="valRings" class="font-mono text-cyan-300 font-bold">3 anillos</span>
+                    </div>
+                    <input type="range" id="sliderRings" min="2" max="6" value="3" class="w-full accent-cyan-400" />
+                </div>
+
+                <!-- Espesor de Madera MDF / Acrílico -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Espesor MDF:</span>
+                            <span id="valThickness" class="font-mono text-cyan-300 font-bold">3.0 mm</span>
+                        </div>
+                        <input type="range" id="sliderThickness" min="2.0" max="6.0" step="0.5" value="3.0" class="w-full accent-cyan-400" />
+                    </div>
+
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Soquete Socket:</span>
+                            <span id="valSocket" class="font-mono text-cyan-300 font-bold">E27 (40mm)</span>
+                        </div>
+                        <select id="selectSocket" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-1 text-xs text-white">
+                            <option value="40">E27 Estándar (Ø40mm)</option>
+                            <option value="28">E14 Mini (Ø28mm)</option>
+                            <option value="12">Módulo LED (Ø12mm)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDITORÍA DE FABRICACIÓN PRE-FLIGHT -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Total Piezas a Cortar:</span>
+                    <span id="valTotalPieces" class="font-mono text-white font-bold">15 piezas (12 costillas + 3 anillos)</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Área de Plancha MDF 3mm:</span>
+                    <span id="valMdfArea" class="font-mono text-amber-400 font-bold">~40 × 30 cm</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Costo en FabCoins:</span>
+                    <span id="valFabcoins" class="font-mono text-emerald-400 font-bold">30 FC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: VISOR 3D & EXPORTADOR (7 COLS) -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+
+            <!-- Three.js Canvas -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex-1 min-h-[480px] flex items-center justify-center">
+                <div id="threeContainer" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+                <!-- Badge Flotante -->
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-800 text-[10px] text-slate-300 font-mono">
+                    <span id="lightDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span>Arrastra para rotar • Simulación de Encastres Waffle</span>
+                </div>
+
+                <!-- Reset Vista -->
+                <button
+                    type="button"
+                    onclick="resetLampCamera()"
+                    class="absolute top-4 right-4 z-10 px-2.5 py-1 rounded-xl bg-slate-950/80 text-slate-300 hover:text-white border border-slate-800 text-[10px] font-bold"
+                >
+                    🔄 Vista Isométrica
+                </button>
+            </div>
+
+            <!-- FOOTER DE DESCARGA DUAL (SVG + STL) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+                <div class="text-xs text-slate-400">
+                    <span>Exporta el plano de despiece <strong class="text-white">SVG para Corte Láser</strong> o la malla <strong class="text-white">STL 3D</strong>.</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button
+                        id="btnDownloadSvg"
+                        type="button"
+                        class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                    >
+                        <span>⬇️ SVG CORTE LÁSER</span>
+                    </button>
+                    <button
+                        id="btnDownloadStl"
+                        type="button"
+                        class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20"
+                    >
+                        <span>⬇️ STL 3D</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

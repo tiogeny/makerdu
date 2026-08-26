@@ -81,6 +81,26 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'lamp-designer'], [
+            'name' => 'Diseñador de Lámparas Waffle Grid',
+            'category' => 'Laser',
+            'description' => 'Generador de lámparas con costillas entrelazadas y encastres para corte láser con simulación de iluminación 3D.',
+            'embed_path' => '/apps/lamp-designer',
+            'output_type' => 'svg',
+            'icon' => '💡',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'stamp-maker'], [
+            'name' => 'Creador de Sellos Ergonómicos & Troqueles',
+            'category' => '2.5D',
+            'description' => 'Diseñador de sellos con relieve espejado automático, mango 3D ergonómico y exportación a STL/SVG.',
+            'embed_path' => '/apps/stamp-maker',
+            'output_type' => 'stl',
+            'icon' => '🔤',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================

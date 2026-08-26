@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Sellos Ergonómicos · Makerdu Micro-App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 11px; }
+        input[type=range] { cursor: pointer; height: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500 selection:text-black overflow-x-hidden">
+
+    <!-- TOPBAR -->
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 sticky top-0 z-40 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white font-black text-base shadow-md shadow-rose-500/20">
+                🔤
+            </div>
+            <div>
+                <h1 class="font-black text-sm text-white tracking-tight flex items-center gap-2">
+                    <span>CREADOR DE SELLOS ERGONÓMICOS & TROQUELES</span>
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold border border-rose-500/40">
+                        Makerdu Micro-App
+                    </span>
+                </h1>
+                <p class="text-[10px] text-slate-400">Sellos de Tinta Personalizados • Mango 3D Ergonómico • Relieve Espejado Automático</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button
+                id="btnToggleMirror"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
+                title="Invierte el texto para que al estampar sobre papel se lea al derecho"
+            >
+                <span>🪞 Modo Espejo:</span>
+                <span id="lblMirror" class="text-emerald-400 font-mono">ACTIVO</span>
+            </button>
+
+            <button
+                id="btnSendToLms"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse"
+            >
+                💾 ENVIAR A BITÁCORA MAKERDU
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+
+        <!-- COLUMNA IZQUIERDA: CONTROLES DE TEXTO & MANGO (5 COLS) -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- CONTENIDO DEL SELLO -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                    <span>✍️ Texto & Gráfico del Sello:</span>
+                </h3>
+
+                <!-- Texto Principal -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <label class="block text-xs font-bold text-slate-300">Texto / Iniciales (Línea 1):</label>
+                    <input
+                        type="text"
+                        id="inputStampText"
+                        value="MAKERDU"
+                        maxlength="16"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white font-mono font-bold focus:outline-none focus:border-rose-500"
+                    />
+                </div>
+
+                <!-- Sub-Texto o Icono -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <label class="block text-xs font-bold text-slate-300">Icono / Sello Central:</label>
+                    <div class="grid grid-cols-5 gap-1.5 pt-1">
+                        <button type="button" class="btn-icon p-2 rounded-xl text-sm border border-rose-500/50 bg-rose-950/40 text-white" data-icon="star">⭐</button>
+                        <button type="button" class="btn-icon p-2 rounded-xl text-sm border border-slate-800 bg-slate-900 text-slate-400" data-icon="heart">❤️</button>
+                        <button type="button" class="btn-icon p-2 rounded-xl text-sm border border-slate-800 bg-slate-900 text-slate-400" data-icon="check">✅</button>
+                        <button type="button" class="btn-icon p-2 rounded-xl text-sm border border-slate-800 bg-slate-900 text-slate-400" data-icon="gear">⚙️</button>
+                        <button type="button" class="btn-icon p-2 rounded-xl text-sm border border-slate-800 bg-slate-900 text-slate-400" data-icon="paw">🐾</button>
+                    </div>
+                </div>
+
+                <!-- Forma de la Base -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Forma de la Base:</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button type="button" class="btn-base p-2 rounded-xl text-xs font-bold border border-rose-500/50 bg-rose-950/40 text-rose-300" data-base="circle">Circular</button>
+                        <button type="button" class="btn-base p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" data-base="rect">Rectangular</button>
+                        <button type="button" class="btn-base p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" data-base="shield">Escudo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANGO ERGONÓMICO & DIMENSIONES -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <span>🖐️ Mango Ergonómico 3D:</span>
+                </h3>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" class="btn-handle p-2 rounded-xl text-xs font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300" data-handle="knob">Perilla Ergo</button>
+                    <button type="button" class="btn-handle p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400" data-handle="pillar">Pilar Clásico</button>
+                    <button type="button" class="btn-handle p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400" data-handle="flat">Bolsillo Plano</button>
+                </div>
+
+                <!-- Diámetro / Ancho del Sello -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Tamaño de la Base ($D$):</span>
+                        <span id="valBaseSize" class="font-mono text-amber-400 font-bold">40 mm</span>
+                    </div>
+                    <input type="range" id="sliderBaseSize" min="25" max="65" value="40" class="w-full accent-amber-400" />
+                </div>
+
+                <!-- Altura del Relieve -->
+                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <div class="slider-label">
+                        <span class="text-slate-400 font-bold">Profundidad del Relieve:</span>
+                        <span id="valRelief" class="font-mono text-amber-400 font-bold">2.5 mm</span>
+                    </div>
+                    <input type="range" id="sliderRelief" min="1.5" max="4.5" step="0.5" value="2.5" class="w-full accent-amber-400" />
+                </div>
+            </div>
+
+            <!-- AUDITORÍA DE FABRICACIÓN PRE-FLIGHT -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Dimensiones Totales con Mango:</span>
+                    <span id="valDimensions" class="font-mono text-white font-bold">40 × 40 × 52 mm</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Peso Estimado en PLA:</span>
+                    <span id="valWeight" class="font-mono text-rose-400 font-bold">~22 g</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Costo en FabCoins:</span>
+                    <span id="valFabcoins" class="font-mono text-amber-400 font-bold">20 FC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: VISOR 3D & EXPORTADOR (7 COLS) -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+
+            <!-- Three.js Canvas -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex-1 min-h-[480px] flex items-center justify-center">
+                <div id="threeContainer" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+                <!-- Badge Flotante -->
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-800 text-[10px] text-slate-300 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                    <span>Arrastra para rotar • Ángulo de desmolde optimizado</span>
+                </div>
+
+                <!-- Botones de Vista Rápida -->
+                <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md p-1 rounded-2xl border border-slate-800 text-[10px]">
+                    <button type="button" onclick="setStampCamera('base')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Ver Huella</button>
+                    <button type="button" onclick="setStampCamera('iso')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Mango 3D</button>
+                </div>
+            </div>
+
+            <!-- FOOTER DE DESCARGA DUAL (SVG + STL) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+                <div class="text-xs text-slate-400">
+                    <span>Exporta para <strong class="text-white">Impresión 3D (STL)</strong> o caucho para <strong class="text-white">Grabado Láser (SVG)</strong>.</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button
+                        id="btnDownloadSvg"
+                        type="button"
+                        class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-rose-500/20"
+                    >
+                        <span>⬇️ SVG LÁSER</span>
+                    </button>
+                    <button
+                        id="btnDownloadStl"
+                        type="button"
+                        class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20"
+                    >
+                        <span>⬇️ STL 3D</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
