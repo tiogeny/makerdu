@@ -13,11 +13,24 @@ use App\Models\RewardCatalog;
 use App\Models\FabCoinTransaction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Limpieza segura e idempotente antes de resembrar
+        Schema::disableForeignKeyConstraints();
+        User::truncate();
+        Project::truncate();
+        ProjectLevel::truncate();
+        Classroom::truncate();
+        Squad::truncate();
+        BitacoraEntry::truncate();
+        RewardCatalog::truncate();
+        FabCoinTransaction::truncate();
+        Schema::enableForeignKeyConstraints();
+
         // =====================================================================
         // 0. CATÁLOGO INICIAL DE MICRO-APPS AUTÓNOMAS
         // =====================================================================
