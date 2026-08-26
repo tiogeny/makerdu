@@ -151,6 +151,36 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'robot-chassis'], [
+            'name' => 'Diseñador de Chasis para Robótica Educativa',
+            'category' => 'Laser',
+            'description' => 'Generador de chasis para carritos 2WD/4WD con orificios de montaje para Arduino, Micro:bit, sensores y motores TT.',
+            'embed_path' => '/apps/robot-chassis',
+            'output_type' => 'svg',
+            'icon' => '🤖',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'layered-topography'], [
+            'name' => 'Creador de Topografía & Maquetas 2.5D',
+            'category' => '2.5D',
+            'description' => 'Generador de mapas en capas apilables de cartón o madera con curvas de nivel y pines de registro.',
+            'embed_path' => '/apps/layered-topography',
+            'output_type' => 'svg',
+            'icon' => '🗺️',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'mold-maker'], [
+            'name' => 'Generador de Moldes & Matrices 3D',
+            'category' => '3D',
+            'description' => 'Diseñador de moldes para chocolatería, jabones y resina con ángulos de salida para desmolde perfecto.',
+            'embed_path' => '/apps/mold-maker',
+            'output_type' => 'stl',
+            'icon' => '🍫',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================
