@@ -71,6 +71,16 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'pixel-art-studio'], [
+            'name' => 'Pixel & Voxel Art Studio 2D/3D',
+            'category' => '2.5D',
+            'description' => 'Editor de Pixel Art interactivo con simetría, extrusión volumétrica 3D, exportación a corte láser (SVG) y mallas 3D (STL).',
+            'embed_path' => '/apps/pixel-art-studio',
+            'output_type' => 'stl',
+            'icon' => '👾',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================
