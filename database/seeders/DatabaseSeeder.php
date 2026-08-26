@@ -121,6 +121,36 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'living-hinge'], [
+            'name' => 'Generador de Bisagras Vivas & Madera Flexible',
+            'category' => 'Laser',
+            'description' => 'Generador de patrones de corte para doblar MDF y acrílico con simulación de flexión 3D.',
+            'embed_path' => '/apps/living-hinge',
+            'output_type' => 'svg',
+            'icon' => '🪵',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'lithophane-maker'], [
+            'name' => 'Generador de Litofanías 3D & Cajas de Luz',
+            'category' => '3D',
+            'description' => 'Convierte fotos en relieves 3D translúcidos con simulación de contraluz en tiempo real.',
+            'embed_path' => '/apps/lithophane-maker',
+            'output_type' => 'stl',
+            'icon' => '🖼️',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'vase-pot-generator'], [
+            'name' => 'Diseñador de Macetas & Jarrones 3D',
+            'category' => '3D',
+            'description' => 'Diseñador paramétrico de macetas y floreros geométricos optimizados para Modo Vaso (Vase Mode).',
+            'embed_path' => '/apps/vase-pot-generator',
+            'output_type' => 'stl',
+            'icon' => '🪴',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================
