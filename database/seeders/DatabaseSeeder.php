@@ -101,6 +101,26 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'jewelry-pattern'], [
+            'name' => 'Generador de Bio-Joyería & Dijes Andinos',
+            'category' => '2.5D',
+            'description' => 'Diseñador de aretes y dijes con geometría sagrada andina, simetría radial y ojal para argolla.',
+            'embed_path' => '/apps/jewelry-pattern',
+            'output_type' => 'svg',
+            'icon' => '💎',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'packaging-box'], [
+            'name' => 'Diseñador de Packaging Plegable & Cajas',
+            'category' => 'Laser',
+            'description' => 'Calculadora de cajas de cartulina con pestañas, líneas de corte y hendido, y simulador de plegado 3D.',
+            'embed_path' => '/apps/packaging-box',
+            'output_type' => 'svg',
+            'icon' => '📐',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================
