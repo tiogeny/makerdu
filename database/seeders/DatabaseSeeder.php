@@ -21,9 +21,8 @@ class DatabaseSeeder extends Seeder
         // =====================================================================
         // 0. CATÁLOGO INICIAL DE MICRO-APPS AUTÓNOMAS
         // =====================================================================
-        MicroApp::create([
+        MicroApp::firstOrCreate(['slug' => 'vectorizer'], [
             'name' => 'Vectorizador Cámara B/N & Editor Bézier 2D/3D',
-            'slug' => 'vectorizer',
             'category' => '2.5D',
             'description' => 'Convierte bocetos en papel a vectores limpios SVG mediante cámara web o pluma Bézier y genera extrusión 3D instantánea.',
             'embed_path' => '/apps/vectorizer',
@@ -32,9 +31,8 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        MicroApp::create([
+        MicroApp::firstOrCreate(['slug' => 'viewer-3d'], [
             'name' => 'Visor 3D WebGL Autónomo',
-            'slug' => 'viewer-3d',
             'category' => '3D',
             'description' => 'Inspección 360° de mallas STL, cotas físicas X/Y/Z, cálculo volumétrico y validación de grosor.',
             'embed_path' => '/apps/viewer-3d',
@@ -43,14 +41,33 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        MicroApp::create([
+        MicroApp::firstOrCreate(['slug' => 'box-generator'], [
             'name' => 'Generador de Cajas Láser con Encastre',
-            'slug' => 'box-generator',
             'category' => 'Laser',
             'description' => 'Calculadora paramétrica de ranuras de ensamble finger-joint con compensación de kerf para corte láser en MDF/acrílico.',
             'embed_path' => '/apps/box-generator',
             'output_type' => 'svg',
             'icon' => '📦',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'digitoy-studio'], [
+            'name' => 'Digitoy Studio 3D — Figuras Articuladas',
+            'category' => '3D',
+            'description' => 'Estudio 3D de personajes modulares articulados (Print-in-Place & Snap-Fit) con simulación cinemática y exportación STL.',
+            'embed_path' => '/apps/digitoy-studio',
+            'output_type' => 'stl',
+            'icon' => '🦖',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'gear-generator'], [
+            'name' => 'Generador de Engranajes & Autómatas',
+            'category' => 'Laser',
+            'description' => 'Diseñador paramétrico de engranajes involuta, reductores de velocidad y mecanismos cinéticos con simulación en tiempo real.',
+            'embed_path' => '/apps/gear-generator',
+            'output_type' => 'svg',
+            'icon' => '⚙️',
             'is_active' => true,
         ]);
 

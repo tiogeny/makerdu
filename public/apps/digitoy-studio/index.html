@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitoy Studio 3D · Figuras Articuladas Makerdu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 11px; }
+        input[type=range] { cursor: pointer; height: 4px; }
+        .tab-btn.active { background: #10b981; color: #020617; font-weight: 900; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black overflow-x-hidden">
+
+    <!-- TOPBAR -->
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 sticky top-0 z-40 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black text-base shadow-md shadow-emerald-500/20">
+                🦖
+            </div>
+            <div>
+                <h1 class="font-black text-sm text-white tracking-tight flex items-center gap-2">
+                    <span>DIGITOY STUDIO 3D</span>
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">
+                        Makerdu Micro-App
+                    </span>
+                </h1>
+                <p class="text-[10px] text-slate-400">Diseñador de Figuras Articuladas Print-in-Place & Snap-Fit • Exportador STL 3D</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button
+                id="btnAnimate"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
+            >
+                <span id="animIcon">▶️</span>
+                <span id="animLabel">Probar Movimiento</span>
+            </button>
+
+            <button
+                id="btnSendToLms"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse"
+            >
+                💾 ENVIAR A BITÁCORA MAKERDU
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+
+        <!-- COLUMNA IZQUIERDA: CONTROLES & PERSONALIZACIÓN (5 COLS) -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- ARQUETIPOS RÁPIDOS -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <span>🧬 Arquetipo Base:</span>
+                </h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" class="archetype-btn p-2.5 rounded-2xl border text-left transition text-xs font-bold flex flex-col items-center gap-1 bg-emerald-950/40 border-emerald-500/50 text-white" data-arch="robot">
+                        <span class="text-xl">🤖</span>
+                        <span>Robot Mech</span>
+                    </button>
+                    <button type="button" class="archetype-btn p-2.5 rounded-2xl border text-left transition text-xs font-bold flex flex-col items-center gap-1 bg-slate-950 border-slate-800 text-slate-400 hover:text-white" data-arch="otorongo">
+                        <span class="text-xl">🐆</span>
+                        <span>Otorongo</span>
+                    </button>
+                    <button type="button" class="archetype-btn p-2.5 rounded-2xl border text-left transition text-xs font-bold flex flex-col items-center gap-1 bg-slate-950 border-slate-800 text-slate-400 hover:text-white" data-arch="dragon">
+                        <span class="text-xl">🐲</span>
+                        <span>Flexi-Dragón</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABS DE PARTE CORPORAL -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl flex-1">
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs">
+                    <button type="button" id="tabHead" class="tab-btn active flex-1 py-1.5 rounded-xl font-bold transition text-center" onclick="setTab('head')">Cabeza</button>
+                    <button type="button" id="tabTorso" class="tab-btn flex-1 py-1.5 rounded-xl font-bold transition text-center text-slate-400" onclick="setTab('torso')">Torso</button>
+                    <button type="button" id="tabLimbs" class="tab-btn flex-1 py-1.5 rounded-xl font-bold transition text-center text-slate-400" onclick="setTab('limbs')">Extremidades</button>
+                    <button type="button" id="tabJoints" class="tab-btn flex-1 py-1.5 rounded-xl font-bold transition text-center text-slate-400" onclick="setTab('joints')">Uniones</button>
+                </div>
+
+                <!-- SECCIÓN 1: CABEZA -->
+                <div id="secHead" class="space-y-3">
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Forma de Cabeza:</span>
+                            <span id="lblHeadShape" class="font-mono text-emerald-400 font-bold">Cúbica</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-1">
+                            <button type="button" class="btn-opt p-2 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300" onclick="setHeadShape('cube')">Cúbica</button>
+                            <button type="button" class="btn-opt p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setHeadShape('sphere')">Esférica</button>
+                            <button type="button" class="btn-opt p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setHeadShape('helmet')">Casco Mech</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Accesorio Superior:</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5 pt-1">
+                            <button type="button" class="btn-opt-acc p-1.5 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-white" onclick="setAccessory('none')">Ninguno</button>
+                            <button type="button" class="btn-opt-acc p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setAccessory('ears')">Orejas 🐱</button>
+                            <button type="button" class="btn-opt-acc p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setAccessory('horns')">Cuernos 🐂</button>
+                            <button type="button" class="btn-opt-acc p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setAccessory('antenna')">Antena 📡</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Tamaño de Cabeza:</span>
+                            <span id="lblHeadSize" class="font-mono text-emerald-400 font-bold">24 mm</span>
+                        </div>
+                        <input type="range" id="sliderHeadSize" min="16" max="36" value="24" class="w-full accent-emerald-400" />
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: TORSO -->
+                <div id="secTorso" class="space-y-3 hidden">
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Emblema de Pecho (Relieve):</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5 pt-1">
+                            <button type="button" class="btn-opt-emb p-1.5 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-white" onclick="setChestEmblem('gear')">⚙️ Engrane</button>
+                            <button type="button" class="btn-opt-emb p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setChestEmblem('heart')">❤️ Corazón</button>
+                            <button type="button" class="btn-opt-emb p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setChestEmblem('zap')">⚡ Rayo</button>
+                            <button type="button" class="btn-opt-emb p-1.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setChestEmblem('star')">⭐ Estrella</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Ancho del Torso:</span>
+                            <span id="lblTorsoWidth" class="font-mono text-emerald-400 font-bold">30 mm</span>
+                        </div>
+                        <input type="range" id="sliderTorsoWidth" min="20" max="45" value="30" class="w-full accent-emerald-400" />
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Segmentos de Vértebras (Cuerpo):</span>
+                            <span id="lblBodySegments" class="font-mono text-emerald-400 font-bold">3 vértebras</span>
+                        </div>
+                        <input type="range" id="sliderBodySegments" min="2" max="6" value="3" class="w-full accent-emerald-400" />
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: EXTREMIDADES -->
+                <div id="secLimbs" class="space-y-3 hidden">
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Tipo de Manos / Pinzas:</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-1">
+                            <button type="button" class="btn-opt-hand p-2 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300" onclick="setHandType('claw')">🦀 Pinza</button>
+                            <button type="button" class="btn-opt-hand p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setHandType('fist')">✊ Puño</button>
+                            <button type="button" class="btn-opt-hand p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400" onclick="setHandType('peg')">🔌 Conector</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Largo de Brazos:</span>
+                            <span id="lblArmLength" class="font-mono text-emerald-400 font-bold">28 mm</span>
+                        </div>
+                        <input type="range" id="sliderArmLength" min="15" max="45" value="28" class="w-full accent-emerald-400" />
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Largo de Piernas:</span>
+                            <span id="lblLegLength" class="font-mono text-emerald-400 font-bold">32 mm</span>
+                        </div>
+                        <input type="range" id="sliderLegLength" min="20" max="50" value="32" class="w-full accent-emerald-400" />
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 4: UNIONES & FABRICACIÓN -->
+                <div id="secJoints" class="space-y-3 hidden">
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Modo de Fabricación FDM:</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button type="button" class="btn-opt-mode p-2.5 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-left" onclick="setJointMode('print_in_place')">
+                                <div class="font-black">Print-in-Place ✨</div>
+                                <div class="text-[10px] text-slate-400 font-normal mt-0.5">Se imprime todo en 1 pieza lista para moverse.</div>
+                            </button>
+                            <button type="button" class="btn-opt-mode p-2.5 rounded-xl text-xs font-bold border border-slate-800 bg-slate-900 text-slate-400 text-left" onclick="setJointMode('snap_fit')">
+                                <div class="font-black">Snap-Fit Modular 🧩</div>
+                                <div class="text-[10px] text-slate-400 font-normal mt-0.5">Piezas separadas ensamblables por clic.</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                        <div class="slider-label">
+                            <span class="text-slate-400 font-bold">Holgura Mecánica (Tolerancia PLA):</span>
+                            <span id="lblTolerance" class="font-mono text-emerald-400 font-bold">0.35 mm</span>
+                        </div>
+                        <input type="range" id="sliderTolerance" min="0.25" max="0.55" step="0.05" value="0.35" class="w-full accent-emerald-400" />
+                        <p class="text-[10px] text-slate-500">0.35mm es el valor ideal para boquillas de 0.4mm estándar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDITORÍA DE FABRICACIÓN PRE-FLIGHT -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Dimensiones Máximas:</span>
+                    <span id="valDimensions" class="font-mono text-white font-bold">75 × 65 × 30 mm</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Peso estimado en PLA:</span>
+                    <span id="valWeight" class="font-mono text-emerald-400 font-bold">~18.5 g</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Costo en FabCoins:</span>
+                    <span id="valFabcoins" class="font-mono text-amber-400 font-bold">25 FC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: VISOR 3D INTERACTIVO (7 COLS) -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex-1 min-h-[460px] flex items-center justify-center">
+                <!-- 3D Canvas -->
+                <div id="threeContainer" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+                <!-- Badge Flotante de Vista 360 -->
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-800 text-[10px] text-slate-300 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Arrastra para rotar • Rueda para zoom</span>
+                </div>
+
+                <!-- Botones de Vista Rápida -->
+                <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md p-1 rounded-2xl border border-slate-800 text-[10px]">
+                    <button type="button" onclick="resetCamera('front')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Frente</button>
+                    <button type="button" onclick="resetCamera('top')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Planta</button>
+                    <button type="button" onclick="resetCamera('iso')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">3D Iso</button>
+                </div>
+            </div>
+
+            <!-- FOOTER DE DESCARGA -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+                <div class="text-xs text-slate-400">
+                    <span>Exportación directa a formato <strong class="text-white">STL Binario 3D</strong> compatible con Cura, PrusaSlicer y Bambu.</span>
+                </div>
+                <button
+                    id="btnDownloadStl"
+                    type="button"
+                    class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
+                >
+                    <span>⬇️ DESCARGAR STL 3D</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
