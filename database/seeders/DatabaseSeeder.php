@@ -181,6 +181,36 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        MicroApp::firstOrCreate(['slug' => 'block-cad'], [
+            'name' => 'Block CAD 3D (Tinker-Lite)',
+            'category' => '3D',
+            'description' => 'Modelador 3D por bloques primitivos, sólidos y huecos con plano de trabajo interactivo y exportador STL.',
+            'embed_path' => '/apps/block-cad',
+            'output_type' => 'stl',
+            'icon' => '🧱',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'clay-sculptor'], [
+            'name' => 'Clay Sculptor 3D (SculptGL-Lite)',
+            'category' => '3D',
+            'description' => 'Estudio de escultura digital en arcilla 3D con pinceles de inflar, pellizcar, suavizar y simetría en tiempo real.',
+            'embed_path' => '/apps/clay-sculptor',
+            'output_type' => 'stl',
+            'icon' => '🗿',
+            'is_active' => true,
+        ]);
+
+        MicroApp::firstOrCreate(['slug' => 'cookie-cutter'], [
+            'name' => 'Diseñador de Cortadores de Galletas',
+            'category' => '3D',
+            'description' => 'Generador de cortadores para repostería y plastilina con filo afilado y pestaña ergonómica de presión.',
+            'embed_path' => '/apps/cookie-cutter',
+            'output_type' => 'stl',
+            'icon' => '🍪',
+            'is_active' => true,
+        ]);
+
         // =====================================================================
         // 1. USUARIOS DEL SISTEMA (ADMINISTRADOR Y DOCENTES)
         // =====================================================================

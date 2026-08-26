@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block CAD 3D · Modelador por Primitivas (Tinker-Lite) · Makerdu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 11px; }
+        input[type=range] { cursor: pointer; height: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white overflow-x-hidden">
+
+    <!-- TOPBAR -->
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 sticky top-0 z-40 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-black text-base shadow-md shadow-blue-500/20">
+                🧱
+            </div>
+            <div>
+                <h1 class="font-black text-sm text-white tracking-tight flex items-center gap-2">
+                    <span>BLOCK CAD 3D (TINKER-LITE)</span>
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold border border-blue-500/40">
+                        Makerdu Micro-App
+                    </span>
+                </h1>
+                <p class="text-[10px] text-slate-400">Modelado 3D por Bloques Primitivos • Sólidos & Huecos • Plano de Trabajo Interactivo</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button
+                id="btnDuplicate"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold border border-slate-700 transition"
+                title="Duplicar figura seleccionada"
+            >
+                📋 Duplicar
+            </button>
+
+            <button
+                id="btnDelete"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 transition"
+                title="Eliminar figura seleccionada"
+            >
+                🗑️ Eliminar
+            </button>
+
+            <button
+                id="btnSendToLms"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse"
+            >
+                💾 ENVIAR A BITÁCORA MAKERDU
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+
+        <!-- COLUMNA IZQUIERDA: PALETA DE FORMAS & PROPIEDADES (4 COLS) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+
+            <!-- FORMAS BÁSICAS (AÑADIR AL PLANO) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                    <span>➕ Añadir Formas al Plano:</span>
+                </h3>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="box">
+                        <span class="text-2xl">🧊</span>
+                        <span>Cubo</span>
+                    </button>
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="cylinder">
+                        <span class="text-2xl">🥫</span>
+                        <span>Cilindro</span>
+                    </button>
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="sphere">
+                        <span class="text-2xl">🔮</span>
+                        <span>Esfera</span>
+                    </button>
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="cone">
+                        <span class="text-2xl">🗼</span>
+                        <span>Cono</span>
+                    </button>
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="roof">
+                        <span class="text-2xl">📐</span>
+                        <span>Techo</span>
+                    </button>
+                    <button type="button" class="btn-add-shape p-3 rounded-2xl bg-slate-950 hover:bg-blue-950/40 border border-slate-800 hover:border-blue-500/50 text-center transition flex flex-col items-center gap-1 text-xs font-bold" data-shape="ring">
+                        <span class="text-2xl">⭕</span>
+                        <span>Anillo</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PROPIEDADES DE LA FIGURA SELECCIONADA -->
+            <div id="inspectorPanel" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center justify-between">
+                    <span>🎛️ Inspector de Figura:</span>
+                    <span id="selectedLabel" class="text-[10px] font-mono text-slate-400">Cubo #1</span>
+                </h3>
+
+                <!-- Modo: Sólido vs Hueco -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" id="btnSolid" class="p-2 rounded-xl text-xs font-bold border border-blue-500/50 bg-blue-950/40 text-blue-300">
+                        Sólido 🎨
+                    </button>
+                    <button type="button" id="btnHole" class="p-2 rounded-xl text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400 hover:text-white">
+                        Hueco 🕳️
+                    </button>
+                </div>
+
+                <!-- Paleta de Color -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Color de Figura:</span>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-blue-500 ring-2 ring-white scale-110" data-color="#3b82f6"></button>
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-rose-500" data-color="#f43f5e"></button>
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-emerald-500" data-color="#10b981"></button>
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-amber-500" data-color="#f59e0b"></button>
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-purple-500" data-color="#a855f7"></button>
+                        <button type="button" class="color-dot w-6 h-6 rounded-full bg-white" data-color="#ffffff"></button>
+                    </div>
+                </div>
+
+                <!-- Modos de Gizmo de Transformación -->
+                <div class="space-y-1.5 pt-2 border-t border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Herramienta de Control:</span>
+                    <div class="grid grid-cols-3 gap-1.5 text-xs font-bold">
+                        <button type="button" id="gizmoTranslate" class="py-1.5 rounded-xl bg-blue-600 text-white">Mover</button>
+                        <button type="button" id="gizmoRotate" class="py-1.5 rounded-xl bg-slate-950 text-slate-400 hover:text-white border border-slate-800">Rotar</button>
+                        <button type="button" id="gizmoScale" class="py-1.5 rounded-xl bg-slate-950 text-slate-400 hover:text-white border border-slate-800">Escalar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDITORÍA DE MASA -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Figuras en Escena:</span>
+                    <span id="valTotalObjects" class="font-mono text-white font-bold">1 figura</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Costo en FabCoins:</span>
+                    <span id="valFabcoins" class="font-mono text-amber-400 font-bold">15 FC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: WORKPLANE 3D & TRANSFORM GIZMO (8 COLS) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+
+            <!-- Three.js Workplane Canvas -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex-1 min-h-[520px] flex items-center justify-center">
+                <div id="threeContainer" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+                <!-- Badge Flotante -->
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-800 text-[10px] text-slate-300 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                    <span>Plano de Trabajo Activo (Workplane 150×150 mm)</span>
+                </div>
+
+                <!-- Reset Vista -->
+                <div class="absolute top-4 right-4 z-10 flex items-center gap-1 bg-slate-950/80 p-1 rounded-2xl border border-slate-800 text-[10px]">
+                    <button type="button" onclick="setBlockCamera('top')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Planta</button>
+                    <button type="button" onclick="setBlockCamera('front')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">Frente</button>
+                    <button type="button" onclick="setBlockCamera('iso')" class="px-2 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold">3D Iso</button>
+                </div>
+            </div>
+
+            <!-- FOOTER DE DESCARGA -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+                <div class="text-xs text-slate-400">
+                    <span>Exporta el ensamble 3D completo en formato <strong class="text-white">STL Binario</strong> listo para impresión.</span>
+                </div>
+                <button
+                    id="btnDownloadStl"
+                    type="button"
+                    class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-blue-500/20 shrink-0"
+                >
+                    <span>⬇️ DESCARGAR STL 3D</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
