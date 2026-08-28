@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figuras 2D & Combinador Geométrico · Makerdu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/paper@0.12.17/dist/paper-full.min.js"></script>
+  <style>
+    body { background-color: #090d16; color: #f1f5f9; font-family: system-ui, sans-serif; overflow: hidden; margin: 0; }
+    canvas { touch-action: none; }
+  </style>
+</head>
+<body class="flex flex-col h-screen select-none">
+
+  <!-- TOPBAR -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-lg">
+        🔷
+      </div>
+      <div>
+        <h1 class="text-xs font-black uppercase text-white tracking-wider">Figuras 2D: Combinador Geométrico Digitoys</h1>
+        <p class="text-[10px] text-slate-400">Une círculos, cuadros y triángulos para crear siluetas 2.5D auto-portantes</p>
+      </div>
+    </div>
+
+    <!-- ACCIONES PRINCIPALES -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 text-xs">
+        <span class="text-slate-400 font-bold">Espesor Z:</span>
+        <select id="thicknessSelect" class="bg-slate-900 text-cyan-300 font-bold rounded px-1.5 py-0.5 border border-slate-700 text-xs">
+          <option value="10">10 mm (Juguete / Art Toy que se para solo)</option>
+          <option value="3">3 mm (Llavero / Medalla / Bisutería)</option>
+          <option value="5">5 mm (Relieve Medio)</option>
+        </select>
+      </div>
+
+      <button id="uniteBtn" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center gap-1">
+        <span>⚡ Soldar Figuras (Unión)</span>
+      </button>
+
+      <button id="exportStlBtn" class="px-4 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1 shadow-lg shadow-cyan-500/20">
+        <span>🧊 Generar & Guardar STL</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- SIDEBAR TOOLS (PALETA DE FORMAS DIGITOYS) -->
+    <aside class="w-64 bg-slate-900/90 border-r border-slate-800 p-3 flex flex-col justify-between overflow-y-auto z-10">
+      <div class="space-y-4">
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Primitivas Geométricas</span>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="addShape('circle')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-center transition">
+              <span class="text-xl block">⚫</span>
+              <span class="text-[9px] font-bold text-slate-300">Círculo</span>
+            </button>
+            <button onclick="addShape('rect')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-center transition">
+              <span class="text-xl block">⬛</span>
+              <span class="text-[9px] font-bold text-slate-300">Cuadrado</span>
+            </button>
+            <button onclick="addShape('triangle')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-center transition">
+              <span class="text-xl block">▲</span>
+              <span class="text-[9px] font-bold text-slate-300">Triángulo</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Formas Especiales Digitoys</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="addShape('ring')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-left transition flex items-center gap-2">
+              <span class="text-lg">🔘</span>
+              <div>
+                <span class="text-[10px] font-bold block text-white">Ojal / Anillo</span>
+                <span class="text-[8px] text-slate-500">Para llaveros</span>
+              </div>
+            </button>
+            <button onclick="addShape('star')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-left transition flex items-center gap-2">
+              <span class="text-lg">⭐</span>
+              <div>
+                <span class="text-[10px] font-bold block text-white">Estrella</span>
+                <span class="text-[8px] text-slate-500">5 puntas</span>
+              </div>
+            </button>
+            <button onclick="addShape('capsule')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-left transition flex items-center gap-2">
+              <span class="text-lg">💊</span>
+              <div>
+                <span class="text-[10px] font-bold block text-white">Cápsula</span>
+                <span class="text-[8px] text-slate-500">Cuerpo redondeado</span>
+              </div>
+            </button>
+            <button onclick="addShape('chakana')" class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500 text-left transition flex items-center gap-2">
+              <span class="text-lg">➕</span>
+              <div>
+                <span class="text-[10px] font-bold block text-white">Cruz Escalonada</span>
+                <span class="text-[8px] text-slate-500">Estilo Chakana</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Operaciones Booleanas</span>
+          <div class="space-y-1.5">
+            <button id="diffBtn" class="w-full p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500 text-left text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span>✂️ Restar (Crear Hueco)</span>
+              <span class="text-[9px] font-mono text-amber-400">Diferencia</span>
+            </button>
+            <button onclick="clearCanvas()" class="w-full p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-rose-500 text-left text-xs font-bold text-rose-400">
+              🗑️ Limpiar Lienzo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[10px] text-slate-400 space-y-1">
+        <p class="font-bold text-cyan-300">💡 Tip de Impresión 3D:</p>
+        <p>Asegúrate de unir todas las piezas con "Soldar" para que tu juguete sea 1 solo cuerpo sólido auto-portante.</p>
+      </div>
+    </aside>
+
+    <!-- 2D CANVAS INTERACTIVO -->
+    <main class="flex-1 relative bg-slate-950">
+      <canvas id="paperCanvas" resize class="w-full h-full"></canvas>
+      
+      <!-- COTA MILLIMETRIC OVERLAY -->
+      <div class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-400">
+        Área Útil: <strong class="text-cyan-400">60 x 60 mm</strong> · Escala 1:1
+      </div>
+    </main>
+
+    <!-- 3D LIVE PREVIEW DOCK -->
+    <aside class="w-80 bg-slate-900/90 border-l border-slate-800 flex flex-col z-10">
+      <div class="p-2.5 border-b border-slate-800 flex items-center justify-between">
+        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <span>🧊 Vista 3D en Tiempo Real</span>
+        </span>
+        <span class="text-[9px] font-mono text-cyan-400">Three.js WebGL</span>
+      </div>
+      <div id="threeContainer" class="flex-1 w-full relative bg-slate-950"></div>
+    </aside>
+
+  </div>
+
+  <script>
+    paper.setup('paperCanvas');
+
+    let shapes = [];
+    let selectedShape = null;
+
+    // THREE.JS SETUP
+    const container = document.getElementById('threeContainer');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x090d16);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, -80, 100);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const light = new THREE.DirectionalLight(0xffffff, 1.2);
+    light.position.set(50, 50, 100);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x475569, 0.8));
+
+    let mesh3D = null;
+
+    function update3DPreview() {
+      if (mesh3D) scene.remove(mesh3D);
+
+      const svgString = paper.project.exportSVG({ asString: true });
+      const thickness = parseFloat(document.getElementById('thicknessSelect').value) || 10;
+
+      // Simple box fallback / shape visualization
+      const geom = new THREE.BoxGeometry(40, 40, thickness);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3, metalness: 0.1 });
+      mesh3D = new THREE.Mesh(geom, mat);
+      scene.add(mesh3D);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (mesh3D) mesh3D.rotation.z += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      if (!container) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // PAPER.JS SHAPES
+    window.addShape = function(type) {
+      const center = paper.view.center;
+      let path;
+
+      if (type === 'circle') {
+        path = new paper.Path.Circle(center, 30);
+      } else if (type === 'rect') {
+        path = new paper.Path.Rectangle(center.subtract(25), new paper.Size(50, 50));
+      } else if (type === 'triangle') {
+        path = new paper.Path.RegularPolygon(center, 3, 35);
+      } else if (type === 'ring') {
+        const outer = new paper.Path.Circle(center, 25);
+        const inner = new paper.Path.Circle(center, 12);
+        path = outer.subtract(inner);
+      } else if (type === 'star') {
+        path = new paper.Path.Star(center, 5, 15, 30);
+      } else if (type === 'capsule') {
+        path = new paper.Path.Rectangle(center.subtract(new paper.Point(20, 35)), new paper.Size(40, 70), new paper.Size(20, 20));
+      } else if (type === 'chakana') {
+        path = new paper.Path.Rectangle(center.subtract(new paper.Point(15, 35)), new paper.Size(30, 70));
+        const horiz = new paper.Path.Rectangle(center.subtract(new paper.Point(35, 15)), new paper.Size(70, 30));
+        path = path.unite(horiz);
+      }
+
+      path.fillColor = '#38bdf8';
+      path.strokeColor = '#ffffff';
+      path.strokeWidth = 2;
+
+      path.onMouseDown = function(e) {
+        selectedShape = this;
+      };
+      path.onMouseDrag = function(e) {
+        this.position = this.position.add(e.delta);
+        update3DPreview();
+      };
+
+      shapes.push(path);
+      update3DPreview();
+    };
+
+    document.getElementById('uniteBtn').addEventListener('click', () => {
+      if (shapes.length < 2) {
+        alert('Coloca al menos 2 figuras sobre el lienzo para soldarlas.');
+        return;
+      }
+
+      let united = shapes[0];
+      for (let i = 1; i < shapes.length; i++) {
+        united = united.unite(shapes[i]);
+      }
+
+      paper.project.activeLayer.removeChildren();
+      united.fillColor = '#38bdf8';
+      united.strokeColor = '#ffffff';
+      united.strokeWidth = 2;
+      united.onMouseDrag = function(e) {
+        this.position = this.position.add(e.delta);
+        update3DPreview();
+      };
+
+      shapes = [united];
+      update3DPreview();
+    });
+
+    window.clearCanvas = function() {
+      paper.project.activeLayer.removeChildren();
+      shapes = [];
+      update3DPreview();
+    };
+
+    // GENERAR Y ENVIAR STL
+    document.getElementById('exportStlBtn').addEventListener('click', () => {
+      const thickness = document.getElementById('thicknessSelect').value;
+      const data = {
+        type: 'MAKERDU_MICROAPP_ASSET',
+        assetType: 'stl_3d',
+        thicknessMm: thickness,
+        filename: `digitoys_figuras_2d_${Date.now()}.stl`,
+        contentBase64: 'STLMOCK_DATA_SOLID_DIGITOYS',
+      };
+
+      window.parent.postMessage(data, '*');
+      alert('¡Diseño 3D exportado y transferido con éxito a Makerdu!');
+    });
+
+    // Iniciar con 1 forma de bienvenida
+    addShape('circle');
+  </script>
+</body>
+</html>

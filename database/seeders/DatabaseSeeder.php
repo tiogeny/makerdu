@@ -46,6 +46,15 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🎨',
             ],
             [
+                'slug' => 'shape-combiner',
+                'name' => 'Figuras 2D & Combinador Geométrico Digitoys',
+                'category' => '2.5D',
+                'description' => 'Une círculos, cuadrados, triángulos y estrellas con operaciones booleanas para crear siluetas auto-portantes y extruirlas a STL 3D.',
+                'embed_path' => '/apps/shape-combiner',
+                'output_type' => 'stl',
+                'icon' => '🔷',
+            ],
+            [
                 'slug' => 'viewer-3d',
                 'name' => 'Visor 3D WebGL Autónomo',
                 'category' => '3D',

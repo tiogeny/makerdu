@@ -1,20 +1,52 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { ArrowLeft, Sparkles, X, ExternalLink, CheckCircle2 } from 'lucide-vue-next';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ArrowLeft, Sparkles, X, ExternalLink, CheckCircle2, Play } from 'lucide-vue-next';
 
 const props = defineProps({
-    isOpen: Boolean,
+    isOpen: {
+        type: Boolean,
+        default: true,
+    },
+    app: {
+        type: Object,
+        default: null,
+    },
     appName: String,
     appUrl: String,
     appIcon: {
         type: String,
         default: '⚡',
     },
+    currentLevel: {
+        type: Number,
+        default: 1,
+    },
+    squadId: {
+        type: Number,
+        default: 1,
+    },
 });
 
 const emit = defineEmits(['close', 'assetReady']);
 const showSuccessNotification = ref(false);
 const lastReceivedAsset = ref(null);
+
+const computedAppName = computed(() => props.app?.name || props.appName || 'Herramienta de Fabricación Digital');
+const computedAppIcon = computed(() => props.app?.icon || props.appIcon || '🛠️');
+const computedAppUrl = computed(() => {
+    if (props.app?.embed_path) {
+        return props.app.embed_path.endsWith('/index.html') 
+            ? props.app.embed_path 
+            : `${props.app.embed_path.replace(/\/$/, '')}/index.html`;
+    }
+    if (props.appUrl) {
+        return props.appUrl;
+    }
+    if (props.app?.slug) {
+        return `/apps/${props.app.slug}/index.html`;
+    }
+    return '/apps/vectorizer/index.html';
+});
 
 const handleMessage = (event) => {
     if (!event.data || event.data.type !== 'MAKERDU_MICROAPP_ASSET') return;
@@ -50,17 +82,17 @@ onUnmounted(() => {
                 <button
                     type="button"
                     @click="emit('close')"
-                    class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5"
+                    class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition flex items-center gap-1.5 cursor-pointer"
                 >
                     <ArrowLeft class="w-4 h-4 text-cyan-400" />
-                    <span>Volver a la Misión</span>
+                    <span>Volver al Panel</span>
                 </button>
 
                 <div class="flex items-center gap-2 border-l border-slate-800 pl-3">
-                    <span class="text-base">{{ appIcon }}</span>
-                    <h2 class="text-xs font-black text-white tracking-wide uppercase">{{ appName || 'Herramienta de Fabricación' }}</h2>
+                    <span class="text-base">{{ computedAppIcon }}</span>
+                    <h2 class="text-xs font-black text-white tracking-wide uppercase">{{ computedAppName }}</h2>
                     <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                        apps.makerdu.com
+                        Makerdu Micro-App Suite
                     </span>
                 </div>
             </div>
@@ -72,11 +104,11 @@ onUnmounted(() => {
                     class="px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5 animate-bounce"
                 >
                     <CheckCircle2 class="w-4 h-4 text-emerald-400" />
-                    <span>¡Entregable guardado en Bitácora con éxito!</span>
+                    <span>¡Entregable generado con éxito!</span>
                 </div>
 
                 <a
-                    :href="appUrl"
+                    :href="computedAppUrl"
                     target="_blank"
                     class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
                     title="Abrir en pestaña independiente (Standalone)"
@@ -87,7 +119,7 @@ onUnmounted(() => {
                 <button
                     type="button"
                     @click="emit('close')"
-                    class="p-2 rounded-xl bg-slate-800 hover:bg-rose-950/50 hover:text-rose-400 text-slate-400 transition"
+                    class="p-2 rounded-xl bg-slate-800 hover:bg-rose-950/50 hover:text-rose-400 text-slate-400 transition cursor-pointer"
                     title="Cerrar"
                 >
                     <X class="w-4 h-4" />
@@ -98,10 +130,9 @@ onUnmounted(() => {
         <!-- IFRAME DE LA MICRO-APP -->
         <div class="flex-1 w-full h-full relative bg-slate-950">
             <iframe
-                v-if="isOpen"
-                :src="appUrl"
+                :src="computedAppUrl"
                 class="w-full h-full border-0"
-                allow="camera; microphone; geolocation"
+                allow="camera; microphone; display-capture; clipboard-write; clipboard-read"
             ></iframe>
         </div>
     </div>
