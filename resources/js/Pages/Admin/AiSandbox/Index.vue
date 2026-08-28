@@ -1,50 +1,68 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import {
     Sparkles, ArrowLeft, Bot, Play, CheckCircle2, XCircle,
-    Sliders, Cpu, FileText, Code2, Clock, Zap, RefreshCw, Upload, Eye
+    Sliders, Cpu, FileText, Code2, Clock, Zap, RefreshCw, Upload, Eye,
+    AlertCircle, Layers, Check
 } from 'lucide-vue-next';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import axios from 'axios';
 
 const props = defineProps({
-    projects: Array,
+    projects: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Parámetros de Calibración
-const maxX = ref(50);
-const maxY = ref(50);
-const maxZ = ref(15);
+const selectedProject = ref(props.projects?.[0]?.id || '');
+const selectedLevel = ref('');
+const maxX = ref(60);
+const maxY = ref(60);
+const maxZ = ref(10);
 const minWall = ref(2.0);
-const selectedProjectLevel = ref('');
 
 const customPrompt = ref(
-    'Eres el Guardián IA de Fabricación Digital de Makerdu. Tu objetivo es auditar piezas 3D escolares para verificar que sean imprimibles y tengan relieves claros. Sé constructivo, amigable y motivador para estudiantes.'
+    props.projects?.[0]?.gemini_prompt_context ||
+    'Eres el Mentor Copiloto IA de Makerdu especializado en Fabricación Digital 2.5D. Audita la geometría, el cierre de contornos, el espesor de pared y la imprimibilidad física con tono constructivo y amigable para el estudiante.'
 );
 
-// Archivo y Visor
+// Archivo y Test
 const selectedFile = ref(null);
-const fileName = ref('modelo_demo_50x50.stl');
+const filePreview = ref(null);
+const fileName = ref('');
 const isRunning = ref(false);
 const analysisResult = ref(null);
 const latency = ref(null);
 const rawJsonOpen = ref(false);
 
-const applyPreset = (preset) => {
-    if (!preset) return;
-    const parts = preset.split('-');
-    const projId = parseInt(parts[0]);
-    const lvlNum = parseInt(parts[1]);
+const activeProject = computed(() => {
+    return props.projects.find(p => p.id === selectedProject.value);
+});
 
-    const proj = props.projects.find(p => p.id === projId);
-    const lvl = proj?.levels?.find(l => l.level_number === lvlNum);
+const onProjectChange = () => {
+    const proj = activeProject.value;
+    if (proj) {
+        if (proj.gemini_prompt_context) {
+            customPrompt.value = proj.gemini_prompt_context;
+        }
+        if (proj.levels && proj.levels.length > 0) {
+            selectedLevel.value = proj.levels[0].id;
+            onLevelChange();
+        }
+    }
+};
 
+const onLevelChange = () => {
+    const proj = activeProject.value;
+    const lvl = proj?.levels?.find(l => l.id === selectedLevel.value);
     if (lvl && lvl.validation_rules) {
-        maxX.value = lvl.validation_rules.max_x_mm || 50;
-        maxY.value = lvl.validation_rules.max_y_mm || 50;
-        maxZ.value = lvl.validation_rules.max_z_mm || 15;
-        minWall.value = lvl.validation_rules.min_wall_thickness_mm || 2.0;
+        maxX.value = lvl.validation_rules.max_dim_mm || lvl.validation_rules.max_x_mm || 60;
+        maxY.value = lvl.validation_rules.max_dim_mm || lvl.validation_rules.max_y_mm || 60;
+        maxZ.value = lvl.validation_rules.max_z_mm || 10;
+        minWall.value = lvl.validation_rules.min_thickness_mm || lvl.validation_rules.min_wall_thickness_mm || 2.0;
     }
 };
 
@@ -53,6 +71,16 @@ const handleFileUpload = (e) => {
     if (!file) return;
     selectedFile.value = file;
     fileName.value = file.name;
+
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            filePreview.value = re.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        filePreview.value = null;
+    }
 };
 
 const executeAiTest = async () => {
@@ -80,7 +108,7 @@ const executeAiTest = async () => {
         }
     } catch (err) {
         console.error(err);
-        alert('Error al ejecutar la prueba de IA. Revisa los parámetros.');
+        alert('Error al ejecutar la prueba de IA con Gemini Vision.');
     } finally {
         isRunning.value = false;
     }
@@ -89,221 +117,271 @@ const executeAiTest = async () => {
 
 <template>
     <AdminLayout>
-        <Head title="Sandbox Copiloto IA Gemini · Makerdu v4.0" />
+        <Head title="Sandbox Copiloto IA Gemini · Makerdu SuperAdmin" />
 
-        <!-- HEADER DE ACCIÓN -->
+        <!-- HEADER SECTION -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
                 <div class="flex items-center gap-2 mb-1">
                     <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono text-[10px] font-bold border border-purple-500/20">
-                        GEMINI 2.0 FLASH VISION
+                        AUDITORÍA VISUAL MULTIMODAL
                     </span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-                    <span>Sandbox de Calibración de IA Multimodal</span>
+                    <span>Laboratorio de Calibración Gemini IA</span>
+                    <span class="text-xs px-2 py-0.5 rounded-xl bg-slate-800 text-purple-400 font-mono font-normal">
+                        Gemini 2.0 Flash Vision
+                    </span>
                 </h1>
-                <p class="text-xs text-slate-400 mt-1">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
+                <p class="text-xs text-slate-400 mt-1">
+                    Prueba y afina el comportamiento del mentor inteligente con fotos de bocetos, capturas o archivos STL reales.
+                </p>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5">
-                    <Zap class="w-3.5 h-3.5" />
-                    <span>Motor Activo: Gemini Vision API</span>
-                </span>
+            <div class="flex items-center gap-3">
+                <Link
+                    :href="route('admin.techniques.index')"
+                    class="px-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-xs transition flex items-center gap-2"
+                >
+                    <Layers class="w-4 h-4 text-cyan-400" />
+                    <span>Ver Técnicas STEAM</span>
+                </Link>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- GRID DE 2 COLUMNAS: CONFIGURACIÓN vs. RESPUESTA DE LA IA -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- COLUMNA IZQUIERDA: VISOR 3D & REGLAS FÍSICAS (5 COLS) -->
-            <div class="lg:col-span-5 space-y-5">
+            <!-- COLUMNA IZQUIERDA: CONTROLES DE CALIBRACIÓN (5 COLS) -->
+            <div class="lg:col-span-5 space-y-6">
                 
-                <!-- PRESET DE CURSOS EXISTENTES -->
-                <div class="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
-                    <label class="block text-xs font-bold text-slate-300">Cargar Preset de un Curso Maestro:</label>
-                    <select
-                        v-model="selectedProjectLevel"
-                        @change="applyPreset($event.target.value)"
-                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-cyan-300 font-bold focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                    >
-                        <option value="">-- Seleccionar regla de nivel --</option>
-                        <template v-for="p in projects" :key="p.id">
-                            <option v-for="l in p.levels" :key="l.id" :value="`${p.id}-${l.level_number}`">
-                                {{ p.title }} • Nivel {{ l.level_number }}: {{ l.title }}
-                            </option>
-                        </template>
-                    </select>
+                <!-- SELECTOR DE TÉCNICA MAESTRA Y MISIÓN -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <Sliders class="w-4 h-4 text-cyan-400" />
+                        <span>1. Seleccionar Técnica & Misión a Probar</span>
+                    </h2>
+
+                    <div class="grid grid-cols-1 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Técnica STEAM:</label>
+                            <select
+                                v-model="selectedProject"
+                                @change="onProjectChange"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-cyan-300 font-bold focus:ring-2 focus:ring-cyan-500"
+                            >
+                                <option v-for="p in projects" :key="p.id" :value="p.id">
+                                    {{ p.title }} ({{ p.type }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div v-if="activeProject?.levels?.length > 0">
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Misión del Reto:</label>
+                            <select
+                                v-model="selectedLevel"
+                                @change="onLevelChange"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                            >
+                                <option v-for="lvl in activeProject.levels" :key="lvl.id" :value="lvl.id">
+                                    Misión {{ lvl.level_number }}: {{ lvl.title }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- CARGADOR DE ARCHIVO 3D -->
-                <div class="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 shadow-xl">
+                <!-- CARGA DE ARCHIVO DE PRUEBA (FOTO / STL / SVG) -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <Upload class="w-4 h-4 text-purple-400" />
+                        <span>2. Archivo o Foto de Prueba</span>
+                    </h2>
+
+                    <div class="border-2 border-dashed border-slate-800 hover:border-purple-500/50 rounded-2xl p-4 text-center bg-slate-950 transition cursor-pointer relative">
+                        <input
+                            type="file"
+                            @change="handleFileUpload"
+                            accept=".stl,.svg,.jpg,.jpeg,.png,.webp"
+                            class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        <div v-if="!fileName" class="space-y-2">
+                            <Upload class="w-6 h-6 text-purple-400 mx-auto" />
+                            <p class="text-xs font-bold text-slate-300">Arrastra una foto de boceto o archivo STL/SVG</p>
+                            <p class="text-[10px] text-slate-500 font-mono">Formatos: JPG, PNG, WEBP, STL, SVG</p>
+                        </div>
+                        <div v-else class="space-y-2">
+                            <div v-if="filePreview" class="max-h-32 mx-auto rounded-xl overflow-hidden border border-slate-800 inline-block">
+                                <img :src="filePreview" class="max-h-32 object-contain" />
+                            </div>
+                            <p class="text-xs font-mono font-bold text-cyan-300 truncate">{{ fileName }}</p>
+                            <p class="text-[10px] text-slate-400">Haz clic para cambiar de archivo</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROMPT DE CAPA 2 (ESPECÍFICO DE LA TÉCNICA) -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Archivo de Prueba (.STL / .OBJ):</span>
-                        <label class="px-3 py-1 rounded-xl bg-cyan-950 text-cyan-300 border border-cyan-800 text-[11px] font-bold hover:bg-cyan-900 cursor-pointer transition flex items-center gap-1">
-                            <Upload class="w-3 h-3" />
-                            <span>Cargar Archivo</span>
-                            <input type="file" @change="handleFileUpload" accept=".stl,.obj" class="hidden" />
-                        </label>
-                    </div>
-
-                    <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs font-mono">
-                        <span class="text-cyan-300 font-bold truncate">{{ fileName }}</span>
-                        <span class="text-slate-500 text-[10px]">Listo para test</span>
-                    </div>
-                </div>
-
-                <!-- UMBRALES GEOMÉTRICOS (SLIDERS) -->
-                <div class="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
-                    <div class="flex items-center gap-2">
-                        <Sliders class="w-4 h-4 text-amber-400" />
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-white">Tolerancias Físicas de Validación:</h3>
-                    </div>
-
-                    <!-- Slider Ancho X -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-slate-400">Ancho Máximo ($X$):</span>
-                            <span class="text-amber-300 font-bold">{{ maxX }} mm</span>
-                        </div>
-                        <input type="range" v-model="maxX" min="10" max="150" class="w-full accent-amber-400 cursor-pointer" />
-                    </div>
-
-                    <!-- Slider Largo Y -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-slate-400">Largo Máximo ($Y$):</span>
-                            <span class="text-amber-300 font-bold">{{ maxY }} mm</span>
-                        </div>
-                        <input type="range" v-model="maxY" min="10" max="150" class="w-full accent-amber-400 cursor-pointer" />
-                    </div>
-
-                    <!-- Slider Alto Z -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-slate-400">Altura Máxima ($Z$):</span>
-                            <span class="text-amber-300 font-bold">{{ maxZ }} mm</span>
-                        </div>
-                        <input type="range" v-model="maxZ" min="2" max="60" class="w-full accent-amber-400 cursor-pointer" />
-                    </div>
-
-                    <!-- Slider Grosor Mínimo -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-slate-400">Grosor Mínimo de Pared:</span>
-                            <span class="text-emerald-400 font-bold">{{ minWall }} mm</span>
-                        </div>
-                        <input type="range" v-model="minWall" min="0.8" max="5.0" step="0.2" class="w-full accent-emerald-400 cursor-pointer" />
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- COLUMNA DERECHA: PROMPT & SIMULACIÓN EN VIVO (7 COLS) -->
-            <div class="lg:col-span-7 space-y-5">
-                
-                <!-- PROMPT PEDAGÓGICO DE GEMINI -->
-                <div class="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 shadow-xl">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <Bot class="w-4 h-4 text-cyan-400" />
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-white">System Prompt de la IA:</h3>
-                        </div>
-                        <span class="text-[10px] font-mono text-slate-500">Ajusta el tono de retroalimentación</span>
+                        <h2 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <Cpu class="w-4 h-4 text-purple-400" />
+                            <span>3. Prompt de Mentoría (Capa 2)</span>
+                        </h2>
+                        <span class="text-[10px] font-mono text-slate-500">Editable en vivo</span>
                     </div>
 
                     <textarea
                         v-model="customPrompt"
-                        rows="3"
-                        class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3 text-xs text-slate-200 font-sans focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        rows="4"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-purple-200 font-mono leading-relaxed focus:ring-2 focus:ring-purple-500"
                     ></textarea>
 
                     <button
                         type="button"
                         @click="executeAiTest"
                         :disabled="isRunning"
-                        class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 cursor-pointer"
+                        class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 cursor-pointer disabled:opacity-50"
                     >
-                        <Play v-if="!isRunning" class="w-4 h-4 fill-current" />
-                        <RefreshCw v-else class="w-4 h-4 animate-spin" />
-                        <span>{{ isRunning ? 'ANALIZANDO MALLA CON GEMINI VISION...' : '⚡ EJECUTAR TEST DE PRE-FLIGHT IA' }}</span>
+                        <RefreshCw v-if="isRunning" class="w-4 h-4 animate-spin" />
+                        <Sparkles v-else class="w-4 h-4" />
+                        <span>{{ isRunning ? 'ANALIZANDO CON GEMINI VISION...' : 'EJECUTAR PRUEBA CON GEMINI' }}</span>
                     </button>
                 </div>
+            </div>
 
-                <!-- RESULTADOS DE LA AUDITORÍA IA -->
-                <div v-if="analysisResult" class="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-5 shadow-2xl animate-fade-in">
+            <!-- COLUMNA DERECHA: RESPUESTA DE LA IA EN TIEMPO REAL (7 COLS) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- ESTADO INICIAL -->
+                <div 
+                    v-if="!analysisResult && !isRunning" 
+                    class="bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-3xl p-12 text-center space-y-3"
+                >
+                    <div class="w-16 h-16 rounded-3xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-3xl mx-auto border border-purple-500/20">
+                        🤖
+                    </div>
+                    <h3 class="text-sm font-black text-white">Consola de Evaluación en Espera</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                        Selecciona una técnica, adjunta una foto o archivo STL y haz clic en <strong>Ejecutar Prueba</strong> para ver la respuesta estructurada de Gemini.
+                    </p>
+                </div>
+
+                <!-- CARGANDO ANÁLISIS -->
+                <div 
+                    v-else-if="isRunning" 
+                    class="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-4 animate-pulse"
+                >
+                    <Bot class="w-12 h-12 text-purple-400 mx-auto animate-bounce" />
+                    <h3 class="text-sm font-black text-white">Gemini 2.0 Flash Vision Analizando...</h3>
+                    <p class="text-xs text-slate-400">Inspeccionando adherencia, geometría, proporciones y límites físicos...</p>
+                </div>
+
+                <!-- RESULTADO DE LA EVALUACIÓN (DASHBOARD ESTRUCTURADO) -->
+                <div v-else-if="analysisResult" class="space-y-6 animate-fade-in">
                     
-                    <!-- ENCABEZADO DE RESULTADO CON VEREDICTO -->
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                        <div>
-                            <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Veredicto de Fabricación:</span>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span
-                                    v-if="analysisResult.is_valid"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-black text-sm border border-emerald-500/40"
+                    <!-- TARJETA PRINCIPAL DEL VEREDICTO -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5">
+                        
+                        <!-- Header con Estado y Latencia -->
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                            <div class="flex items-center gap-2.5">
+                                <span 
+                                    class="px-3 py-1 rounded-full text-xs font-mono font-black border"
+                                    :class="analysisResult.is_valid ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'"
                                 >
-                                    <CheckCircle2 class="w-4 h-4 text-emerald-400" />
-                                    <span>DISEÑO APROBADO PARA IMPRESIÓN</span>
+                                    {{ analysisResult.dashboard?.verdict_title || (analysisResult.is_valid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTES') }}
                                 </span>
-                                <span
-                                    v-else
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/20 text-rose-300 font-black text-sm border border-rose-500/40"
-                                >
-                                    <XCircle class="w-4 h-4 text-rose-400" />
-                                    <span>REQUIERE AJUSTES DE DISEÑO</span>
+                            </div>
+
+                            <div class="flex items-center gap-3 text-[10px] font-mono text-slate-400">
+                                <span class="flex items-center gap-1">
+                                    <Clock class="w-3.5 h-3.5 text-cyan-400" />
+                                    <span>{{ latency }} ms</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-purple-400">
+                                    {{ analysisResult.dashboard?.model_used || 'gemini-2.0-flash' }}
                                 </span>
                             </div>
                         </div>
 
-                        <div v-if="latency" class="text-right">
-                            <span class="text-[10px] text-slate-500 block">Latencia API</span>
-                            <span class="font-mono text-xs font-bold text-cyan-300">{{ latency }} ms</span>
+                        <!-- Silueta / Headline Detectado -->
+                        <div>
+                            <span class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                                Silueta & Geometría Detectada:
+                            </span>
+                            <h3 class="text-base font-black text-white">
+                                {{ analysisResult.dashboard?.headline || 'Objeto 2.5D Analizado' }}
+                            </h3>
+                            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                                {{ analysisResult.dashboard?.text_summary || analysisResult.ai_feedback }}
+                            </p>
+                        </div>
+
+                        <!-- PUNTOS FUERTES DE LA GEOMETRÍA -->
+                        <div v-if="analysisResult.dashboard?.strengths?.length > 0" class="space-y-2">
+                            <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">
+                                Puntos Fuertes Observados:
+                            </span>
+                            <div class="space-y-1.5">
+                                <div 
+                                    v-for="(st, sIdx) in analysisResult.dashboard.strengths" 
+                                    :key="sIdx"
+                                    class="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2"
+                                >
+                                    <Check class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                    <span>{{ st }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RECOMENDACIÓN DE FABRICACIÓN / SLICING -->
+                        <div v-if="analysisResult.dashboard?.slicing_recommendations" class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                            <span class="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider block">
+                                Parámetros de Fabricación Recomendados:
+                            </span>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">Boquilla / Nozzle:</span>
+                                    <span class="font-bold text-white">{{ analysisResult.dashboard.slicing_recommendations.nozzle || '0.4 mm' }}</span>
+                                </div>
+                                <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">Altura de Capa:</span>
+                                    <span class="font-bold text-white">{{ analysisResult.dashboard.slicing_recommendations.layer_height || '0.20 mm' }}</span>
+                                </div>
+                                <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">Relleno / Infill:</span>
+                                    <span class="font-bold text-white">{{ analysisResult.dashboard.slicing_recommendations.infill || '15%' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONSEJO PEDAGÓGICO PARA EL ALUMNO -->
+                        <div class="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/30 text-xs text-purple-200 flex items-start gap-2.5">
+                            <Sparkles class="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                            <div>
+                                <span class="font-bold block text-purple-300">Consejo Pedagógico del Mentor:</span>
+                                <p class="text-[11px] text-purple-200/90 mt-0.5 leading-relaxed">
+                                    {{ analysisResult.dashboard?.pedagogical_tip }}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- TARJETAS DE MÉTRICAS FÍSICAS -->
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                            <p class="text-[9px] uppercase font-bold text-slate-500">Material Estimado</p>
-                            <p class="text-sm font-black font-mono text-cyan-300 mt-0.5">{{ analysisResult.metrics?.estimated_grams || 8 }}g PLA</p>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                            <p class="text-[9px] uppercase font-bold text-slate-500">Costo FabCoins</p>
-                            <p class="text-sm font-black font-mono text-amber-300 mt-0.5">{{ analysisResult.metrics?.fabcoins_cost || 12 }} FC</p>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                            <p class="text-[9px] uppercase font-bold text-slate-500">Grosor de Pared</p>
-                            <p class="text-sm font-black font-mono text-emerald-400 mt-0.5">≥ {{ minWall }} mm (OK)</p>
-                        </div>
-                    </div>
-
-                    <!-- FEEDBACK PEDAGÓGICO DE GEMINI -->
-                    <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-                        <div class="flex items-center gap-1.5 text-xs font-bold text-cyan-300">
-                            <Bot class="w-4 h-4" />
-                            <span>Retroalimentación para el Alumno:</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">{{ analysisResult.ai_feedback }}</p>
-                    </div>
-
-                    <!-- ACCORDION JSON RAW -->
-                    <div class="pt-2 border-t border-slate-800/80">
+                    <!-- BOTÓN PARA VER JSON CRUDO (DEBUGGER) -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                         <button
                             type="button"
                             @click="rawJsonOpen = !rawJsonOpen"
-                            class="text-xs font-mono text-slate-500 hover:text-slate-300 flex items-center gap-1"
+                            class="w-full flex items-center justify-between text-xs font-mono text-slate-400 hover:text-white cursor-pointer"
                         >
-                            <Code2 class="w-3.5 h-3.5" />
-                            <span>{{ rawJsonOpen ? 'Ocultar JSON de Respuesta' : 'Inspeccionar JSON de la API' }}</span>
+                            <span>{{ rawJsonOpen ? '▼ Ocultar JSON Crudo de Gemini' : '▶ Inspeccionar JSON Crudo de Respuesta' }}</span>
+                            <Code2 class="w-4 h-4 text-slate-500" />
                         </button>
-
-                        <pre
-                            v-if="rawJsonOpen"
-                            class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-mono text-emerald-400 overflow-x-auto mt-2 max-h-48"
-                        >{{ JSON.stringify(analysisResult, null, 2) }}</pre>
+                        <div v-if="rawJsonOpen" class="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 overflow-x-auto text-[11px] font-mono text-cyan-300">
+                            <pre>{{ JSON.stringify(analysisResult, null, 2) }}</pre>
+                        </div>
                     </div>
-
                 </div>
-
             </div>
         </div>
     </AdminLayout>

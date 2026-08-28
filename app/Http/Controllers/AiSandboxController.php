@@ -17,15 +17,18 @@ class AiSandboxController extends Controller
         $projects = Project::with('levels')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
-                'title' => $p->title_json['es'] ?? 'Curso Maker',
+                'slug' => $p->slug,
+                'title' => $p->title_json['es'] ?? 'Técnica STEAM',
                 'type' => $p->type,
+                'gemini_prompt_context' => $p->gemini_prompt_context ?? '',
                 'levels' => $p->levels->map(function ($l) {
                     return [
                         'id' => $l->id,
                         'level_number' => $l->level_number,
                         'title' => $l->title_json['es'] ?? '',
-                        'validation_rules' => $l->validation_rules_json,
-                        'fabcoins_cost' => $l->fabcoins_cost,
+                        'validation_rules' => $l->validation_rules_json ?? $l->outputs_json ?? [],
+                        'fabcoins_cost' => $l->fabcoins_cost ?? 0,
+                        'xp_reward' => $l->xp_reward ?? 50,
                     ];
                 }),
             ];
@@ -42,13 +45,12 @@ class AiSandboxController extends Controller
     public function test(Request $request, AiPreflightService $preflightService)
     {
         $request->validate([
-            'file' => ['nullable', 'file'],
+            'file' => ['nullable', 'file', 'max:25600'],
             'max_x_mm' => ['required', 'numeric', 'min:5', 'max:300'],
             'max_y_mm' => ['required', 'numeric', 'min:5', 'max:300'],
             'max_z_mm' => ['required', 'numeric', 'min:1', 'max:300'],
             'min_wall_thickness_mm' => ['required', 'numeric', 'min:0.5', 'max:10'],
             'custom_system_prompt' => ['nullable', 'string'],
-            'dimensions_text' => ['nullable', 'string'],
         ]);
 
         $rules = [
@@ -60,15 +62,25 @@ class AiSandboxController extends Controller
         ];
 
         $startTime = microtime(true);
+        $imageBase64 = null;
 
         if ($request->hasFile('file')) {
-            $result = $preflightService->validateStl($request->file('file'), $rules);
+            $file = $request->file('file');
+            $ext = strtolower($file->getClientOriginalExtension());
+            $realPath = $file->getRealPath();
+            $originalName = $file->getClientOriginalName();
+
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                $fileData = file_get_contents($realPath);
+                $imageBase64 = 'data:image/' . $ext . ';base64,' . base64_encode($fileData);
+            }
+
+            $result = $preflightService->analyzeFile($realPath, $originalName, $rules, $imageBase64);
         } else {
-            // Test sintético con dimensiones pasadas
+            // Test sintético con dimensiones enviadas
             $simulatedFile = tempnam(sys_get_temp_dir(), 'stl_test_');
             file_put_contents($simulatedFile, "solid test\nendsolid test\n");
-            $uploadedFile = new \Illuminate\Http\UploadedFile($simulatedFile, 'test_sandbox.stl', 'application/sla', null, true);
-            $result = $preflightService->validateStl($uploadedFile, $rules);
+            $result = $preflightService->analyzeFile($simulatedFile, 'modelo_prueba_calibracion.stl', $rules, null);
             @unlink($simulatedFile);
         }
 
