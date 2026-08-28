@@ -54,10 +54,12 @@ class TechniqueController extends Controller
         });
 
         $microApps = MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']);
+        $animations = MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'html_css_code']);
 
         return Inertia::render('Admin/Techniques/Index', [
             'techniques' => $techniques,
             'microApps' => $microApps,
+            'animations' => $animations,
         ]);
     }
 

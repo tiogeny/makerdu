@@ -17,7 +17,7 @@ import {
     Cpu,
     ArrowRight
 } from 'lucide-vue-next';
-import { t, currentLang } from '@/i18n.js';
+import { t, trans, currentLang } from '@/i18n.js';
 
 const props = defineProps({
     techniques: {
@@ -25,6 +25,10 @@ const props = defineProps({
         default: () => [],
     },
     microApps: {
+        type: Array,
+        default: () => [],
+    },
+    animations: {
         type: Array,
         default: () => [],
     },
@@ -50,6 +54,14 @@ const deleteTechnique = (id) => {
     if (confirm('¿Eliminar esta técnica STEAM? Esta acción no se puede deshacer.')) {
         router.delete(route('admin.techniques.destroy', id));
     }
+};
+
+const getTechAnimation = (tech) => {
+    if (tech.custom_animation_html) {
+        return tech.custom_animation_html;
+    }
+    const found = props.animations.find(a => a.slug === tech.animation_preset);
+    return found?.html_css_code || null;
 };
 </script>
 
@@ -78,7 +90,7 @@ const deleteTechnique = (id) => {
 
             <Link
                 :href="route('admin.techniques.create')"
-                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
+                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0 cursor-pointer"
             >
                 <Plus class="w-4 h-4" />
                 <span>NUEVA TÉCNICA MAESTRA</span>
@@ -109,10 +121,13 @@ const deleteTechnique = (id) => {
                         </span>
 
                         <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full font-bold" :class="tech.status === 'draft' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'">
+                                {{ tech.status === 'draft' ? 'BORRADOR' : 'PUBLICADA' }}
+                            </span>
                             <button
                                 @click="toggleTechnique(tech.id)"
                                 :class="[
-                                    'text-[10px] px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1',
+                                    'text-[10px] px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer',
                                     tech.is_active ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'
                                 ]"
                             >
@@ -122,24 +137,22 @@ const deleteTechnique = (id) => {
                         </div>
                     </div>
 
-                    <!-- Micro-Animación Demostrativa Preview (CSS Animated Box) -->
-                    <div class="h-28 rounded-2xl bg-slate-950 border border-slate-800/80 mb-4 flex items-center justify-center relative overflow-hidden group-hover:border-slate-700 transition">
-                        <div class="text-3xl animate-bounce">
+                    <!-- Micro-Animación Demostrativa Preview (RENDER VIVO) -->
+                    <div class="rounded-2xl bg-slate-950 border border-slate-800/80 mb-4 overflow-hidden group-hover:border-cyan-500/40 transition p-1 min-h-[140px] flex items-center justify-center relative">
+                        <div v-if="getTechAnimation(tech)" v-html="getTechAnimation(tech)" class="w-full"></div>
+                        <div v-else class="text-3xl animate-bounce">
                             <span v-if="tech.type === '2.5D'">🧸</span>
                             <span v-else-if="tech.type === 'Laser'">🪵</span>
                             <span v-else>🧊</span>
-                        </div>
-                        <div class="absolute bottom-2 right-2 text-[9px] font-mono text-slate-500">
-                            {{ tech.recommended_age }}
                         </div>
                     </div>
 
                     <!-- Title & Description -->
                     <h3 class="text-base font-black text-white group-hover:text-cyan-300 transition mb-1.5">
-                        {{ currentLang === 'es' ? tech.title_json.es : (tech.title_json.en || tech.title_json.es) }}
+                        {{ trans(tech.title_json) }}
                     </h3>
                     <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                        {{ currentLang === 'es' ? tech.description_json.es : (tech.description_json.en || tech.description_json.es) }}
+                        {{ trans(tech.description_json) }}
                     </p>
 
                     <!-- Competencies Tags -->
@@ -158,7 +171,7 @@ const deleteTechnique = (id) => {
                 <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
                     <button
                         @click="openMissionRoadmap(tech)"
-                        class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5"
+                        class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 cursor-pointer"
                     >
                         <span>{{ tech.total_levels }} Misiones IPO</span>
                         <ArrowRight class="w-3.5 h-3.5" />
@@ -174,7 +187,7 @@ const deleteTechnique = (id) => {
                         </Link>
                         <button
                             @click="deleteTechnique(tech.id)"
-                            class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                            class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
                             title="Eliminar Técnica"
                         >
                             <Trash2 class="w-3.5 h-3.5" />
@@ -184,78 +197,75 @@ const deleteTechnique = (id) => {
             </div>
         </div>
 
-        <!-- ESTADO VACÍO (CLEAN STATE) -->
-        <div v-else class="text-center py-16 px-4 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-3xl max-w-xl mx-auto">
-            <div class="w-16 h-16 rounded-3xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto mb-4 text-3xl">
-                ✨
+        <!-- ESTADO VACÍO -->
+        <div v-else class="text-center py-20 px-4 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-3xl max-w-lg mx-auto">
+            <div class="w-16 h-16 rounded-3xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-3xl mx-auto mb-4 border border-cyan-500/20">
+                🧬
             </div>
-            <h3 class="text-lg font-black text-white mb-2">Base Limpia Makerdu v4.0</h3>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6">
-                No hay técnicas STEAM creadas aún. Crea la primera técnica de <strong>Fabricación 2.5D: Del Dibujo al Art Toy</strong> con su ruta modular de misiones.
+            <h3 class="text-base font-black text-white mb-1">No hay Técnicas STEAM Registradas</h3>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto mb-6">
+                Crea tu primera técnica de fabricación digital configurando sus misiones IPO y copiloto IA.
             </p>
             <Link
                 :href="route('admin.techniques.create')"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/20 transition"
+                class="px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition inline-flex items-center gap-2 shadow-lg shadow-cyan-500/20"
             >
                 <Plus class="w-4 h-4" />
-                <span>CREAR PRIMERA TÉCNICA MAESTRA</span>
+                <span>DISEÑAR PRIMERA TÉCNICA</span>
             </Link>
         </div>
 
-        <!-- MODAL DE RUTA DE MISIONES IPO (POPUP RÁPIDO) -->
+        <!-- MODAL DE HOJA DE RUTA DE MISIONES (ROADMAP MODAL) -->
         <div v-if="selectedTechniqueModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-fade-in max-h-[90vh] overflow-y-auto">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div>
-                        <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase">Ruta de Fabricación</span>
-                        <h2 class="text-lg font-black text-white">
-                            {{ selectedTechniqueModal.title_json.es }}
-                        </h2>
+                        <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider">Hoja de Ruta Metodológica</span>
+                        <h2 class="text-base font-black text-white">{{ trans(selectedTechniqueModal.title_json) }}</h2>
                     </div>
-                    <button @click="closeMissionRoadmap" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
-                        ✕
-                    </button>
+                    <button @click="closeMissionRoadmap" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">✕</button>
                 </div>
 
-                <div class="space-y-4">
-                    <div 
-                        v-for="(lvl, idx) in selectedTechniqueModal.levels" 
+                <div class="space-y-3">
+                    <div
+                        v-for="lvl in selectedTechniqueModal.levels"
                         :key="lvl.id"
-                        class="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-2"
+                        class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2"
                     >
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-black text-cyan-300">
-                                Misión {{ idx + 1 }}: {{ lvl.title_json.es }}
-                            </span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-mono font-bold">
-                                +{{ lvl.xp_reward }} XP
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-mono font-bold text-xs flex items-center justify-center">
+                                    {{ lvl.level_number }}
+                                </span>
+                                <span class="text-xs font-bold text-white">{{ trans(lvl.title_json) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] font-mono">
+                                <span class="text-amber-400 font-bold">⚡ {{ lvl.xp_reward }} PM</span>
+                                <span class="text-cyan-400 font-bold" v-if="lvl.fabcoins_cost > 0">🪙 {{ lvl.fabcoins_cost }} FC</span>
+                            </div>
                         </div>
 
-                        <!-- IPO Breakdown -->
-                        <div class="grid grid-cols-3 gap-2 text-[11px] pt-1">
+                        <!-- IPO Mini Badges -->
+                        <div class="grid grid-cols-3 gap-2 pt-2 text-[10px] border-t border-slate-900">
                             <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
-                                <span class="text-slate-500 block text-[9px] uppercase font-bold">📥 Input:</span>
-                                <span class="text-slate-300 truncate block">{{ lvl.inputs_json?.guide_text || 'Guía de inicio' }}</span>
+                                <span class="text-cyan-400 font-bold block mb-0.5">📥 Entrada:</span>
+                                <span class="text-slate-400 line-clamp-1">{{ lvl.inputs_json?.guide_text || 'Guía didáctica' }}</span>
                             </div>
                             <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
-                                <span class="text-slate-500 block text-[9px] uppercase font-bold">⚙️ Process:</span>
-                                <span class="text-cyan-400 font-mono truncate block">{{ lvl.process_json?.micro_app_slug || 'Taller Manual' }}</span>
+                                <span class="text-purple-400 font-bold block mb-0.5">⚙️ Proceso:</span>
+                                <span class="text-slate-400 line-clamp-1">{{ lvl.process_json?.mode || 'Micro-App' }}</span>
                             </div>
                             <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
-                                <span class="text-slate-500 block text-[9px] uppercase font-bold">📤 Output:</span>
-                                <span class="text-emerald-400 uppercase font-bold truncate block">{{ lvl.outputs_json?.deliverable_type || 'STL 3D' }}</span>
+                                <span class="text-emerald-400 font-bold block mb-0.5">📤 Salida:</span>
+                                <span class="text-slate-400 line-clamp-1">{{ lvl.outputs_json?.deliverable_type || 'STL / SVG' }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-2 flex justify-end">
-                    <button 
-                        @click="closeMissionRoadmap"
-                        class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
-                    >
-                        Cerrar Vista
+                <div class="pt-2 border-t border-slate-800 flex justify-end">
+                    <button @click="closeMissionRoadmap" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer">
+                        Cerrar Hoja de Ruta
                     </button>
                 </div>
             </div>
