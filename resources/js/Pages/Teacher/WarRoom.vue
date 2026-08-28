@@ -186,9 +186,9 @@ const getTypeBadge = (type) => {
 </script>
 
 <template>
-    <Head title="Portal del Docente - Makerdu v2.6" />
+    <Head title="Torre de Control Maker · Panel del Instructor" />
 
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
+    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
         <!-- TOPBAR DOCENTE -->
         <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md px-4 lg:px-8 py-3.5">
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -198,7 +198,7 @@ const getTypeBadge = (type) => {
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h1 class="font-black text-lg tracking-tight text-white">Taller del Docente</h1>
+                            <h1 class="font-black text-lg tracking-tight text-white">Torre de Control Maker</h1>
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">
                                 {{ activeClassroom?.name || 'Mi Taller' }}
                             </span>

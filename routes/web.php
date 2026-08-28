@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
     Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
     Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');
+    Route::post('/admin/teachers', [ClassroomManagerController::class, 'createTeacher'])->name('admin.teachers.store');
     Route::post('/admin/classrooms/{classroom}/enroll', [ClassroomManagerController::class, 'enrollStudents'])->name('admin.classrooms.enroll');
     
     // Catálogo y Gestión de Micro-Apps

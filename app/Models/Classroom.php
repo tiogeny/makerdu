@@ -12,9 +12,12 @@ class Classroom extends Model
     protected $fillable = [
         'teacher_id',
         'project_id',
+        'institution_name',
         'name',
         'access_code',
         'mode',
+        'total_fabcoins_pool',
+        'fabcoins_reserve_pool',
         'tinkercad_link',
         // Carrocería Pedagógica (Paso 4)
         'custom_title',
