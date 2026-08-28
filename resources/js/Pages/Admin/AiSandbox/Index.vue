@@ -92,29 +92,28 @@ const executeAiTest = async () => {
         <Head title="Sandbox Copiloto IA Gemini · Makerdu v4.0" />
 
         <!-- HEADER DE ACCIÓN -->
-        <div class="mb-8">
-            <div class="flex items-center gap-2 mb-1">
-                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono text-[10px] font-bold border border-purple-500/20">
-                    GEMINI 2.0 FLASH VISION
-                </span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-                <span>Sandbox de Calibración de IA Multimodal</span>
-            </h1>
-            <p class="text-xs text-slate-400 mt-1">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
-        </div>
-
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5 shrink-0">
-                        <Zap class="w-3.5 h-3.5" />
-                        <span>Motor Activo: Gemini Vision API</span>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono text-[10px] font-bold border border-purple-500/20">
+                        GEMINI 2.0 FLASH VISION
                     </span>
                 </div>
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                    <span>Sandbox de Calibración de IA Multimodal</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5">
+                    <Zap class="w-3.5 h-3.5" />
+                    <span>Motor Activo: Gemini Vision API</span>
+                </span>
             </div>
         </div>
 
-        <!-- MAIN -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- COLUMNA IZQUIERDA: VISOR 3D & REGLAS FÍSICAS (5 COLS) -->
             <div class="lg:col-span-5 space-y-5">

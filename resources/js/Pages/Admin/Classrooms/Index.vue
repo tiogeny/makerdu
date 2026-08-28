@@ -260,6 +260,5 @@ const submitEnrollStudents = () => {
                     </form>
                 </div>
             </div>
-        </div>
     </AdminLayout>
 </template>
