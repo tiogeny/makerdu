@@ -43,66 +43,27 @@ const availableCompetencies = [
 ];
 
 const form = useForm({
-    title_es: props.technique?.title_es || 'Fabricación 2.5D: Del Dibujo al Art Toy & Relieves',
-    title_en: props.technique?.title_en || '2.5D Digital Fabrication: From Sketch to Art Toy',
-    description_es: props.technique?.description_es || 'Transforma bocetos en papel a personajes 3D coleccionables mediante vectorización Bézier y extrusión física milimétrica.',
-    description_en: props.technique?.description_en || 'Transform sketches into 3D art toys with Bézier vectorization and millimeter physical extrusion.',
+    title_es: props.technique?.title_es || '',
+    title_en: props.technique?.title_en || '',
+    description_es: props.technique?.description_es || '',
+    description_en: props.technique?.description_en || '',
     type: props.technique?.type || '2.5D',
-    competencies: props.technique?.competencies || ['Arte y Creatividad Digital', 'Pensamiento Geométrico y Escala', 'Educación para el Trabajo / Prototipado'],
+    competencies: props.technique?.competencies || [],
     animation_preset: props.technique?.animation_preset || 'art-toy-loop',
     recommended_age: props.technique?.recommended_age || '8-16 años',
-    gemini_prompt_context: props.technique?.gemini_prompt_context || 'Eres el Mentor de Fabricación 2.5D de Makerdu. Tu objetivo es verificar que los bocetos tengan líneas cerradas y que los modelos 3D cumplan con al menos 2.0 mm de grosor de pared.',
+    gemini_prompt_context: props.technique?.gemini_prompt_context || '',
     missions: props.technique?.missions || [
         {
-            title_es: 'Misión 1: Del Papel a la Idea — Bocetado del Art Toy',
-            title_en: 'Mission 1: From Sketch to Idea — Art Toy Concept',
-            guide_es: 'Dibuja en papel bond la silueta de tu personaje con plumón negro grueso respetando 60x60mm.',
-            video_url: 'https://iframe.mediadelivery.net/embed/demo',
+            title_es: '',
+            title_en: '',
+            guide_es: '',
+            video_url: '',
             micro_app_slug: null,
-            process_instructions: 'Trabajo manual de dibujo y captura de fotografía nítida.',
+            process_instructions: '',
             deliverable_type: 'photo_sketch',
             max_dim_mm: 60,
             min_thickness_mm: 2.0,
-            xp_reward: 30,
-            fabcoins_cost: 0,
-        },
-        {
-            title_es: 'Misión 2: Digitalización Vectorial — Nodos y Curvas Limpias',
-            title_en: 'Mission 2: Vector Digitization — Nodes & Clean Curves',
-            guide_es: 'Convierte tu boceto a vectores limpios SVG cerrando todos los nodos.',
-            video_url: '',
-            micro_app_slug: 'vectorizer',
-            process_instructions: 'Usa la micro-app Vectorizer para escanear y generar curvas Bézier.',
-            deliverable_type: 'svg_laser',
-            max_dim_mm: 60,
-            min_thickness_mm: 2.0,
             xp_reward: 50,
-            fabcoins_cost: 0,
-        },
-        {
-            title_es: 'Misión 3: Volumen 3D — Extrusión y Accesorios (Llavero / Base)',
-            title_en: 'Mission 3: 3D Volume — Extrusion & Accessories',
-            guide_es: 'Extruye tu personaje a 4mm de grosor y añade un ojal de llavero o base.',
-            video_url: '',
-            micro_app_slug: 'block-cad',
-            process_instructions: 'Usa Block CAD para unir el relieve con el ojal de llavero.',
-            deliverable_type: 'stl_3d',
-            max_dim_mm: 60,
-            min_thickness_mm: 2.5,
-            xp_reward: 60,
-            fabcoins_cost: 15,
-        },
-        {
-            title_es: 'Misión 4: Ensamble, Acabado Físico y Bitácora Final',
-            title_en: 'Mission 4: Assembly, Physical Finish & Final Report',
-            guide_es: 'Retira soportes, ensambla la anilla de llavero y toma la foto final del producto fabricado.',
-            video_url: '',
-            micro_app_slug: null,
-            process_instructions: 'Fabricación física en impresora 3D o láser y control de calidad.',
-            deliverable_type: 'photo_assembly',
-            max_dim_mm: 60,
-            min_thickness_mm: 2.0,
-            xp_reward: 100,
             fabcoins_cost: 0,
         },
     ],
@@ -248,7 +209,8 @@ const submit = () => {
                             <input
                                 v-model="form.title_es"
                                 type="text"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Ej: Fabricación 2.5D: Del Dibujo al Art Toy"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                                 required
                             />
                         </div>
@@ -257,7 +219,8 @@ const submit = () => {
                             <input
                                 v-model="form.title_en"
                                 type="text"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Ej: 2.5D Fabrication: From Sketch to Art Toy"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                             />
                         </div>
                     </div>
@@ -268,7 +231,8 @@ const submit = () => {
                             <textarea
                                 v-model="form.description_es"
                                 rows="3"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Describe el objetivo técnico y didáctico de esta matriz..."
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                                 required
                             ></textarea>
                         </div>
@@ -277,7 +241,8 @@ const submit = () => {
                             <textarea
                                 v-model="form.description_en"
                                 rows="3"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Describe technical and pedagogical goals in English..."
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                             ></textarea>
                         </div>
                     </div>
@@ -300,7 +265,8 @@ const submit = () => {
                             <input
                                 v-model="form.recommended_age"
                                 type="text"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Ej: 8-16 años"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                             />
                         </div>
 
@@ -570,11 +536,18 @@ const submit = () => {
                     </div>
 
                     <div>
-                        <h3 class="text-base font-black text-white">{{ form.title_es }}</h3>
-                        <p class="text-xs text-slate-400 mt-1 line-clamp-3">{{ form.description_es }}</p>
+                        <h3 class="text-base font-black text-white">
+                            {{ form.title_es || 'Nombre de la Técnica STEAM' }}
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1 line-clamp-3">
+                            {{ form.description_es || 'Aquí aparecerá la descripción pedagógica y técnica de la matriz seleccionada...' }}
+                        </p>
                     </div>
 
                     <div class="flex flex-wrap gap-1.5 pt-2">
+                        <span v-if="form.competencies.length === 0" class="text-[9px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-500 italic">
+                            Sin competencias seleccionadas
+                        </span>
                         <span v-for="c in form.competencies" :key="c" class="text-[9px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300">
                             {{ c }}
                         </span>
