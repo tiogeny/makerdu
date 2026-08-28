@@ -20,6 +20,8 @@ class ProjectLevel extends Model
         'validation_rules_json',
         'fabcoins_cost',
         'xp_reward',
+        'skills_reward_json',
+        'allows_iteration',
     ];
 
     protected $casts = [
@@ -29,8 +31,10 @@ class ProjectLevel extends Model
         'process_json' => 'array',
         'outputs_json' => 'array',
         'validation_rules_json' => 'array',
+        'skills_reward_json' => 'array',
         'fabcoins_cost' => 'integer',
         'xp_reward' => 'integer',
+        'allows_iteration' => 'boolean',
     ];
 
     public function project()
