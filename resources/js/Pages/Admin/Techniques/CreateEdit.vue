@@ -54,6 +54,14 @@ const toastMessage = ref(null);
 const toastType = ref('success');
 const useCustomAnimation = ref(!!props.technique?.custom_animation_html);
 
+const activeAnimationHtml = computed(() => {
+    if (useCustomAnimation.value && form.custom_animation_html) {
+        return form.custom_animation_html;
+    }
+    const found = props.animations.find(a => a.slug === form.animation_preset);
+    return found?.html_css_code || null;
+});
+
 const showToast = (msg, type = 'success') => {
     toastMessage.value = msg;
     toastType.value = type;
@@ -1224,41 +1232,66 @@ const submitForm = (statusMode = 'published') => {
 
             <!-- PESTAÑA 5: PREVISUALIZACIÓN -->
             <div v-show="activeTab === 'preview'" class="space-y-6 animate-fade-in">
-                <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold">
-                            {{ form.age_ranges.length }} Grupos de Edad
-                        </span>
-                        <span class="text-[10px] font-mono text-slate-500 font-bold uppercase">
-                            {{ form.difficulty_level }}
+                <div class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold">
+                                {{ form.age_ranges.length }} Grupos de Edad
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-950 text-slate-400 font-mono font-bold uppercase border border-slate-800">
+                                {{ form.difficulty_level }}
+                            </span>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold" :class="form.status === 'draft' ? 'text-amber-400' : 'text-emerald-400'">
+                            ● {{ form.status === 'draft' ? 'BORRADOR' : 'PUBLICADA' }}
                         </span>
                     </div>
 
-                    <div class="h-32 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-4xl animate-pulse">
-                        <span v-if="form.technologies.includes('2.5d_relief')">🧸</span>
-                        <span v-else-if="form.technologies.includes('laser_cutting')">🪵</span>
-                        <span v-else>🧊</span>
+                    <!-- ANIMACIÓN EN VIVO DE LA TÉCNICA -->
+                    <div class="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-inner p-1 min-h-[160px] flex items-center justify-center">
+                        <div v-if="activeAnimationHtml" v-html="activeAnimationHtml" class="w-full"></div>
+                        <div v-else class="text-xs text-slate-500 font-mono flex items-center gap-2 py-8">
+                            <span class="text-2xl">🧸</span>
+                            <span>Sin animación asignada</span>
+                        </div>
                     </div>
 
                     <div>
-                        <h3 class="text-base font-black text-white">
+                        <h3 class="text-lg font-black text-white">
                             {{ form.title_es || 'Nombre de la Técnica STEAM' }}
                         </h3>
-                        <p class="text-xs text-slate-400 mt-1 line-clamp-3">
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
                             {{ form.description_es || 'Aquí aparecerá la descripción didáctica y técnica...' }}
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap gap-1.5 pt-2">
-                        <span v-for="tId in form.technologies" :key="tId" class="text-[9px] px-2 py-0.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800">
+                    <!-- TECNOLOGÍAS FABLAB ASOCIADAS -->
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        <span v-for="tId in form.technologies" :key="tId" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800/80">
                             {{ availableTechnologies.find(x => x.id === tId)?.name || tId }}
                         </span>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-cyan-400">
-                        <span>{{ form.missions.length }} Misiones IPO</span>
-                        <span class="text-amber-400 font-mono">
-                            ⚡ {{ form.missions.reduce((acc, m) => acc + (m.xp_reward || 0), 0) }} PM Total
+                    <!-- HOJA DE RUTA DE MISIONES IPO -->
+                    <div class="pt-4 border-t border-slate-800 space-y-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Hoja de Ruta del Estudiante ({{ form.missions.length }} Misiones):</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div v-for="(m, mIdx) in form.missions" :key="mIdx" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2.5">
+                                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 text-[10px] font-mono font-black flex items-center justify-center shrink-0">
+                                    {{ mIdx + 1 }}
+                                </span>
+                                <div class="truncate">
+                                    <span class="text-xs font-bold text-slate-200 block truncate">{{ m.title_es || ('Misión ' + (mIdx + 1)) }}</span>
+                                    <span class="text-[10px] text-amber-400 font-mono">⚡ {{ m.xp_reward }} PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-cyan-400">
+                        <span>Total de Puntos de la Técnica:</span>
+                        <span class="text-amber-400 font-mono text-sm">
+                            ⚡ {{ form.missions.reduce((acc, m) => acc + (m.xp_reward || 0), 0) }} PM
                         </span>
                     </div>
                 </div>
