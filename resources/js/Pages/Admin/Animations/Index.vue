@@ -11,7 +11,8 @@ import {
     Code2, 
     Layers, 
     CheckCircle2,
-    Eye
+    Eye,
+    SquarePen
 } from 'lucide-vue-next';
 import { t, trans, currentLang } from '@/i18n.js';
 
@@ -23,6 +24,8 @@ const props = defineProps({
 });
 
 const showNewModal = ref(false);
+const showEditModal = ref(false);
+const editingAnimationId = ref(null);
 const activeFilter = ref('all');
 
 const form = useForm({
@@ -37,10 +40,28 @@ const form = useForm({
 </div>`,
 });
 
+const editForm = useForm({
+    title_es: '',
+    title_en: '',
+    category: '3d',
+    description_es: '',
+    html_css_code: '',
+});
+
 const filteredAnimations = computed(() => {
     if (activeFilter.value === 'all') return props.animations;
     return props.animations.filter(a => a.category === activeFilter.value);
 });
+
+const openEditModal = (anim) => {
+    editingAnimationId.value = anim.id;
+    editForm.title_es = anim.title_json?.es || '';
+    editForm.title_en = anim.title_json?.en || '';
+    editForm.category = anim.category || '3d';
+    editForm.description_es = anim.description_json?.es || '';
+    editForm.html_css_code = anim.html_css_code || '';
+    showEditModal.value = true;
+};
 
 const submitNewAnimation = () => {
     form.post(route('admin.animations.store'), {
@@ -48,6 +69,16 @@ const submitNewAnimation = () => {
         onSuccess: () => {
             form.reset();
             showNewModal.value = false;
+        },
+    });
+};
+
+const submitUpdateAnimation = () => {
+    if (!editingAnimationId.value) return;
+    editForm.put(route('admin.animations.update', editingAnimationId.value), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showEditModal.value = false;
         },
     });
 };
@@ -89,7 +120,7 @@ const deleteAnimation = (id) => {
             <button
                 type="button"
                 @click="showNewModal = true"
-                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
+                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0 cursor-pointer"
             >
                 <Plus class="w-4 h-4" />
                 <span>NUEVA MICRO-ANIMACIÓN</span>
@@ -109,7 +140,7 @@ const deleteAnimation = (id) => {
                 :key="cat.id"
                 @click="activeFilter = cat.id"
                 :class="[
-                    'px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0',
+                    'px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer',
                     activeFilter === cat.id ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
                 ]"
             >
@@ -133,15 +164,22 @@ const deleteAnimation = (id) => {
 
                         <div class="flex items-center gap-1.5">
                             <button
+                                @click="openEditModal(anim)"
+                                class="p-1 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/40 transition cursor-pointer"
+                                title="Editar Animación"
+                            >
+                                <SquarePen class="w-3.5 h-3.5" />
+                            </button>
+                            <button
                                 @click="toggleAnimation(anim.id)"
-                                class="p-1 rounded-lg text-slate-400 hover:text-white transition"
+                                class="p-1 rounded-lg text-slate-400 hover:text-white transition cursor-pointer"
                                 :title="anim.is_active ? 'Desactivar' : 'Activar'"
                             >
                                 <Power class="w-3.5 h-3.5" :class="anim.is_active ? 'text-emerald-400' : 'text-slate-600'" />
                             </button>
                             <button
                                 @click="deleteAnimation(anim.id)"
-                                class="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition"
+                                class="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition cursor-pointer"
                                 title="Eliminar"
                             >
                                 <Trash2 class="w-3.5 h-3.5" />
@@ -164,9 +202,13 @@ const deleteAnimation = (id) => {
 
                 <div class="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-500">
                     <span>Slug: {{ anim.slug }}</span>
-                    <span :class="anim.is_active ? 'text-emerald-400' : 'text-slate-500'">
-                        {{ anim.is_active ? 'Disponible' : 'Oculta' }}
-                    </span>
+                    <button
+                        type="button"
+                        @click="openEditModal(anim)"
+                        class="text-cyan-400 hover:underline font-bold"
+                    >
+                        Editar Código ➔
+                    </button>
                 </div>
             </div>
         </div>
@@ -176,7 +218,7 @@ const deleteAnimation = (id) => {
             <p class="text-xs text-slate-400 mb-4">No hay micro-animaciones en esta categoría.</p>
             <button
                 @click="showNewModal = true"
-                class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs"
+                class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs cursor-pointer"
             >
                 + Crear Micro-Animación
             </button>
@@ -187,7 +229,7 @@ const deleteAnimation = (id) => {
             <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h2 class="text-base font-black text-white">Registrar Nueva Micro-Animación Didáctica</h2>
-                    <button @click="showNewModal = false" class="p-1 rounded-lg text-slate-400 hover:text-white">✕</button>
+                    <button @click="showNewModal = false" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">✕</button>
                 </div>
 
                 <form @submit.prevent="submitNewAnimation" class="space-y-4 text-xs">
@@ -228,8 +270,60 @@ const deleteAnimation = (id) => {
                     </div>
 
                     <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
-                        <button type="button" @click="showNewModal = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">Cancelar</button>
-                        <button type="submit" :disabled="form.processing" class="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black">Registrar en Galería</button>
+                        <button type="button" @click="showNewModal = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer">Cancelar</button>
+                        <button type="submit" :disabled="form.processing" class="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black cursor-pointer">Registrar en Galería</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL PARA EDITAR ANIMACIÓN EXISTENTE -->
+        <div v-if="showEditModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-base font-black text-white">Editar Micro-Animación Didáctica</h2>
+                    <button @click="showEditModal = false" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">✕</button>
+                </div>
+
+                <form @submit.prevent="submitUpdateAnimation" class="space-y-4 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Nombre (Español) *:</label>
+                            <input v-model="editForm.title_es" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white" required />
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Categoría:</label>
+                            <select v-model="editForm.category" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white">
+                                <option value="3d">Impresión 3D</option>
+                                <option value="laser">Corte Láser</option>
+                                <option value="2.5d">Relieves 2.5D</option>
+                                <option value="electronics">Robótica / IoT</option>
+                                <option value="general">General / Taller</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Código HTML / CSS / SVG de la Animación *:</label>
+                        <textarea
+                            v-model="editForm.html_css_code"
+                            rows="7"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-mono"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <!-- PREVISUALIZACIÓN EN TIEMPO REAL DENTRO DEL MODAL -->
+                    <div>
+                        <label class="block font-bold text-slate-400 mb-1">Previsualización en Tiempo Real:</label>
+                        <div class="rounded-2xl border border-slate-800 p-2 bg-slate-950 min-h-[100px] flex items-center justify-center">
+                            <div v-html="editForm.html_css_code" class="w-full"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+                        <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer">Cancelar</button>
+                        <button type="submit" :disabled="editForm.processing" class="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black cursor-pointer">Guardar Cambios</button>
                     </div>
                 </form>
             </div>

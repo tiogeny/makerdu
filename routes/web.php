@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     // Galería Maestra de Micro-Animaciones Didácticas (HTML/CSS)
     Route::get('/admin/animations', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'index'])->name('admin.animations.index');
     Route::post('/admin/animations', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'store'])->name('admin.animations.store');
+    Route::put('/admin/animations/{animation}', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'update'])->name('admin.animations.update');
     Route::post('/admin/animations/{animation}/toggle', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'toggle'])->name('admin.animations.toggle');
     Route::delete('/admin/animations/{animation}', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'destroy'])->name('admin.animations.destroy');
 

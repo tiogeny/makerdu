@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectLevel;
 use App\Models\MicroApp;
+use App\Models\MicroAnimation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class TechniqueController extends Controller
                 'type' => $tech->type,
                 'technologies_json' => $tech->technologies_json ?? [$tech->type],
                 'age_range' => $tech->age_range ?? 'juniors_9_12',
+                'age_ranges_json' => $tech->age_ranges_json ?? [$tech->age_range ?? 'juniors_9_12'],
                 'difficulty_level' => $tech->difficulty_level ?? 'foundational',
                 'curriculum_framework' => $tech->curriculum_framework ?? 'cneb_peru',
                 'competencies_json' => $tech->competencies_json ?? [],
@@ -62,7 +64,7 @@ class TechniqueController extends Controller
     public function create()
     {
         $microApps = MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']);
-        $animations = \App\Models\MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
+        $animations = MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
 
         return Inertia::render('Admin/Techniques/CreateEdit', [
             'technique' => null,
@@ -80,6 +82,7 @@ class TechniqueController extends Controller
             'description_en' => 'nullable|string',
             'type' => 'required|string',
             'technologies' => 'nullable|array',
+            'age_ranges' => 'nullable|array',
             'age_range' => 'nullable|string',
             'difficulty_level' => 'nullable|string',
             'curriculum_framework' => 'nullable|string',
@@ -96,6 +99,9 @@ class TechniqueController extends Controller
 
         $slug = Str::slug($validated['title_es']) . '-' . rand(100, 999);
 
+        $selectedAgeRanges = $request->input('age_ranges', [$request->input('age_range', 'juniors_9_12')]);
+        $primaryAgeRange = is_array($selectedAgeRanges) && count($selectedAgeRanges) > 0 ? $selectedAgeRanges[0] : 'juniors_9_12';
+
         $project = Project::create([
             'slug' => $slug,
             'title_json' => [
@@ -106,9 +112,10 @@ class TechniqueController extends Controller
                 'es' => $validated['description_es'],
                 'en' => $validated['description_en'] ?? $validated['description_es'],
             ],
-            'type' => in_array($validated['type'], ['2.5D', '3D', 'Laser']) ? $validated['type'] : '3D',
+            'type' => in_array($validated['type'], ['2.5D', '3D', 'Laser']) ? $validated['type'] : '2.5D',
             'technologies_json' => $validated['technologies'] ?? [$validated['type']],
-            'age_range' => $validated['age_range'] ?? 'juniors_9_12',
+            'age_range' => $primaryAgeRange,
+            'age_ranges_json' => $selectedAgeRanges,
             'difficulty_level' => $validated['difficulty_level'] ?? 'foundational',
             'curriculum_framework' => $validated['curriculum_framework'] ?? 'cneb_peru',
             'competencies_json' => $validated['competencies'] ?? [],
@@ -173,6 +180,7 @@ class TechniqueController extends Controller
     {
         $technique->load('levels');
         $microApps = MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']);
+        $animations = MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
 
         $formatted = [
             'id' => $technique->id,
@@ -183,6 +191,7 @@ class TechniqueController extends Controller
             'description_en' => $technique->description_json['en'] ?? '',
             'type' => $technique->type,
             'technologies' => $technique->technologies_json ?? [$technique->type],
+            'age_ranges' => $technique->age_ranges_json ?? [$technique->age_range ?? 'juniors_9_12'],
             'age_range' => $technique->age_range ?? 'juniors_9_12',
             'difficulty_level' => $technique->difficulty_level ?? 'foundational',
             'curriculum_framework' => $technique->curriculum_framework ?? 'cneb_peru',
@@ -218,8 +227,6 @@ class TechniqueController extends Controller
             }),
         ];
 
-        $animations = \App\Models\MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
-
         return Inertia::render('Admin/Techniques/CreateEdit', [
             'technique' => $formatted,
             'microApps' => $microApps,
@@ -236,6 +243,7 @@ class TechniqueController extends Controller
             'description_en' => 'nullable|string',
             'type' => 'required|string',
             'technologies' => 'nullable|array',
+            'age_ranges' => 'nullable|array',
             'age_range' => 'nullable|string',
             'difficulty_level' => 'nullable|string',
             'curriculum_framework' => 'nullable|string',
@@ -250,6 +258,9 @@ class TechniqueController extends Controller
             'missions' => 'required|array|min:1',
         ]);
 
+        $selectedAgeRanges = $request->input('age_ranges', [$request->input('age_range', 'juniors_9_12')]);
+        $primaryAgeRange = is_array($selectedAgeRanges) && count($selectedAgeRanges) > 0 ? $selectedAgeRanges[0] : 'juniors_9_12';
+
         $technique->update([
             'title_json' => [
                 'es' => $validated['title_es'],
@@ -259,9 +270,10 @@ class TechniqueController extends Controller
                 'es' => $validated['description_es'],
                 'en' => $validated['description_en'] ?? $validated['description_es'],
             ],
-            'type' => in_array($validated['type'], ['2.5D', '3D', 'Laser']) ? $validated['type'] : '3D',
+            'type' => in_array($validated['type'], ['2.5D', '3D', 'Laser']) ? $validated['type'] : '2.5D',
             'technologies_json' => $validated['technologies'] ?? [$validated['type']],
-            'age_range' => $validated['age_range'] ?? 'juniors_9_12',
+            'age_range' => $primaryAgeRange,
+            'age_ranges_json' => $selectedAgeRanges,
             'difficulty_level' => $validated['difficulty_level'] ?? 'foundational',
             'curriculum_framework' => $validated['curriculum_framework'] ?? 'cneb_peru',
             'competencies_json' => $validated['competencies'] ?? [],

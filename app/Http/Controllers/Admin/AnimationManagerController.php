@@ -59,6 +59,32 @@ class AnimationManagerController extends Controller
         return redirect()->route('admin.animations.index')->with('success', '¡Micro-Animación registrada con éxito!');
     }
 
+    public function update(Request $request, MicroAnimation $animation)
+    {
+        $validated = $request->validate([
+            'title_es' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'category' => 'required|string|in:3d,laser,2.5d,electronics,general',
+            'description_es' => 'nullable|string',
+            'html_css_code' => 'required|string',
+        ]);
+
+        $animation->update([
+            'title_json' => [
+                'es' => $validated['title_es'],
+                'en' => $validated['title_en'] ?? $validated['title_es'],
+            ],
+            'category' => $validated['category'],
+            'description_json' => [
+                'es' => $validated['description_es'] ?? '',
+                'en' => $validated['description_en'] ?? ($validated['description_es'] ?? ''),
+            ],
+            'html_css_code' => $validated['html_css_code'],
+        ]);
+
+        return redirect()->route('admin.animations.index')->with('success', '¡Micro-Animación actualizada con éxito!');
+    }
+
     public function toggle(MicroAnimation $animation)
     {
         $animation->is_active = !$animation->is_active;
