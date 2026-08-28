@@ -1,8 +1,8 @@
 {
   "app": {
     "name": "MAKERDU",
-    "version": "v3.0",
-    "subtitle": "Plataforma Figital y Orquestador de Fabricación Digital"
+    "version": "v4.0",
+    "subtitle": "Plataforma Figital STEAM & Fabricación Digital"
   },
   "nav": {
     "home": "Inicio",
@@ -10,6 +10,10 @@
     "teacher_portal": "Acceso Docente",
     "passport": "Pasaporte Maker",
     "warroom": "Torre de Control",
+    "techniques": "Técnicas STEAM",
+    "apps": "Micro-Apps",
+    "copilot": "Copiloto Gemini",
+    "economy": "Economía Dual",
     "courses": "Diseñador de Cursos",
     "classrooms": "Gestor de Aulas",
     "logout": "Cerrar Sesión"

@@ -5,7 +5,7 @@ import {
     Sparkles, School, Users, Plus, CreditCard, ExternalLink,
     CheckCircle2, ArrowLeft, Key, UserCheck, Shield
 } from 'lucide-vue-next';
-import AdminNavBar from '@/Components/AdminNavBar.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     classrooms: Array,
@@ -57,44 +57,37 @@ const submitEnrollStudents = () => {
 </script>
 
 <template>
-    <Head title="Gestor de Aulas y Escuadras - Makerdu" />
+    <AdminLayout>
+        <Head title="Gestor de Aulas y Escuadras · Makerdu v4.0" />
 
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
-        <AdminNavBar active-section="classrooms" />
-
-        <!-- SUB-HEADER DE ACCIÓN -->
-        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-lg font-black text-white flex items-center gap-2">
-                        <School class="w-5 h-5 text-purple-400" />
-                        <span>GESTOR DE AULAS Y ESCUADRAS</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-bold border border-purple-500/30">
-                            Auto-Grouping & PINs
-                        </span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Crea aulas, matricula alumnos en bloque y genera PINs automáticos para los colegios.</p>
+        <!-- HEADER DE ACCIÓN -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-300 font-mono text-[10px] font-bold border border-purple-500/20">
+                        AUTO-GROUPING & PINS
+                    </span>
                 </div>
-
-                <button
-                    type="button"
-                    @click="showNewClassModal = true"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-purple-500/20 shrink-0"
-                >
-                    <Plus class="w-4 h-4" />
-                    <span>NUEVA AULA / TALLER</span>
-                </button>
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                    <span>Gestor de Aulas y Escuadras</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Crea aulas, matricula alumnos en bloque y genera PINs automáticos para los colegios.</p>
             </div>
+
+            <button
+                type="button"
+                @click="showNewClassModal = true"
+                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-purple-500/20 shrink-0"
+            >
+                <Plus class="w-4 h-4" />
+                <span>NUEVA AULA / TALLER</span>
+            </button>
         </div>
 
-        <!-- MAIN -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
-            
-            <div v-if="$page.props.flash?.success" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 class="w-5 h-5 text-emerald-400 shrink-0" />
-                <span>{{ $page.props.flash.success }}</span>
-            </div>
+        <div v-if="$page.props.flash?.success" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2 mb-6">
+            <CheckCircle2 class="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>{{ $page.props.flash.success }}</span>
+        </div>
 
             <!-- GRID DE AULAS -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -267,7 +260,6 @@ const submitEnrollStudents = () => {
                     </form>
                 </div>
             </div>
-
-        </main>
-    </div>
+        </div>
+    </AdminLayout>
 </template>

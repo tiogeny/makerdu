@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TechniqueController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AiSandboxController;
 use App\Http\Controllers\AiTutorChatController;
@@ -44,8 +45,10 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('student.hud');
     })->name('dashboard');
 
-    // Super Administrador (Catálogo Maestro, Centro de Mando, App Store & AI Sandbox)
+    // Super Administrador Makerdu v4.0 (Técnicas STEAM, Micro-Apps, Gemini AI Sandbox)
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::resource('/admin/techniques', TechniqueController::class)->names('admin.techniques');
+    Route::post('/admin/techniques/{technique}/toggle', [TechniqueController::class, 'toggle'])->name('admin.techniques.toggle');
     Route::resource('/admin/projects', ProjectBuilderController::class)->names('admin.projects');
     Route::get('/admin/classrooms', [ClassroomManagerController::class, 'index'])->name('admin.classrooms.index');
     Route::post('/admin/classrooms', [ClassroomManagerController::class, 'store'])->name('admin.classrooms.store');

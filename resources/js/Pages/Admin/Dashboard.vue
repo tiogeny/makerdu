@@ -1,14 +1,20 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
-import {
-    Sparkles, Layers, School, Users, Coins, Printer,
-    Plus, ArrowRight, ShieldCheck, BarChart3, FolderPlus,
-    UserPlus, ExternalLink, Globe, LogOut, Award, Cpu, BookOpen
+import { Head, Link } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { 
+    Sparkles, 
+    Layers, 
+    Box, 
+    Cpu, 
+    School, 
+    Plus, 
+    ArrowRight, 
+    CheckCircle2,
+    ShieldCheck
 } from 'lucide-vue-next';
-import AdminNavBar from '@/Components/AdminNavBar.vue';
-import { t, currentLang, setLanguage } from '@/i18n.js';
+import { t, currentLang } from '@/i18n.js';
 
-const props = defineProps({
+defineProps({
     stats: Object,
     recent_projects: Array,
     recent_classrooms: Array,
@@ -16,218 +22,96 @@ const props = defineProps({
 </script>
 
 <template>
-    <Head :title="`${t('admin.dashboard_title')} - ${t('app.name')}`" />
+    <AdminLayout>
+        <Head title="SuperAdmin HQ · Makerdu v4.0" />
 
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
-        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
-        <AdminNavBar active-section="dashboard" />
+        <!-- HERO BANNER -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden mb-8">
+            <div class="space-y-2 relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold border border-cyan-500/20">
+                    <ShieldCheck class="w-4 h-4 text-cyan-400" />
+                    <span>SUPERADMIN HQ • MAKERDU v4.0</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Centro de Mando de Fabricación Digital STEAM
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                    Diseña Técnicas de Fabricación con misiones modulares (IPO), entrena al Copiloto Gemini y gestiona la Suite de 19 Micro-Apps.
+                </p>
+            </div>
 
-        <!-- MAIN -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
-            
-            <!-- HERO BANNER CON DATOS DEL CENTRO DE MANDO -->
-            <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border border-amber-500/40 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-                <div class="space-y-2 relative z-10">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
-                        <ShieldCheck class="w-4 h-4" />
-                        <span>{{ t('admin.hero_badge') }}</span>
+            <div class="flex items-center gap-3 relative z-10 shrink-0">
+                <Link
+                    :href="route('admin.techniques.create')"
+                    class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-xl shadow-cyan-500/20"
+                >
+                    <Plus class="w-4 h-4" />
+                    <span>NUEVA TÉCNICA MAESTRA</span>
+                </Link>
+            </div>
+        </div>
+
+        <!-- QUICK ACCESS TILES -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Card 1: Técnicas STEAM -->
+            <Link
+                :href="route('admin.techniques.index')"
+                class="group p-6 rounded-3xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition shadow-xl flex flex-col justify-between"
+            >
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                        <Layers class="w-6 h-6" />
                     </div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-white">
-                        {{ t('admin.hero_title') }}
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                        {{ t('admin.hero_subtitle') }}
+                    <h3 class="text-base font-black text-white group-hover:text-cyan-300 transition">Técnicas STEAM Maestras</h3>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Crea matrices de fabricación con misiones secuenciales (Input ➔ Process ➔ Output) y competencias CNEB/STEAM.
                     </p>
                 </div>
-
-                <div class="flex items-center gap-3 relative z-10 shrink-0">
-                    <Link
-                        :href="route('admin.projects.create')"
-                        class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-xl shadow-amber-500/20"
-                    >
-                        <Plus class="w-4 h-4" />
-                        <span>{{ t('admin.btn_create_course').toUpperCase() }}</span>
-                    </Link>
+                <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-cyan-400 group-hover:translate-x-1 transition">
+                    <span>Gestionar Catálogo</span>
+                    <ArrowRight class="w-4 h-4" />
                 </div>
-            </div>
+            </Link>
 
-            <!-- KPI STATS CARDS -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-cyan-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_projects') }}</span>
-                        <FolderPlus class="w-4 h-4" />
+            <!-- Card 2: Suite Micro-Apps -->
+            <Link
+                :href="route('admin.apps.index')"
+                class="group p-6 rounded-3xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-blue-500/40 transition shadow-xl flex flex-col justify-between"
+            >
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                        <Box class="w-6 h-6" />
                     </div>
-                    <p class="text-2xl font-black text-white font-mono">{{ stats.total_projects }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'En catálogo maestro' : 'In master catalog' }}</p>
+                    <h3 class="text-base font-black text-white group-hover:text-blue-300 transition">Suite Micro-Apps (19)</h3>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Herramientas WebGL y Canvas 2D/3D independientes (Tinkercad-lite, SculptGL-lite, Engranajes, Waffle grid, etc.).
+                    </p>
                 </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-purple-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_classrooms') }}</span>
-                        <School class="w-4 h-4" />
-                    </div>
-                    <p class="text-2xl font-black text-white font-mono">{{ stats.total_classrooms }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Talleres activos' : 'Active workshops' }}</p>
+                <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-blue-400 group-hover:translate-x-1 transition">
+                    <span>Ver Catálogo de Apps</span>
+                    <ArrowRight class="w-4 h-4" />
                 </div>
+            </Link>
 
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-emerald-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_teachers') }}</span>
-                        <Users class="w-4 h-4" />
+            <!-- Card 3: Copiloto Gemini -->
+            <Link
+                :href="route('admin.ai-sandbox.index')"
+                class="group p-6 rounded-3xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 transition shadow-xl flex flex-col justify-between"
+            >
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                        <Cpu class="w-6 h-6" />
                     </div>
-                    <p class="text-2xl font-black text-white font-mono">{{ stats.total_teachers }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Instructores asignados' : 'Assigned instructors' }}</p>
+                    <h3 class="text-base font-black text-white group-hover:text-purple-300 transition">Copiloto IA Gemini</h3>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Prueba en tiempo real la visión artificial y evaluación de entregables (Pre-flight check en 3D/Láser).
+                    </p>
                 </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-sky-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_squads') }}</span>
-                        <Layers class="w-4 h-4" />
-                    </div>
-                    <p class="text-2xl font-black text-white font-mono">{{ stats.total_squads }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Equipos de 4 alumnos' : 'Teams of 4 students' }}</p>
+                <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-purple-400 group-hover:translate-x-1 transition">
+                    <span>Probar Visión Artificial</span>
+                    <ArrowRight class="w-4 h-4" />
                 </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-amber-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_students') }}</span>
-                        <Award class="w-4 h-4" />
-                    </div>
-                    <p class="text-2xl font-black text-white font-mono">{{ stats.total_students }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Con PINs generados' : 'With generated PINs' }}</p>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <div class="flex items-center justify-between text-amber-400">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ t('admin.kpi_fabcoins') }}</span>
-                        <Coins class="w-4 h-4" />
-                    </div>
-                    <p class="text-2xl font-black text-amber-300 font-mono">{{ stats.total_fabcoins }}</p>
-                    <p class="text-[10px] text-slate-500">{{ currentLang === 'es' ? 'Insumos físicos reales' : 'Real physical materials' }}</p>
-                </div>
-            </div>
-
-            <!-- ACCESOS RÁPIDOS: MICRO-APPS STORE & AI SANDBOX (solo SuperAdmin) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Micro-Apps Store Card -->
-                <Link
-                    :href="route('admin.apps.index')"
-                    class="group p-5 rounded-3xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/30 hover:border-amber-400/60 shadow-xl flex items-center gap-4 transition"
-                >
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition">
-                        ⚡
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-black text-sm text-white">{{ t('admin.apps_store_title') }}</p>
-                        <p class="text-[11px] text-slate-400 leading-snug mt-0.5">{{ t('admin.apps_store_desc') }}</p>
-                    </div>
-                    <ArrowRight class="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition shrink-0" />
-                </Link>
-
-                <!-- AI Sandbox Card -->
-                <Link
-                    :href="route('admin.ai-sandbox.index')"
-                    class="group p-5 rounded-3xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 hover:border-cyan-400/60 shadow-xl flex items-center gap-4 transition"
-                >
-                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition">
-                        <Cpu class="w-6 h-6 text-cyan-400" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-black text-sm text-white">{{ t('admin.ai_sandbox_title') }}</p>
-                        <p class="text-[11px] text-slate-400 leading-snug mt-0.5">{{ t('admin.ai_sandbox_desc') }}</p>
-                    </div>
-                    <ArrowRight class="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition shrink-0" />
-                </Link>
-            </div>
-
-            <!-- SECCIÓN DE 2 COLUMNAS: CURSOS MAESTROS Y AULAS ACTIVAS -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Columna 1: Catálogo de Cursos Maestros -->
-                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <FolderPlus class="w-5 h-5 text-cyan-400" />
-                            <h3 class="text-base font-black text-white">Catálogo de Cursos Maestros</h3>
-                        </div>
-
-                        <Link
-                            :href="route('admin.projects.index')"
-                            class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1"
-                        >
-                            <span>Ver todos ({{ stats.total_projects }})</span>
-                            <ArrowRight class="w-3.5 h-3.5" />
-                        </Link>
-                    </div>
-
-                    <div class="space-y-2.5">
-                        <div
-                            v-for="p in recent_projects"
-                            :key="p.id"
-                            class="p-4 rounded-2xl bg-slate-950 border border-slate-800 hover:border-cyan-500/40 transition flex items-center justify-between"
-                        >
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h4 class="font-bold text-xs text-white">{{ p.title }}</h4>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">
-                                        {{ p.type }}
-                                    </span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 mt-0.5">{{ p.total_levels }} Niveles dinámicos • Creado el {{ p.created_at }}</p>
-                            </div>
-
-                            <Link
-                                :href="route('admin.projects.edit', { project: p.id })"
-                                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition"
-                            >
-                                Editar Malla
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Columna 2: Aulas y Talleres Asignados -->
-                <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <School class="w-5 h-5 text-purple-400" />
-                            <h3 class="text-base font-black text-white">Aulas y Talleres Asignados</h3>
-                        </div>
-
-                        <Link
-                            :href="route('admin.classrooms.index')"
-                            class="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1"
-                        >
-                            <span>Gestionar Aulas ({{ stats.total_classrooms }})</span>
-                            <ArrowRight class="w-3.5 h-3.5" />
-                        </Link>
-                    </div>
-
-                    <div class="space-y-2.5">
-                        <div
-                            v-for="c in recent_classrooms"
-                            :key="c.id"
-                            class="p-4 rounded-2xl bg-slate-950 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between"
-                        >
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h4 class="font-bold text-xs text-white">{{ c.name }}</h4>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-md font-mono bg-purple-950 text-purple-300 border border-purple-800">
-                                        {{ c.access_code }}
-                                    </span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 mt-0.5">
-                                    Docente: <strong class="text-slate-300">{{ c.teacher_name }}</strong> • Curso: <span class="text-cyan-400">{{ c.project_title }}</span>
-                                </p>
-                            </div>
-
-                            <span class="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                                {{ c.squads_count }} Escuadras
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+            </Link>
+        </div>
+    </AdminLayout>
 </template>

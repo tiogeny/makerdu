@@ -5,7 +5,7 @@ import {
     Sparkles, ArrowLeft, Bot, Play, CheckCircle2, XCircle,
     Sliders, Cpu, FileText, Code2, Clock, Zap, RefreshCw, Upload, Eye
 } from 'lucide-vue-next';
-import AdminNavBar from '@/Components/AdminNavBar.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -88,25 +88,21 @@ const executeAiTest = async () => {
 </script>
 
 <template>
-    <Head title="Sandbox de Calibración de IA - Makerdu v3.0" />
+    <AdminLayout>
+        <Head title="Sandbox Copiloto IA Gemini · Makerdu v4.0" />
 
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
-        <AdminNavBar active-section="aisandbox" />
-
-        <!-- SUB-HEADER DE ACCIÓN -->
-        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-lg font-black text-white flex items-center gap-2">
-                        <Cpu class="w-5 h-5 text-pink-400" />
-                        <span>SANDBOX DE CALIBRACIÓN DE IA MULTIMODAL</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-mono font-bold border border-pink-500/30">
-                            Gemini 2.0 Flash Vision
-                        </span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
-                </div>
+        <!-- HEADER DE ACCIÓN -->
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono text-[10px] font-bold border border-purple-500/20">
+                    GEMINI 2.0 FLASH VISION
+                </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                <span>Sandbox de Calibración de IA Multimodal</span>
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">Prueba y calibra umbrales de impresión 3D, prompts y diagnósticos pedagógicos en tiempo real.</p>
+        </div>
 
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800 flex items-center gap-1.5 shrink-0">
@@ -310,7 +306,6 @@ const executeAiTest = async () => {
                 </div>
 
             </div>
-
-        </main>
-    </div>
+        </div>
+    </AdminLayout>
 </template>

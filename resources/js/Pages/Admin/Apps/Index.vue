@@ -5,7 +5,7 @@ import {
     Sparkles, Plus, ExternalLink, ArrowLeft, CheckCircle2,
     Layers, Scissors, Box, Cpu, Leaf, Play, Power, Globe
 } from 'lucide-vue-next';
-import AdminNavBar from '@/Components/AdminNavBar.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import MicroAppOverlay from '@/Components/MicroAppOverlay.vue';
 import { t } from '@/i18n.js';
 
@@ -56,226 +56,170 @@ const getCatBadge = (cat) => {
 </script>
 
 <template>
-    <Head title="Ecosistema de Micro-Apps - Makerdu v3.0" />
+    <AdminLayout>
+        <Head title="Suite de 19 Micro-Apps · Makerdu v4.0" />
 
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-        <!-- TOPBAR UNIFICADA SUPER ADMIN -->
-        <AdminNavBar active-section="apps" />
-
-        <!-- SUB-HEADER DE ACCIÓN -->
-        <div class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-4">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-lg font-black text-white flex items-center gap-2">
-                        <Sparkles class="w-5 h-5 text-emerald-400" />
-                        <span>ECOSISTEMA DE MICRO-APPS AUTÓNOMAS</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/30">
-                            Standalone Web Apps
-                        </span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Herramientas creativas WebGL/WASM desacopladas que operan 100% en el navegador del alumno.</p>
+        <!-- HEADER BANNER -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono text-[10px] font-bold border border-cyan-500/20">
+                        SUITE MAESTRA V4.0
+                    </span>
                 </div>
-
-                <button
-                    type="button"
-                    @click="showNewModal = true"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-500/20 shrink-0"
-                >
-                    <Plus class="w-4 h-4" />
-                    <span>REGISTRAR NUEVA MICRO-APP</span>
-                </button>
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                    <span>Suite de Micro-Apps Autónomas</span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-xl bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">
+                        19 Apps Activas
+                    </span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">
+                    Herramientas CAD/CAM 2D/3D que corren 100% en la GPU del cliente (WebGL / Three.js), sin consumir memoria en el servidor.
+                </p>
             </div>
+
+            <button
+                type="button"
+                @click="showNewModal = true"
+                class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
+            >
+                <Plus class="w-4 h-4" />
+                <span>REGISTRAR MICRO-APP</span>
+            </button>
         </div>
 
-        <!-- MAIN -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
-            
-            <div v-if="$page.props.flash?.success" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 class="w-5 h-5 text-emerald-400 shrink-0" />
-                <span>{{ $page.props.flash.success }}</span>
-            </div>
-
-            <!-- GRID DE MICRO-APPS -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div
-                    v-for="app in apps"
-                    :key="app.id"
-                    class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-4 relative overflow-hidden shadow-xl"
-                >
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-2xl">{{ app.icon }}</span>
-                            <div class="flex items-center gap-1.5">
-                                <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-md border', getCatBadge(app.category).color]">
-                                    {{ getCatBadge(app.category).label }}
-                                </span>
-                                <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-950 text-slate-400 uppercase font-bold border border-slate-800">
-                                    Salida: {{ app.output_type }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-base font-black text-white">{{ app.name }}</h3>
-                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ app.description }}</p>
-                        </div>
-
-                        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300 truncate">
-                            Ruta: {{ app.embed_path }}
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
-                        <!-- Botón Probar en Overlay Sandbox -->
-                        <button
-                            type="button"
-                            @click="testApp(app)"
-                            class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20"
-                        >
-                            <Play class="w-3.5 h-3.5" />
-                            <span>Probar en Sandbox</span>
-                        </button>
-
-                        <div class="flex items-center gap-2">
-                            <!-- Enlace Externo Standalone -->
-                            <a
-                                :href="app.embed_path"
-                                target="_blank"
-                                class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
-                                title="Abrir Standalone"
-                            >
-                                <ExternalLink class="w-4 h-4" />
-                            </a>
-
-                            <!-- Toggle Activo -->
+        <!-- GRID DE MICRO-APPS (19 APPS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div
+                v-for="app in apps"
+                :key="app.id"
+                class="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition shadow-xl flex flex-col justify-between group relative overflow-hidden"
+            >
+                <div>
+                    <!-- Top header -->
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full border" :class="getCatBadge(app.category).color">
+                            {{ getCatBadge(app.category).label }}
+                        </span>
+                        
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] font-mono uppercase px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 font-bold">
+                                {{ app.output_type.toUpperCase() }}
+                            </span>
                             <button
-                                type="button"
                                 @click="toggleStatus(app.id)"
-                                :class="[
-                                    'p-2 rounded-xl border transition',
-                                    app.is_active
-                                        ? 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
-                                        : 'bg-rose-950/60 border-rose-800 text-rose-400'
-                                ]"
-                                :title="app.is_active ? 'Desactivar' : 'Activar'"
+                                class="p-1 rounded-lg text-slate-400 hover:text-white transition"
+                                :title="app.is_active ? 'Desactivar App' : 'Activar App'"
                             >
-                                <Power class="w-4 h-4" />
+                                <Power class="w-3.5 h-3.5" :class="app.is_active ? 'text-emerald-400' : 'text-slate-600'" />
                             </button>
                         </div>
                     </div>
+
+                    <!-- Icon & Title -->
+                    <div class="flex items-start gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition">
+                            {{ app.icon }}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white group-hover:text-cyan-300 transition leading-tight">
+                                {{ app.name }}
+                            </h3>
+                            <span class="text-[10px] font-mono text-slate-500">{{ app.embed_path }}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                        {{ app.description }}
+                    </p>
                 </div>
-            </div>
 
-        </main>
-
-        <!-- MODAL REGISTRO DE NUEVA MICRO-APP -->
-        <div
-            v-if="showNewModal"
-            class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
-        >
-            <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-base font-black text-white flex items-center gap-2">
-                        <span>REGISTRAR NUEVA MICRO-APP</span>
-                    </h3>
-                    <button type="button" @click="showNewModal = false" class="text-slate-500 hover:text-white text-xs font-bold">Cerrar</button>
-                </div>
-
-                <form @submit.prevent="submitNewApp" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nombre de la App *</label>
-                        <input
-                            v-model="appForm.name"
-                            type="text"
-                            placeholder="Ej: Generador de Cajas con Encastre"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none"
-                            required
-                        />
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Slug Único *</label>
-                            <input
-                                v-model="appForm.slug"
-                                type="text"
-                                placeholder="box-generator"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Categoría *</label>
-                            <select
-                                v-model="appForm.category"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none"
-                            >
-                                <option value="2.5D">2.5D (Sellos / Relieves)</option>
-                                <option value="3D">3D (Modelado / Visores)</option>
-                                <option value="Laser">Laser (Corte y Encastre)</option>
-                                <option value="Electronics">Electronics (IoT / Circuitos)</option>
-                                <option value="Sustainability">Sustainability (Biomateriales)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Ruta de Embed *</label>
-                            <input
-                                v-model="appForm.embed_path"
-                                type="text"
-                                placeholder="/apps/box-generator"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Tipo de Salida *</label>
-                            <select
-                                v-model="appForm.output_type"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none"
-                            >
-                                <option value="svg">Archivo SVG (Vectores)</option>
-                                <option value="stl">Archivo STL (Malla 3D)</option>
-                                <option value="json">Datos JSON (Parámetros)</option>
-                                <option value="image">Imagen PNG/JPG</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Descripción Breve</label>
-                        <textarea
-                            v-model="appForm.description"
-                            rows="2"
-                            placeholder="Herramienta interactiva para calcular ranuras de ensamble con compensación de corte (kerf)."
-                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none"
-                        ></textarea>
-                    </div>
+                <!-- Action Button -->
+                <div class="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[10px] font-mono text-slate-500">
+                        Estado: <strong :class="app.is_active ? 'text-emerald-400' : 'text-slate-500'">{{ app.is_active ? 'Habilitada' : 'Inactiva' }}</strong>
+                    </span>
 
                     <button
-                        type="submit"
-                        :disabled="appForm.processing || !appForm.name || !appForm.slug"
-                        class="w-full py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs transition shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                        @click="testApp(app)"
+                        class="px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 font-bold text-xs transition border border-cyan-500/20 flex items-center gap-1.5"
                     >
-                        <span>GUARDAR Y ACTIVAR MICRO-APP</span>
+                        <Play class="w-3 h-3" />
+                        <span>Probar en Vivo</span>
                     </button>
-                </form>
+                </div>
             </div>
         </div>
 
-        <!-- OVERLAY SANDBOX PARA PROBAR LA MICRO-APP EN VIVO -->
+        <!-- MODAL DE PRUEBA EN VIVO -->
         <MicroAppOverlay
-            :is-open="!!activeTestingApp"
-            :app-name="activeTestingApp?.name"
-            :app-url="activeTestingApp?.embed_path"
-            :app-icon="activeTestingApp?.icon"
+            v-if="activeTestingApp"
+            :app="activeTestingApp"
+            :current-level="1"
+            :squad-id="1"
             @close="activeTestingApp = null"
-            @asset-ready="(asset) => console.log('Asset recibido de micro-app:', asset)"
         />
 
-    </div>
+        <!-- MODAL REGISTRAR NUEVA APP -->
+        <div v-if="showNewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-base font-black text-white">Registrar Nueva Micro-App</h2>
+                    <button @click="showNewModal = false" class="p-1 rounded-lg text-slate-400 hover:text-white">✕</button>
+                </div>
+
+                <form @submit.prevent="submitNewApp" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Nombre de la App:</label>
+                        <input v-model="appForm.name" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white" required />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Slug:</label>
+                            <input v-model="appForm.slug" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white" required />
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Icono (Emoji):</label>
+                            <input v-model="appForm.icon" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white" required />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Categoría:</label>
+                            <select v-model="appForm.category" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white">
+                                <option value="2.5D">Relieves 2.5D</option>
+                                <option value="3D">Modelado 3D</option>
+                                <option value="Laser">Corte Láser</option>
+                                <option value="Electronics">IoT / Robótica</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Salida:</label>
+                            <select v-model="appForm.output_type" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white">
+                                <option value="stl">STL 3D Binario</option>
+                                <option value="svg">SVG Vectorial Láser</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Ruta Embebida (URL):</label>
+                        <input v-model="appForm.embed_path" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-mono" required />
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Descripción:</label>
+                        <textarea v-model="appForm.description" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white" required></textarea>
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-end gap-2">
+                        <button type="button" @click="showNewModal = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">Cancelar</button>
+                        <button type="submit" :disabled="appForm.processing" class="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black">Registrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </AdminLayout>
 </template>

@@ -1,8 +1,8 @@
 {
   "app": {
     "name": "MAKERDU",
-    "version": "v3.0",
-    "subtitle": "Phygital LMS & Digital Fabrication Orchestrator"
+    "version": "v4.0",
+    "subtitle": "STEAM Phygital Platform & Digital Fabrication"
   },
   "nav": {
     "home": "Home",
@@ -10,7 +10,11 @@
     "teacher_portal": "Teacher Access",
     "passport": "Maker Passport",
     "warroom": "Control Tower",
-    "courses": "Course Builder",
+    "techniques": "STEAM Techniques",
+    "apps": "Micro-Apps",
+    "copilot": "Gemini Copilot",
+    "economy": "Dual Economy",
+    "courses": "Course Designer",
     "classrooms": "Classroom Manager",
     "logout": "Log Out"
   },

@@ -271,38 +271,6 @@ const submitAdult = () => {
                         <ArrowRight class="w-4 h-4" />
                     </button>
                 </form>
-
-                <!-- Accesos Demo Alumnos -->
-                <div class="pt-4 border-t border-slate-800 text-xs">
-                    <p class="text-slate-500 mb-2 font-bold text-center uppercase tracking-wider text-[10px]">
-                        {{ t('auth.demo_title') }}
-                    </p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            @click="useDemoStudent('MK402', '1234')"
-                            class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500/40 text-left transition flex items-center justify-between"
-                        >
-                            <div>
-                                <p class="font-bold text-cyan-300 text-[11px]">Mateo (Architect)</p>
-                                <p class="text-[9px] text-slate-500 font-mono">PIN: 1234</p>
-                            </div>
-                            <UserCheck class="w-3.5 h-3.5 text-cyan-400" />
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="useDemoStudent('MK402', '5678')"
-                            class="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/40 text-left transition flex items-center justify-between"
-                        >
-                            <div>
-                                <p class="font-bold text-amber-300 text-[11px]">Sofía (Quality)</p>
-                                <p class="text-[9px] text-slate-500 font-mono">PIN: 5678</p>
-                            </div>
-                            <UserCheck class="w-3.5 h-3.5 text-amber-400" />
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- ============================================================= -->
@@ -369,27 +337,12 @@ const submitAdult = () => {
                         <ArrowRight class="w-4 h-4" />
                     </button>
                 </form>
-
-                <!-- Acceso Rápido Docente Demo -->
-                <div class="pt-4 border-t border-slate-800 text-xs">
-                    <button
-                        type="button"
-                        @click="useDemoTeacher"
-                        class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/40 text-left transition flex items-center justify-between"
-                    >
-                        <div>
-                            <p class="font-bold text-amber-300 text-[11px]">⚡ Cargar Docente Demo</p>
-                            <p class="text-[10px] text-slate-500">contacto@fablablima.org (pass: password)</p>
-                        </div>
-                        <UserCheck class="w-4 h-4 text-amber-400" />
-                    </button>
-                </div>
             </div>
         </div>
 
         <!-- FOOTER -->
         <footer class="text-center text-xs text-slate-600 py-4 relative z-10">
-            Makerdu v2.6 • LMS Figital & Digital Fabrication
+            Makerdu v4.0 • Plataforma Figital STEAM & Fabricación Digital
         </footer>
     </div>
 </template>
