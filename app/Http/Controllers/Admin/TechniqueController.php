@@ -149,7 +149,8 @@ class TechniqueController extends Controller
                 ],
                 'process_json' => [
                     'mode' => $mission['process_mode'] ?? 'micro_app',
-                    'micro_app_slug' => $mission['micro_app_slug'] ?? null,
+                    'micro_app_slug' => is_array($mission['micro_app_slugs'] ?? null) && count($mission['micro_app_slugs']) > 0 ? $mission['micro_app_slugs'][0] : ($mission['micro_app_slug'] ?? null),
+                    'micro_app_slugs' => $mission['micro_app_slugs'] ?? ($mission['micro_app_slug'] ? [$mission['micro_app_slug']] : []),
                     'external_tool_name' => $mission['external_tool_name'] ?? null,
                     'external_url' => $mission['external_url'] ?? null,
                     'instructions' => $mission['process_instructions'] ?? '',
@@ -213,6 +214,7 @@ class TechniqueController extends Controller
                     'resources_list' => $lvl->inputs_json['resources_list'] ?? [],
                     'process_mode' => $lvl->process_json['mode'] ?? 'micro_app',
                     'micro_app_slug' => $lvl->process_json['micro_app_slug'] ?? null,
+                    'micro_app_slugs' => $lvl->process_json['micro_app_slugs'] ?? ($lvl->process_json['micro_app_slug'] ? [$lvl->process_json['micro_app_slug']] : []),
                     'external_tool_name' => $lvl->process_json['external_tool_name'] ?? null,
                     'external_url' => $lvl->process_json['external_url'] ?? null,
                     'process_instructions' => $lvl->process_json['instructions'] ?? '',
@@ -309,7 +311,8 @@ class TechniqueController extends Controller
                 ],
                 'process_json' => [
                     'mode' => $mission['process_mode'] ?? 'micro_app',
-                    'micro_app_slug' => $mission['micro_app_slug'] ?? null,
+                    'micro_app_slug' => is_array($mission['micro_app_slugs'] ?? null) && count($mission['micro_app_slugs']) > 0 ? $mission['micro_app_slugs'][0] : ($mission['micro_app_slug'] ?? null),
+                    'micro_app_slugs' => $mission['micro_app_slugs'] ?? ($mission['micro_app_slug'] ? [$mission['micro_app_slug']] : []),
                     'external_tool_name' => $mission['external_tool_name'] ?? null,
                     'external_url' => $mission['external_url'] ?? null,
                     'instructions' => $mission['process_instructions'] ?? '',
