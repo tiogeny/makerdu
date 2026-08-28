@@ -17,7 +17,7 @@ export const setLanguage = (lang) => {
 };
 
 /**
- * Accede a claves anidadas tipo 'roles.Architect.name' o 'inspection_3d.title'
+ * Accede a claves estáticas de la interfaz tipo 'nav.techniques' o 'auth.email'
  */
 export const t = (key) => {
     const lang = currentLang.value;
@@ -44,4 +44,24 @@ export const t = (key) => {
     }
 
     return typeof current === 'string' ? current : key;
+};
+
+/**
+ * Accede a contenido dinámico bilingüe de la BD: { "es": "...", "en": "..." }
+ */
+export const trans = (jsonObj, fallback = '') => {
+    if (!jsonObj) return fallback;
+    if (typeof jsonObj === 'string') return jsonObj;
+
+    const lang = currentLang.value;
+    if (jsonObj[lang] && typeof jsonObj[lang] === 'string' && jsonObj[lang].trim() !== '') {
+        return jsonObj[lang];
+    }
+    if (jsonObj.es && typeof jsonObj.es === 'string' && jsonObj.es.trim() !== '') {
+        return jsonObj.es;
+    }
+    if (jsonObj.en && typeof jsonObj.en === 'string' && jsonObj.en.trim() !== '') {
+        return jsonObj.en;
+    }
+    return fallback;
 };

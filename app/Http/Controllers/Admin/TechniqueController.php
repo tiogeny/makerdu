@@ -62,10 +62,12 @@ class TechniqueController extends Controller
     public function create()
     {
         $microApps = MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']);
+        $animations = \App\Models\MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
 
         return Inertia::render('Admin/Techniques/CreateEdit', [
             'technique' => null,
             'microApps' => $microApps,
+            'animations' => $animations,
         ]);
     }
 
@@ -216,9 +218,12 @@ class TechniqueController extends Controller
             }),
         ];
 
+        $animations = \App\Models\MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'description_json', 'html_css_code']);
+
         return Inertia::render('Admin/Techniques/CreateEdit', [
             'technique' => $formatted,
             'microApps' => $microApps,
+            'animations' => $animations,
         ]);
     }
 

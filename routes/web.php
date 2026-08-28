@@ -59,6 +59,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/apps', [MicroAppManagerController::class, 'store'])->name('admin.apps.store');
     Route::post('/admin/apps/{app}/toggle', [MicroAppManagerController::class, 'toggle'])->name('admin.apps.toggle');
 
+    // Galería Maestra de Micro-Animaciones Didácticas (HTML/CSS)
+    Route::get('/admin/animations', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'index'])->name('admin.animations.index');
+    Route::post('/admin/animations', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'store'])->name('admin.animations.store');
+    Route::post('/admin/animations/{animation}/toggle', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'toggle'])->name('admin.animations.toggle');
+    Route::delete('/admin/animations/{animation}', [\App\Http\Controllers\Admin\AnimationManagerController::class, 'destroy'])->name('admin.animations.destroy');
+
     // Sandbox de Calibración de IA (Gemini Vision)
     Route::get('/admin/ai-sandbox', [AiSandboxController::class, 'index'])->name('admin.ai-sandbox.index');
     Route::post('/admin/ai-sandbox/test', [AiSandboxController::class, 'test'])->name('admin.ai-sandbox.test');

@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         BitacoraEntry::truncate();
         RewardCatalog::truncate();
         FabCoinTransaction::truncate();
+        \App\Models\MicroAnimation::truncate();
         Schema::enableForeignKeyConstraints();
 
         // =====================================================================
@@ -213,7 +214,55 @@ class DatabaseSeeder extends Seeder
         }
 
         // =====================================================================
-        // 2. USUARIO SUPER ADMINISTRADOR PRINCIPAL
+        // 2. GALERÍA MAESTRA DE MICRO-ANIMACIONES DIDÁCTICAS (HTML/CSS EN BUCLE)
+        // =====================================================================
+        $animations = [
+            [
+                'slug' => 'tinker-export-stl',
+                'title_json' => ['es' => 'Exportar STL en Tinkercad', 'en' => 'Export STL in Tinkercad'],
+                'category' => '3d',
+                'description_json' => ['es' => 'Muestra cómo hacer clic en Exportar y seleccionar STL.', 'en' => 'Demonstrates clicking Export and selecting STL format.'],
+                'html_css_code' => '<div style="background:#0f172a; border-radius:16px; padding:20px; text-align:center; color:#fff; font-family:sans-serif; border:1px solid #334155; position:relative; overflow:hidden;">
+  <div style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:12px;">Tinkercad STL Export Flow</div>
+  <div style="display:inline-flex; align-items:center; gap:8px; background:#1e293b; padding:8px 16px; border-radius:12px; border:1px solid #475569; font-weight:bold; font-size:12px;">
+    <span>1. Exportar</span> ➔ <span style="color:#fbbf24;">2. .STL</span> ➔ <span style="color:#34d399;">3. Descargar</span>
+  </div>
+  <div style="margin-top:16px; font-size:24px; animation: bounce 2s infinite;">🧊 ➔ 💾</div>
+</div>',
+                'is_active' => true,
+            ],
+            [
+                'slug' => 'bezier-nodes-close',
+                'title_json' => ['es' => 'Cierre de Nodos Bézier', 'en' => 'Close Bézier Vector Nodes'],
+                'category' => '2.5d',
+                'description_json' => ['es' => 'Tutorial visual para unir el nodo inicial con el nodo final.', 'en' => 'Visual guide to snap start and end vector nodes.'],
+                'html_css_code' => '<div style="background:#0f172a; border-radius:16px; padding:20px; text-align:center; color:#fff; font-family:sans-serif; border:1px solid #334155;">
+  <div style="font-size:11px; font-weight:800; color:#a855f7; text-transform:uppercase; margin-bottom:8px;">Vectorización Bézier</div>
+  <div style="font-size:12px; color:#cbd5e1;">Asegúrate de que la curva sea cerrada para poder extruir en 3D.</div>
+  <div style="margin-top:12px; font-size:24px;">✏️ ➔ ⭕ ➔ 🧸</div>
+</div>',
+                'is_active' => true,
+            ],
+            [
+                'slug' => 'box-joint-kerf',
+                'title_json' => ['es' => 'Compensación de Kerf Láser', 'en' => 'Laser Kerf Compensation'],
+                'category' => 'laser',
+                'description_json' => ['es' => 'Ajuste de tolerancias milimétricas en uniones finger-joint.', 'en' => 'Millimeter tolerance offset for snug finger joints.'],
+                'html_css_code' => '<div style="background:#0f172a; border-radius:16px; padding:20px; text-align:center; color:#fff; font-family:sans-serif; border:1px solid #334155;">
+  <div style="font-size:11px; font-weight:800; color:#f59e0b; text-transform:uppercase; margin-bottom:8px;">Encastre Láser Kerf</div>
+  <div style="font-size:12px; color:#cbd5e1;">Compensación de haz láser: 0.15 mm para ensamble perfecto a presión.</div>
+  <div style="margin-top:12px; font-size:24px;">🪵 ➔ ⚡ ➔ 📦</div>
+</div>',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($animations as $anim) {
+            \App\Models\MicroAnimation::firstOrCreate(['slug' => $anim['slug']], $anim);
+        }
+
+        // =====================================================================
+        // 3. USUARIO SUPER ADMINISTRADOR PRINCIPAL
         // =====================================================================
         User::firstOrCreate(
             ['email' => 'contacto@fablablima.org'],

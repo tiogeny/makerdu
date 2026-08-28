@@ -25,8 +25,11 @@ import {
     UploadCloud,
     ExternalLink,
     AlertCircle,
-    Check
+    Check,
+    Zap,
+    Play
 } from 'lucide-vue-next';
+import { t, trans, currentLang } from '@/i18n.js';
 
 const props = defineProps({
     technique: {
@@ -37,10 +40,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    animations: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const isEditing = !!props.technique;
-const activeTab = ref('general'); // 'general', 'missions', 'gemini', 'preview'
+const activeTab = ref('general'); // 'general', 'competencies', 'missions', 'gemini', 'preview'
 const toastMessage = ref(null);
 const toastType = ref('success');
 
@@ -77,6 +84,13 @@ const availableTechnologies = [
     { id: 'electronics', name: 'Electrónica, IoT & Robótica', icon: '🤖' },
 ];
 
+const ageRangesOptions = [
+    { id: 'kids_6_8', label: '6 a 8 años (Kids / Exploradores)', badge: 'Primaria Inicial' },
+    { id: 'juniors_9_12', label: '9 a 12 años (Juniors / Creadores)', badge: 'Primaria Media/Alta' },
+    { id: 'teens_13_16', label: '13 a 16 años (Teens / Innovadores)', badge: 'Secundaria' },
+    { id: 'advanced_17_plus', label: '17+ años (Avanzado / IEST / Superior)', badge: 'Superior / Adultos' },
+];
+
 const form = useForm({
     title_es: props.technique?.title_es || '',
     title_en: props.technique?.title_en || '',
@@ -84,7 +98,7 @@ const form = useForm({
     description_en: props.technique?.description_en || '',
     type: props.technique?.type || '2.5D',
     technologies: props.technique?.technologies || ['2.5d_relief'],
-    age_range: props.technique?.age_range || 'juniors_9_12',
+    age_ranges: props.technique?.age_ranges || ['juniors_9_12'],
     difficulty_level: props.technique?.difficulty_level || 'foundational',
     curriculum_framework: props.technique?.curriculum_framework || 'cneb_peru',
     competencies: props.technique?.competencies || [],
@@ -100,7 +114,6 @@ const form = useForm({
             title_es: '',
             title_en: '',
             guide_es: '',
-            video_url: '',
             resources_list: [],
             process_mode: 'micro_app',
             micro_app_slug: null,
@@ -118,7 +131,17 @@ const form = useForm({
     ],
 });
 
-// Helpers de Competencias y Tecnologías
+// Helpers de Checkboxes
+const toggleAgeRange = (rangeId) => {
+    if (form.age_ranges.includes(rangeId)) {
+        if (form.age_ranges.length > 1) {
+            form.age_ranges = form.age_ranges.filter(r => r !== rangeId);
+        }
+    } else {
+        form.age_ranges.push(rangeId);
+    }
+};
+
 const toggleTechnology = (techId) => {
     if (form.technologies.includes(techId)) {
         if (form.technologies.length > 1) {
@@ -137,7 +160,7 @@ const toggleCompetency = (comp) => {
     }
 };
 
-// Competencias personalizadas (IEST / Específicas)
+// Competencias IEST
 const addCustomCompetency = () => {
     form.competencies_custom.push({
         code: `C${form.competencies_custom.length + 1}`,
@@ -156,7 +179,6 @@ const addMission = () => {
         title_es: `Misión ${form.missions.length + 1}: `,
         title_en: `Mission ${form.missions.length + 1}: `,
         guide_es: '',
-        video_url: '',
         resources_list: [],
         process_mode: 'micro_app',
         micro_app_slug: null,
@@ -173,6 +195,95 @@ const addMission = () => {
     });
 };
 
+// ASISTENTE: Precargar Plantilla Estándar Ciclo Maker-Dual (4 Misiones)
+const loadMakerCycleTemplate = () => {
+    if (confirm('¿Cargar la plantilla metodológica del Ciclo Maker-Dual (4 Misiones)? Esto reemplazará las misiones actuales.')) {
+        form.missions = [
+            {
+                title_es: 'Misión 1: Concebir — Del Papel a la Idea & Boceto',
+                title_en: 'Mission 1: Conceive — From Sketch to Concept',
+                guide_es: 'Dibuja en papel bond la silueta de tu pieza respetando las cotas máximas.',
+                resources_list: [
+                    { type: 'pdf', title: 'Ficha de Bocetado', url: '' },
+                ],
+                process_mode: 'manual_workshop',
+                micro_app_slug: null,
+                external_tool_name: '',
+                external_url: '',
+                process_instructions: 'Dibujo a mano alzada con plumón negro de trazo firme.',
+                deliverable_type: 'photo_sketch',
+                max_dim_mm: 60,
+                min_thickness_mm: 2.0,
+                allows_iteration: true,
+                skills_reward: ['Pensamiento Espacial', 'Bocetado Rápido'],
+                xp_reward: 30,
+                fabcoins_cost: 0,
+            },
+            {
+                title_es: 'Misión 2: Modelar — Digitalización Vectorial / 3D',
+                title_en: 'Mission 2: Model — 2D/3D Digital Modeling',
+                guide_es: 'Convierte tu boceto a un modelo paramétrico limpio cerrando todos los nodos.',
+                resources_list: [
+                    { type: 'animation', title: 'Tutorial Cierre de Nodos', animation_slug: 'bezier-nodes-close' },
+                ],
+                process_mode: 'micro_app',
+                micro_app_slug: 'vectorizer',
+                external_tool_name: '',
+                external_url: '',
+                process_instructions: 'Usa la micro-app asignada para vectorizar y extruir tu diseño.',
+                deliverable_type: 'svg_laser',
+                max_dim_mm: 60,
+                min_thickness_mm: 2.0,
+                allows_iteration: true,
+                skills_reward: ['Geometría Vectorial', 'Curvas Bézier'],
+                xp_reward: 50,
+                fabcoins_cost: 0,
+            },
+            {
+                title_es: 'Misión 3: Fabricar — Auditoría Pre-Flight & Máquina',
+                title_en: 'Mission 3: Fabricate — AI Pre-flight Check & Machine',
+                guide_es: 'Valida tu modelo con el Copiloto Gemini antes de enviar a impresión o corte.',
+                resources_list: [
+                    { type: 'video', title: 'Video: Preparación de Máquina', url: '' },
+                ],
+                process_mode: 'micro_app',
+                micro_app_slug: 'viewer-3d',
+                external_tool_name: '',
+                external_url: '',
+                process_instructions: 'Auditoría automática de grosor de pared y dimensiones milimétricas.',
+                deliverable_type: 'stl_3d',
+                max_dim_mm: 60,
+                min_thickness_mm: 2.0,
+                allows_iteration: true,
+                skills_reward: ['Control de Calidad FabLab', 'Fabricación Digital'],
+                xp_reward: 60,
+                fabcoins_cost: 15,
+            },
+            {
+                title_es: 'Misión 4: Exponer — Ensamble, Acabado Físico & Bitácora',
+                title_en: 'Mission 4: Present — Assembly, Finish & Final Report',
+                guide_es: 'Realiza el post-procesado físico, retira rebabas y documenta el resultado.',
+                resources_list: [
+                    { type: 'link', title: 'Guía de Bitácora Digital', url: '' },
+                ],
+                process_mode: 'manual_workshop',
+                micro_app_slug: null,
+                external_tool_name: '',
+                external_url: '',
+                process_instructions: 'Ensamble de la pieza real, fotografía de producto y registro de aprendizajes.',
+                deliverable_type: 'photo_assembly',
+                max_dim_mm: 60,
+                min_thickness_mm: 2.0,
+                allows_iteration: false,
+                skills_reward: ['Documentación Técnica', 'Comunicación de Proyecto'],
+                xp_reward: 100,
+                fabcoins_cost: 0,
+            },
+        ];
+        showToast('¡Plantilla del Ciclo Maker-Dual cargada con éxito!');
+    }
+};
+
 const removeMission = (index) => {
     if (form.missions.length > 1) {
         form.missions.splice(index, 1);
@@ -185,9 +296,10 @@ const addResourceToMission = (missionIndex) => {
         form.missions[missionIndex].resources_list = [];
     }
     form.missions[missionIndex].resources_list.push({
-        type: 'link', // 'video', 'pdf', 'link', 'template'
+        type: 'video', // 'video', 'animation', 'pdf', 'link', 'template'
         title: '',
         url: '',
+        animation_slug: props.animations?.[0]?.slug || '',
     });
 };
 
@@ -361,7 +473,7 @@ const submitForm = (statusMode = 'published') => {
         <!-- FORMULARIO POR PESTAÑAS -->
         <form @submit.prevent="submitForm('published')" class="space-y-6">
 
-            <!-- PESTAÑA 1: FICHA & MULTI-TECNOLOGÍAS -->
+            <!-- PESTAÑA 1: FICHA, MULTI-TECNOLOGÍAS & EDADES -->
             <div v-show="activeTab === 'general'" class="space-y-6 animate-fade-in">
                 
                 <!-- Datos Principales -->
@@ -415,7 +527,7 @@ const submitForm = (statusMode = 'published') => {
                     </div>
                 </div>
 
-                <!-- SELECTOR MULTI-TECNOLOGÍAS FABLAB -->
+                <!-- SELECTOR MULTI-TECNOLOGÍAS FABLAB (CHECKBOXES) -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <div>
@@ -450,26 +562,39 @@ const submitForm = (statusMode = 'published') => {
                     </div>
                 </div>
 
-                <!-- SEGMENTACIÓN: RANGOS DE EDAD & NIVEL DE DIFICULTAD -->
+                <!-- SEGMENTACIÓN: RANGOS DE EDAD MULTI-SELECCIÓN & DIFICULTAD -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-                    <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <span>🎯 Segmentación & Complejidad</span>
-                    </h2>
+                    <div>
+                        <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <span>👥 Rangos de Edad Aplicables (Selección Múltiple)</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Marca todos los grupos de edad donde esta técnica puede ser adaptada por el docente.
+                        </p>
+                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-300">Rango de Edad Sugerido:</label>
-                            <select
-                                v-model="form.age_range"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
-                            >
-                                <option value="kids_6_8">6 a 8 años (Kids / Exploradores)</option>
-                                <option value="juniors_9_12">9 a 12 años (Juniors / Creadores)</option>
-                                <option value="teens_13_16">13 a 16 años (Teens / Innovadores)</option>
-                                <option value="advanced_17_plus">17+ años (Avanzado / IEST / Superior)</option>
-                            </select>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <button
+                            v-for="opt in ageRangesOptions"
+                            :key="opt.id"
+                            type="button"
+                            @click="toggleAgeRange(opt.id)"
+                            :class="[
+                                'p-3.5 rounded-2xl border text-left transition flex items-center justify-between',
+                                form.age_ranges.includes(opt.id)
+                                    ? 'bg-purple-500/15 border-purple-500/40 text-white shadow-md'
+                                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                            ]"
+                        >
+                            <div>
+                                <span class="text-xs font-bold block">{{ opt.label }}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">{{ opt.badge }}</span>
+                            </div>
+                            <CheckCircle2 v-if="form.age_ranges.includes(opt.id)" class="w-4 h-4 text-purple-400 shrink-0" />
+                        </button>
+                    </div>
 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800/80">
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-300">Nivel de Dificultad:</label>
                             <select
@@ -483,16 +608,14 @@ const submitForm = (statusMode = 'published') => {
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-300">Animación Demostrativa:</label>
+                            <label class="block text-xs font-bold text-slate-300">Animación Demostrativa de Cabecera:</label>
                             <select
                                 v-model="form.animation_preset"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-cyan-500"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-cyan-300 font-bold focus:ring-2 focus:ring-cyan-500"
                             >
-                                <option value="art-toy-loop">🧸 Art Toy Extrusión Loop</option>
-                                <option value="stamp-press-loop">🔤 Sello & Estampado Loop</option>
-                                <option value="box-joint-loop">📦 Caja Finger-Joint Loop</option>
-                                <option value="gear-mesh-loop">⚙️ Engranajes Cinemáticos</option>
-                                <option value="lamp-waffle-loop">💡 Lámpara Waffle Grid</option>
+                                <option v-for="anim in animations" :key="anim.slug" :value="anim.slug">
+                                    ✨ {{ trans(anim.title_json) }}
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -502,7 +625,7 @@ const submitForm = (statusMode = 'published') => {
             <!-- PESTAÑA 2: MARCO CURRICULAR & COMPETENCIAS IEST -->
             <div v-show="activeTab === 'competencies'" class="space-y-6 animate-fade-in">
                 <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <h2 class="text-sm font-black text-white uppercase tracking-wider">
                                 🏛️ Marco Curricular de Evaluación
@@ -617,59 +740,79 @@ const submitForm = (statusMode = 'published') => {
                 </div>
             </div>
 
-            <!-- PESTAÑA 3: MISIONES MODULARES (CICLO MAKER-DUAL: IPO + ITERACIÓN) -->
-            <div v-show="activeTab === 'missions'" class="space-y-5 animate-fade-in">
+            <!-- PESTAÑA 3: MISIONES MODULARES EN FILAS VERTICALES APILADAS -->
+            <div v-show="activeTab === 'missions'" class="space-y-6 animate-fade-in">
                 
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+                <!-- Barra de Asistente Pedagógico -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl">
                     <div>
-                        <h2 class="text-sm font-black text-white">Ciclo Maker-Dual: Misiones Secuenciales (IPO)</h2>
-                        <p class="text-xs text-slate-400">Estructura cada paso con Recursos (Input), Herramienta (Process) y Entregable (Output).</p>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-bold">
+                                CICLO MAKER-DUAL
+                            </span>
+                        </div>
+                        <h2 class="text-sm font-black text-white">Ruta Secuencial de Misiones (IPO + Iteración)</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Estructura cada misión en 3 bloques verticales: Entradas, Proceso y Entregables.</p>
                     </div>
-                    <button
-                        type="button"
-                        @click="addMission"
-                        class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shrink-0"
-                    >
-                        <Plus class="w-4 h-4" />
-                        <span>AÑADIR MISIÓN</span>
-                    </button>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            @click="loadMakerCycleTemplate"
+                            class="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1.5"
+                            title="Precargar 4 misiones metodológicas estándar"
+                        >
+                            <Zap class="w-3.5 h-3.5" />
+                            <span>⚡ Cargar Ciclo Maker (4 Misiones)</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="addMission"
+                            class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5"
+                        >
+                            <Plus class="w-4 h-4" />
+                            <span>+ Añadir Misión en Blanco</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- LISTA DE MISIONES IPO -->
+                <!-- LISTA DE MISIONES (DISPOSICIÓN VERTICAL APILADA) -->
                 <div 
                     v-for="(mission, index) in form.missions" 
                     :key="index"
-                    class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4 relative"
+                    class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6 relative"
                 >
-                    <!-- Header Misión -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
-                        <div class="flex items-center gap-2 flex-1">
-                            <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 font-mono font-black text-xs flex items-center justify-center shrink-0">
+                    <!-- Cabecera de la Misión -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex items-center gap-3 flex-1">
+                            <span class="w-8 h-8 rounded-2xl bg-cyan-500/20 text-cyan-400 font-mono font-black text-sm flex items-center justify-center shrink-0 border border-cyan-500/30">
                                 {{ index + 1 }}
                             </span>
                             <input
                                 v-model="mission.title_es"
                                 type="text"
-                                placeholder="Título de la Misión (Ej: Misión 1: Bocetado del Art Toy)"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-bold"
+                                placeholder="Título de la Misión (Ej: Misión 1: Del Papel a la Idea)"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
                                 required
                             />
                         </div>
 
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-1.5 text-[11px] text-amber-400 font-bold font-mono">
-                                <span>⚡ Sparks (XP):</span>
+                        <div class="flex items-center gap-4">
+                            <!-- Puntos Maker (PM) -->
+                            <div class="flex items-center gap-1.5 text-xs text-amber-400 font-bold font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                                <span>⚡ Puntos Maker (PM):</span>
                                 <input
                                     v-model.number="mission.xp_reward"
                                     type="number"
-                                    class="w-16 bg-slate-950 border border-slate-700 rounded-lg p-1 text-center text-xs text-amber-300 font-bold"
+                                    class="w-16 bg-slate-900 border border-slate-700 rounded-lg p-1 text-center text-xs text-amber-300 font-bold"
                                 />
                             </div>
 
                             <button
                                 type="button"
                                 @click="removeMission(index)"
-                                class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                                class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
                                 title="Eliminar Misión"
                             >
                                 <Trash2 class="w-4 h-4" />
@@ -677,133 +820,170 @@ const submitForm = (statusMode = 'published') => {
                         </div>
                     </div>
 
-                    <!-- ESTRUCTURA IPO: 3 COLUMNAS -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
-                        
-                        <!-- 1. INPUT (RECURSOS DINÁMICOS) -->
-                        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-black text-cyan-400 flex items-center gap-1.5">
-                                    <span>📥 1. INPUT (Recursos)</span>
-                                </span>
-                                <button
-                                    type="button"
-                                    @click="addResourceToMission(index)"
-                                    class="text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 font-bold"
-                                >
-                                    + Recurso
-                                </button>
-                            </div>
-                            
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Guía / Instrucción Didáctica:</label>
-                                <textarea
-                                    v-model="mission.guide_es"
-                                    rows="2"
-                                    placeholder="Qué debe leer o preparar el alumno..."
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-slate-200"
-                                ></textarea>
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Video Bunny/YouTube URL:</label>
-                                <input
-                                    v-model="mission.video_url"
-                                    type="text"
-                                    placeholder="https://iframe.mediadelivery.net/..."
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-200"
-                                />
-                            </div>
-
-                            <!-- Lista de Recursos Extras -->
-                            <div v-if="mission.resources_list && mission.resources_list.length > 0" class="space-y-2 pt-1 border-t border-slate-900">
-                                <div 
-                                    v-for="(res, rIdx) in mission.resources_list" 
-                                    :key="rIdx"
-                                    class="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2"
-                                >
-                                    <select v-model="res.type" class="bg-slate-950 text-[10px] text-cyan-300 border-none rounded p-1">
-                                        <option value="link">🔗 Link</option>
-                                        <option value="pdf">📄 PDF</option>
-                                        <option value="template">📦 Archivo</option>
-                                    </select>
-                                    <input v-model="res.title" type="text" placeholder="Título" class="w-24 bg-slate-950 text-[10px] text-white border-none rounded p-1" />
-                                    <input v-model="res.url" type="text" placeholder="URL" class="flex-1 bg-slate-950 text-[10px] text-slate-300 border-none rounded p-1" />
-                                    <button type="button" @click="removeResourceFromMission(index, rIdx)" class="text-slate-500 hover:text-rose-400">✕</button>
-                                </div>
-                            </div>
+                    <!-- ============================================================= -->
+                    <!-- BLOQUE 1 VERTICAL: 📥 INPUT (RECURSOS DINÁMICOS & ANIMACIONES) -->
+                    <!-- ============================================================= -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800/90 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span class="text-xs font-black text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                                <span>📥 1. ENTRADA (INPUTS & RECURSOS DIDÁCTICOS)</span>
+                            </span>
+                            <button
+                                type="button"
+                                @click="addResourceToMission(index)"
+                                class="text-xs px-3 py-1 rounded-xl bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30 font-bold flex items-center gap-1"
+                            >
+                                <Plus class="w-3.5 h-3.5" />
+                                <span>Añadir Recurso</span>
+                            </button>
                         </div>
 
-                        <!-- 2. PROCESS (HERRAMIENTA: MICRO-APP / EXTERNO / MANUAL) -->
-                        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                            <span class="text-xs font-black text-blue-400 flex items-center gap-1.5">
-                                <span>⚙️ 2. PROCESS (Herramienta)</span>
-                            </span>
+                        <div class="space-y-1.5">
+                            <label class="text-xs text-slate-300 font-bold">Guía / Instrucción Didáctica Inicial:</label>
+                            <textarea
+                                v-model="mission.guide_es"
+                                rows="2"
+                                placeholder="Qué debe leer, observar o preparar el alumno antes de empezar..."
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            ></textarea>
+                        </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Tipo de Entorno de Trabajo:</label>
+                        <!-- LISTA DINÁMICA DE RECURSOS -->
+                        <div v-if="mission.resources_list && mission.resources_list.length > 0" class="space-y-2 pt-2">
+                            <div 
+                                v-for="(res, rIdx) in mission.resources_list" 
+                                :key="rIdx"
+                                class="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center gap-2.5"
+                            >
+                                <select v-model="res.type" class="bg-slate-950 text-xs text-cyan-300 border border-slate-800 rounded-xl p-2 font-bold shrink-0">
+                                    <option value="video">🎬 Video (Bunny/YouTube)</option>
+                                    <option value="animation">✨ Micro-Animación Didáctica</option>
+                                    <option value="pdf">📄 Ficha / Guía PDF</option>
+                                    <option value="link">🔗 Herramienta Externa (Link)</option>
+                                    <option value="template">📦 Archivo Plantilla (SVG/STL)</option>
+                                </select>
+
+                                <input 
+                                    v-model="res.title" 
+                                    type="text" 
+                                    placeholder="Título del recurso (Ej: Tutorial Tinkercad)" 
+                                    class="w-full md:w-56 bg-slate-950 text-xs text-white border border-slate-800 rounded-xl px-3 py-2" 
+                                />
+
+                                <!-- Si es Animación de Galería -->
+                                <select 
+                                    v-if="res.type === 'animation'" 
+                                    v-model="res.animation_slug" 
+                                    class="flex-1 bg-slate-950 text-xs text-purple-300 border border-slate-800 rounded-xl p-2 font-mono"
+                                >
+                                    <option v-for="anim in animations" :key="anim.slug" :value="anim.slug">
+                                        ✨ Galería: {{ trans(anim.title_json) }} ({{ anim.category }})
+                                    </option>
+                                </select>
+
+                                <!-- Si es Video / Link / PDF -->
+                                <input 
+                                    v-else 
+                                    v-model="res.url" 
+                                    type="text" 
+                                    placeholder="URL del recurso (https://...)" 
+                                    class="flex-1 bg-slate-950 text-xs text-slate-300 border border-slate-800 rounded-xl px-3 py-2 font-mono" 
+                                />
+
+                                <button type="button" @click="removeResourceFromMission(index, rIdx)" class="p-2 text-slate-500 hover:text-rose-400 shrink-0">
+                                    <Trash2 class="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================================= -->
+                    <!-- BLOQUE 2 VERTICAL: ⚙️ PROCESS (PROCESO HÍBRIDO: APP / EXTERNO) -->
+                    <!-- ============================================================= -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800/90 space-y-4">
+                        <div class="border-b border-slate-900 pb-2">
+                            <span class="text-xs font-black text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                <span>⚙️ 2. PROCESO (HERRAMIENTA CAD / CAM / TALLER)</span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs text-slate-300 font-bold">Modo de Trabajo:</label>
                                 <select
                                     v-model="mission.process_mode"
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-white"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold"
                                 >
-                                    <option value="micro_app">🛠️ Micro-App Interna (WebGL/Canvas)</option>
-                                    <option value="external_tool">🌐 Herramienta Externa (Tinkercad / Inkscape)</option>
-                                    <option value="manual_workshop">✍️ Trabajo Manual / Taller Físico</option>
+                                    <option value="micro_app">🛠️ Micro-App Interna Makerdu (WebGL/Canvas Autónomo)</option>
+                                    <option value="external_tool">🌐 Herramienta Externa (Autodesk Tinkercad, Inkscape, Canva)</option>
+                                    <option value="manual_workshop">✍️ Trabajo Manual en Taller Físico</option>
                                 </select>
                             </div>
 
-                            <!-- Si es Micro-App Interna -->
-                            <div v-if="mission.process_mode === 'micro_app'" class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Seleccionar Micro-App:</label>
+                            <!-- Si usa Micro-App -->
+                            <div v-if="mission.process_mode === 'micro_app'" class="space-y-1.5">
+                                <label class="text-xs text-slate-300 font-bold">Seleccionar Micro-App Asignada:</label>
                                 <select
                                     v-model="mission.micro_app_slug"
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-cyan-300 font-bold"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-cyan-300 font-bold"
                                 >
-                                    <option :value="null">-- Seleccionar de las 19 Apps --</option>
+                                    <option :value="null">-- Elegir entre las 19 Micro-Apps --</option>
                                     <option v-for="app in microApps" :key="app.slug" :value="app.slug">
-                                        {{ app.icon }} {{ app.name }}
+                                        {{ app.icon }} {{ app.name }} ({{ app.category }})
                                     </option>
                                 </select>
                             </div>
 
-                            <!-- Si es Herramienta Externa -->
-                            <div v-else-if="mission.process_mode === 'external_tool'" class="space-y-2">
-                                <input
-                                    v-model="mission.external_tool_name"
-                                    type="text"
-                                    placeholder="Nombre: Ej. Autodesk Tinkercad"
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-white"
-                                />
-                                <input
-                                    v-model="mission.external_url"
-                                    type="text"
-                                    placeholder="URL Externa: https://tinkercad.com/..."
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 font-mono"
-                                />
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Instrucción Técnica del Proceso:</label>
-                                <textarea
-                                    v-model="mission.process_instructions"
-                                    rows="2"
-                                    placeholder="Qué debe modelar o cómo operar la herramienta..."
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-slate-200"
-                                ></textarea>
+                            <!-- Si usa Herramienta Externa -->
+                            <div v-else-if="mission.process_mode === 'external_tool'" class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-slate-300 font-bold">Nombre del Software:</label>
+                                    <input
+                                        v-model="mission.external_tool_name"
+                                        type="text"
+                                        placeholder="Ej: Autodesk Tinkercad"
+                                        class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-300 font-bold">Enlace Externo:</label>
+                                    <input
+                                        v-model="mission.external_url"
+                                        type="text"
+                                        placeholder="https://www.tinkercad.com"
+                                        class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 3. OUTPUT (ENTREGABLE, REGLAS & ECONOMÍA DUAL) -->
-                        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                            <span class="text-xs font-black text-emerald-400 flex items-center gap-1.5">
-                                <span>📤 3. OUTPUT (Entregable)</span>
-                            </span>
+                        <div class="space-y-1.5">
+                            <label class="text-xs text-slate-300 font-bold">Instrucción Técnica del Proceso:</label>
+                            <textarea
+                                v-model="mission.process_instructions"
+                                rows="2"
+                                placeholder="Cómo debe operar la herramienta o qué pasos seguir para modelar..."
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            ></textarea>
+                        </div>
+                    </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-slate-400 font-bold">Tipo de Entregable:</label>
+                    <!-- ============================================================= -->
+                    <!-- BLOQUE 3 VERTICAL: 📤 OUTPUT (ENTREGABLE, REGLAS & FABCOINS)  -->
+                    <!-- ============================================================= -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800/90 space-y-4">
+                        <div class="border-b border-slate-900 pb-2 flex items-center justify-between">
+                            <span class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                                <span>📤 3. SALIDA (ENTREGABLE, REGLAS FÍSICAS & FABCOINS)</span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs text-slate-300 font-bold">Tipo de Entregable:</label>
                                 <select
                                     v-model="mission.deliverable_type"
-                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-emerald-300 font-bold"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-emerald-300 font-bold"
                                 >
                                     <option value="photo_sketch">📸 Foto de Boceto en Papel</option>
                                     <option value="svg_laser">📐 Archivo Vectorial SVG Láser</option>
@@ -814,36 +994,47 @@ const submitForm = (statusMode = 'published') => {
                                 </select>
                             </div>
 
-                            <!-- Reglas Físicas de Validación -->
-                            <div class="grid grid-cols-2 gap-2 pt-1">
-                                <div>
-                                    <label class="text-[10px] text-slate-400">Máx Dim (mm):</label>
-                                    <input
-                                        v-model.number="mission.max_dim_mm"
-                                        type="number"
-                                        placeholder="60"
-                                        class="w-full bg-slate-900 border border-slate-800 rounded-xl p-1.5 text-xs text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-amber-400 font-bold">🪙 FabCoins (FC):</label>
-                                    <input
-                                        v-model.number="mission.fabcoins_cost"
-                                        type="number"
-                                        placeholder="0"
-                                        class="w-full bg-slate-900 border border-slate-800 rounded-xl p-1.5 text-xs text-amber-400 font-bold"
-                                    />
-                                </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs text-slate-300 font-bold">Dimensión Máx (mm):</label>
+                                <input
+                                    v-model.number="mission.max_dim_mm"
+                                    type="number"
+                                    placeholder="60"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-white"
+                                />
                             </div>
 
-                            <!-- Bucle de Iteración Ágil -->
-                            <div class="pt-2 border-t border-slate-900 flex items-center justify-between">
-                                <label class="text-[10px] text-slate-400 flex items-center gap-1.5 cursor-pointer">
-                                    <input type="checkbox" v-model="mission.allows_iteration" class="rounded text-cyan-500 bg-slate-900 border-slate-800" />
-                                    <span>Permitir Bucle de Iteración</span>
-                                </label>
-                                <span class="text-[9px] font-mono text-cyan-400" v-if="mission.allows_iteration">🔁 Re-diseño</span>
+                            <div class="space-y-1.5">
+                                <label class="text-xs text-slate-300 font-bold">Grosor Mínimo (mm):</label>
+                                <input
+                                    v-model.number="mission.min_thickness_mm"
+                                    type="number"
+                                    step="0.5"
+                                    placeholder="2.0"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-white"
+                                />
                             </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs text-amber-400 font-bold">🪙 Saldo FabCoins (FC):</label>
+                                <input
+                                    v-model.number="mission.fabcoins_cost"
+                                    type="number"
+                                    placeholder="0"
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-amber-400 font-bold"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Bucle de Iteración Ágil -->
+                        <div class="pt-3 border-t border-slate-900 flex items-center justify-between">
+                            <label class="text-xs text-slate-300 font-bold flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" v-model="mission.allows_iteration" class="rounded text-cyan-500 bg-slate-900 border-slate-800 w-4 h-4" />
+                                <span>Permitir Bucle de Iteración (Falla Rápido, Aprende Rápido)</span>
+                            </label>
+                            <span class="text-xs font-mono text-cyan-400" v-if="mission.allows_iteration">
+                                🔁 Habilita Re-envío y Mejora Continua
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -895,7 +1086,7 @@ const submitForm = (statusMode = 'published') => {
                 <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold">
-                            {{ form.age_range }}
+                            {{ form.age_ranges.length }} Grupos de Edad
                         </span>
                         <span class="text-[10px] font-mono text-slate-500 font-bold uppercase">
                             {{ form.difficulty_level }}
@@ -926,7 +1117,7 @@ const submitForm = (statusMode = 'published') => {
                     <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-cyan-400">
                         <span>{{ form.missions.length }} Misiones IPO</span>
                         <span class="text-amber-400 font-mono">
-                            ⚡ {{ form.missions.reduce((acc, m) => acc + (m.xp_reward || 0), 0) }} XP Total
+                            ⚡ {{ form.missions.reduce((acc, m) => acc + (m.xp_reward || 0), 0) }} PM Total
                         </span>
                     </div>
                 </div>

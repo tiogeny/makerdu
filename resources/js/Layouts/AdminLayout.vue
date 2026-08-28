@@ -38,6 +38,12 @@ const navItems = [
         icon: Box,
     },
     {
+        name: 'Galería de Animaciones',
+        nameEn: 'Animation Gallery',
+        route: 'admin.animations.index',
+        icon: Sparkles,
+    },
+    {
         name: 'Copiloto IA Gemini',
         nameEn: 'Gemini AI Copilot',
         route: 'admin.ai-sandbox.index',
