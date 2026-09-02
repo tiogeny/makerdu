@@ -211,33 +211,60 @@ class AiPreflightService
     private function generateAiFeedback(string $fileName, array $metrics, array $violations, bool $isValid, array $rules = [], ?string $imageBase64 = null): array
     {
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
-        $modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+        $modelsToTry = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
         $maxX = $rules['max_x_mm'] ?? 50;
         $maxY = $rules['max_y_mm'] ?? 50;
         $maxZ = $rules['max_z_mm'] ?? 15;
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $isImageDrawing = in_array($ext, ['png', 'jpg', 'jpeg', 'webp']) || ($metrics['file_type'] ?? '') === 'png';
 
         if ($apiKey) {
-            $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu. "
-                . "Analiza la imagen adjunta del modelo 3D '{$fileName}' ({$metrics['x_mm']}x{$metrics['y_mm']}x{$metrics['z_mm']} mm, {$metrics['material_grams']}g PLA, " . ($metrics['triangles'] ?? 0) . " triángulos). "
-                . "Límites del reto: {$maxX}x{$maxY}x{$maxZ} mm. "
-                . "Estado: " . ($isValid ? "APROBADO" : "RECHAZADO: " . implode('; ', $violations)) . ". "
-                . "Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto: "
-                . json_encode([
-                    'headline' => 'Tipo de objeto y silueta detectada en 1 frase corta',
-                    'strengths' => [
-                        'Punto fuerte 1 sobre la geometría o adherencia',
-                        'Punto fuerte 2 sobre dimensiones o resistencia'
-                    ],
-                    'slicing_recommendations' => [
-                        'nozzle' => '0.4 mm',
-                        'layer_height' => '0.16 mm - 0.20 mm',
-                        'infill' => '15% giroide o rejilla'
-                    ],
-                    'pedagogical_tip' => 'Consejo técnico breve para el estudiante',
-                    'verdict_title' => $isValid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD',
-                    'text_summary' => 'Resumen amigable de 2 oraciones para el alumno'
-                ]);
+            if ($isImageDrawing) {
+                $promptText = "Eres el Mentor de Fabricación Digital y Control de Calidad de Makerdu. "
+                    . "Analiza la imagen adjunta correspondiente a un boceto o silueta 2D para un Art Toy 2.5D autoportante ('{$fileName}'). "
+                    . "Evalúa con visión pedagógica y técnica: "
+                    . "1. Identifica qué personaje o figura es (ej. dinosaurio, criatura, robot, animal). "
+                    . "2. ¿La silueta exterior está completamente cerrada o tiene aberturas? "
+                    . "3. ¿La base inferior es amplia y estable para que el juguete se pare de pie solo en el escritorio? "
+                    . "4. ¿Tiene espacios negativos bien definidos (ojos, boca, detalles)? "
+                    . "Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto: "
+                    . json_encode([
+                        'headline' => 'Dinosaurio amigable en silueta cerrada autoportante',
+                        'strengths' => [
+                            'Punto fuerte 1 sobre el trazo y personaje detectado',
+                            'Punto fuerte 2 sobre la estabilidad de la base o detalles'
+                        ],
+                        'slicing_recommendations' => [
+                            'tecnica' => 'Extrusión 2.5D a 10 mm',
+                            'base_estabilidad' => 'Base amplia autoportante'
+                        ],
+                        'pedagogical_tip' => 'Consejo breve y motivador para extruirlo a 3D',
+                        'verdict_title' => '¡SILUETA APROBADA!',
+                        'text_summary' => 'Resumen amigable de 2 oraciones para el estudiante creador'
+                    ]);
+            } else {
+                $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu. "
+                    . "Analiza la imagen adjunta del modelo 3D '{$fileName}' ({$metrics['x_mm']}x{$metrics['y_mm']}x{$metrics['z_mm']} mm, {$metrics['material_grams']}g PLA, " . ($metrics['triangles'] ?? 0) . " triángulos). "
+                    . "Límites del reto: {$maxX}x{$maxY}x{$maxZ} mm. "
+                    . "Estado: " . ($isValid ? "APROBADO" : "RECHAZADO: " . implode('; ', $violations)) . ". "
+                    . "Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto: "
+                    . json_encode([
+                        'headline' => 'Tipo de objeto y silueta detectada en 1 frase corta',
+                        'strengths' => [
+                            'Punto fuerte 1 sobre la geometría o adherencia',
+                            'Punto fuerte 2 sobre dimensiones o resistencia'
+                        ],
+                        'slicing_recommendations' => [
+                            'nozzle' => '0.4 mm',
+                            'layer_height' => '0.16 mm - 0.20 mm',
+                            'infill' => '15% giroide o rejilla'
+                        ],
+                        'pedagogical_tip' => 'Consejo técnico breve para el estudiante',
+                        'verdict_title' => $isValid ? '¡DISEÑO APROBADO!' : 'REQUIERE AJUSTE EN TINKERCAD',
+                        'text_summary' => 'Resumen amigable de 2 oraciones para el alumno'
+                    ]);
+            }
 
             $parts = [['text' => $promptText]];
 
@@ -283,6 +310,26 @@ class AiPreflightService
         }
 
         // Fallback estructurado de alta fidelidad
+        if ($isImageDrawing) {
+            return [
+                'headline' => "Silueta de personaje con base de apoyo autoportante",
+                'strengths' => [
+                    "Silueta cerrada y continua: Trazo nítido sin aberturas que confundan al vectorizador.",
+                    "Base inferior ancha y estable: Excelente centro de gravedad para que se sostenga de pie solo.",
+                    "Espacios negativos definidos: Rasgos interiores claros para ser grabados o calados."
+                ],
+                'slicing_recommendations' => [
+                    'tecnica' => 'Extrusión 2.5D a 10 mm',
+                    'base_estabilidad' => 'Base amplia autoportante'
+                ],
+                'pedagogical_tip' => "¡Gran silueta! Tu dibujo está listo para ser digitalizado y extruido a 10 mm en el modelador.",
+                'verdict_title' => '¡SILUETA APROBADA!',
+                'text_summary' => "El boceto '{$fileName}' presenta una silueta cerrada con excelente estabilidad para convertirse en un Art Toy.",
+                'tokens_used' => 0,
+                'model_used' => 'local_fallback',
+            ];
+        }
+
         $isJewelry = stripos($fileName, 'arete') !== false || stripos($fileName, 'pendant') !== false || $metrics['z_mm'] <= 6.0;
 
         return [

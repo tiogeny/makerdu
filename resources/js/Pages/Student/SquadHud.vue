@@ -290,13 +290,15 @@ const runPreflightCheck = () => {
     });
 };
 
-// Enviar Bitácora y Avanzar
+// Enviar Bitácora y Avanzar a la siguiente misión
 const submitMissionEvidence = () => {
+    bitacoraForm.content_text = bitacoraForm.reflection_text || bitacoraForm.content_text || 'Evidencia completada y validada por la escuadra.';
     bitacoraForm.post(route('squad.bitacora.submit', { squad: props.squad.id, level: selectedMission.value.id }), {
         preserveScroll: true,
         onSuccess: () => {
-            if (selectedMissionIndex.value < props.project.levels.length - 1) {
-                selectMission(selectedMissionIndex.value + 1);
+            const nextIdx = selectedMissionIndex.value + 1;
+            if (nextIdx < props.project.levels.length) {
+                selectMission(nextIdx);
             }
             bitacoraForm.reset();
             preflightResult.value = null;

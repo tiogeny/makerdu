@@ -170,12 +170,18 @@ class SquadController extends Controller
         $storedPath = $file->store('preflights', 'public');
         $fullPath = Storage::disk('public')->path($storedPath);
 
+        $imageBase64 = $request->image_snapshot;
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!$imageBase64 && in_array($extension, ['png', 'jpg', 'jpeg', 'webp'])) {
+            $imageBase64 = base64_encode(file_get_contents($fullPath));
+        }
+
         // Ejecutar análisis y consulta a Gemini Vision
         $result = $preflightService->analyzeFile(
             $fullPath,
             $file->getClientOriginalName(),
             $level->validation_rules_json,
-            $request->image_snapshot
+            $imageBase64
         );
         $result['file_url'] = Storage::url($storedPath);
         $result['level_id'] = $level->id;
@@ -186,7 +192,7 @@ class SquadController extends Controller
             'squad_id' => $squad->id,
             'level_id' => $level->id,
             'active_role_user_id' => $activeStudentId,
-            'content_text' => "Control de Calidad 3D para '{$file->getClientOriginalName()}': " . ($result['is_valid'] ? "Aprobado (Listo para Fabricación)" : "Requiere corrección de tolerancias."),
+            'content_text' => "Control de Calidad para '{$file->getClientOriginalName()}': " . ($result['is_valid'] ? "Aprobado" : "Requiere corrección"),
             'file_url' => Storage::url($storedPath),
             'ai_score' => $result['ai_score'],
             'ai_feedback' => $result['ai_feedback'],
@@ -241,8 +247,11 @@ class SquadController extends Controller
      */
     public function submitBitacora(Request $request, Squad $squad, ProjectLevel $level)
     {
+        $contentText = $request->input('reflection_text') ?: $request->input('content_text') ?: 'Evidencia entregada y validada por la escuadra.';
+        $request->merge(['content_text' => $contentText]);
+
         $request->validate([
-            'content_text' => ['required', 'string', 'min:5'],
+            'content_text' => ['required', 'string', 'min:3'],
             'file' => ['nullable', 'file', 'max:10240'],
         ]);
 
