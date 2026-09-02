@@ -667,15 +667,15 @@ const changeRole = (newRole) => {
             <div 
                 :class="isDarkTheme 
                     ? 'bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 border-slate-800' 
-                    : 'bg-gradient-to-r from-cyan-50/70 via-white to-sky-50/70 border-cyan-200/80 shadow-sm'"
+                    : 'bg-white border-slate-200 shadow-sm'"
                 class="rounded-3xl border p-5 sm:p-6 transition-all duration-300 relative overflow-hidden"
             >
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="space-y-1.5 flex-1">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div class="space-y-2 flex-1">
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <Rocket class="w-3 h-3" />
-                                <span>RETO EMPRENDEDOR</span>
+                                <span>RETO DE PRODUCTO FÍSICO</span>
                             </span>
                             <span class="text-xs font-mono text-slate-400 font-bold">
                                 Ciclo Maker de 5 Misiones
@@ -683,28 +683,28 @@ const changeRole = (newRole) => {
                         </div>
 
                         <!-- TÍTULO ENFOCADO AL MUNDO EMPRENDEDOR -->
-                        <h1 class="text-lg sm:text-2xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                            {{ squad.classroom?.custom_title || 'Crea tu Primer Producto Físico: Lanza tu Colección de Art Toys 2.5D' }}
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                            {{ squad.classroom?.custom_title || 'Lanza tu Colección de Art Toys 2.5D' }}
                         </h1>
 
-                        <!-- DESCRIPCIÓN CENTRADA EN EL ESTUDIANTE Y CREADOR -->
-                        <p class="text-xs sm:text-sm leading-relaxed max-w-3xl" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
-                            ¿Te imaginas crear un personaje que hoy solo vive en tu imaginación y mañana tenerlo de pie sobre tu mesa en plástico real? Dibuja tu criatura con plumón, dale volumen digital y fabrícala en el taller para lanzarla como tu primer producto de autor.
+                        <!-- DESCRIPCIÓN CONCISA Y MOTIVADORA -->
+                        <p class="text-xs sm:text-sm leading-relaxed max-w-2xl" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
+                            Diseña tu personaje de autor en papel, dale volumen digital y fabrícala en el taller para tener tu primer producto coleccionable de pie en tu escritorio.
                         </p>
 
-                        <!-- FRASE PUENTE EXPLICATIVA (Ruta del Reto a la izquierda) -->
-                        <p class="text-[11px] font-mono font-bold text-cyan-700 dark:text-cyan-400 pt-1 flex items-center gap-1.5">
-                            <span>➔</span>
-                            <span>Para conquistar este reto, a tu izquierda tienes tu <strong>Ruta del Reto</strong>. En cada misión contarás con recursos visuales, herramientas interactivas y a tu Copiloto IA para validar tu avance.</span>
-                        </p>
+                        <!-- FRASE GUÍA SUTIL -->
+                        <div class="pt-1 flex items-center gap-2 text-xs font-mono text-cyan-600 dark:text-cyan-400 font-bold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                            <span>A tu izquierda tienes tu <strong>Ruta del Reto</strong> para avanzar paso a paso con tu Copiloto IA.</span>
+                        </div>
                     </div>
 
-                    <!-- SHOWCASE VISUAL VIVO DEL RETO (Resultado Físico Deseado) -->
+                    <!-- SHOWCASE VISUAL DE LA META DEL PRODUCTO -->
                     <div 
-                        :class="isDarkTheme ? 'bg-slate-950/80 border-slate-800' : 'bg-white border-slate-200 shadow-md'"
-                        class="p-3.5 sm:p-4 rounded-3xl border flex items-center gap-4 shrink-0 max-w-sm"
+                        :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80 shadow-inner'"
+                        class="p-4 rounded-3xl border flex items-center gap-4 shrink-0 max-w-sm"
                     >
-                        <div class="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center shrink-0 group overflow-hidden">
+                        <div class="relative w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center shrink-0 group overflow-hidden">
                             <img 
                                 src="/images/digitoys/digifeliz.png" 
                                 alt="Art Toy 2.5D Autoportante" 
@@ -715,17 +715,14 @@ const changeRole = (newRole) => {
                             </span>
                         </div>
                         <div class="space-y-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span class="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider block">
-                                    META DEL PRODUCTO FÍSICO
-                                </span>
-                            </div>
-                            <strong class="text-xs sm:text-sm font-black leading-tight block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                            <span class="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider block">
+                                META DEL PRODUCTO
+                            </span>
+                            <strong class="text-sm font-black leading-tight block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
                                 Art Toy 2.5D Autoportante
                             </strong>
-                            <p class="text-[10px] text-slate-400 leading-snug">
-                                En PLA biodegradable. Base 100% plana que se para sola en tu mesa sin soportes.
+                            <p class="text-[11px] text-slate-400 leading-snug">
+                                PLA biodegradable · Base plana que se para sola en tu mesa sin soportes.
                             </p>
                         </div>
                     </div>
@@ -835,7 +832,7 @@ const changeRole = (newRole) => {
                 <div class="flex items-center justify-between pb-1">
                     <div>
                         <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
-                            ETAPA {{ selectedMissionIndex + 1 }} DEL PROYECTO
+                            MISIÓN {{ selectedMissionIndex + 1 }} DE 5
                         </span>
                         <h2 class="text-xl sm:text-2xl font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
                             {{ selectedMission.title }}
@@ -862,7 +859,7 @@ const changeRole = (newRole) => {
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- FASE 1: INSPIRACIÓN & TUTORIAL (Input)                    -->
+                <!-- FASE 1: RECURSOS PARA TU MISIÓN (Input)                   -->
                 <!-- ========================================================= -->
                 <div 
                     id="phase-1"
@@ -884,7 +881,7 @@ const changeRole = (newRole) => {
                                 <span v-else>1</span>
                             </span>
                             <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Inspiración & Micro-Tutorial
+                                Paso 1: Recursos para tu Misión
                             </span>
                         </div>
 
@@ -899,7 +896,7 @@ const changeRole = (newRole) => {
                             class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
                         >
                             <Check class="w-3.5 h-3.5" />
-                            <span>Tutorial visto</span>
+                            <span>Recursos listos</span>
                         </span>
                     </div>
 
@@ -935,6 +932,43 @@ const changeRole = (newRole) => {
                         <div v-html="getMissionAnimation(selectedMission)" class="w-full"></div>
                     </div>
 
+                    <!-- 4 REGLAS DE ORO MAKER DEL BOCETO (Exclusivo Misión 1) -->
+                    <div v-if="selectedMissionIndex === 0" class="pt-2 space-y-2">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                            📋 4 Reglas de Oro para que tu Dibujo se Convierta en Juguete 3D:
+                        </span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
+                                <span class="text-base">✍️</span>
+                                <div class="text-xs space-y-0.5">
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Plumón Negro Grueso</strong>
+                                    <p class="text-[11px] text-slate-400 leading-tight">Trazo nítido y continuo sobre papel blanco. Evita sombras a lápiz.</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
+                                <span class="text-base">📐</span>
+                                <div class="text-xs space-y-0.5">
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Base Plana Autoportante</strong>
+                                    <p class="text-[11px] text-slate-400 leading-tight">La base debe medir al menos 40% del ancho para no caerse.</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
+                                <span class="text-base">🔒</span>
+                                <div class="text-xs space-y-0.5">
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Silueta 100% Cerrada</strong>
+                                    <p class="text-[11px] text-slate-400 leading-tight">Cierra el contorno exterior sin huecos para poder extruir el sólido.</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
+                                <span class="text-base">👁️</span>
+                                <div class="text-xs space-y-0.5">
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Regla del Estarcido</strong>
+                                    <p class="text-[11px] text-slate-400 leading-tight">Conecta pupilas o detalles interiores con puentes de unión.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Botón para avanzar a la Fase 2 con auto-scroll -->
                     <div class="pt-2 flex justify-end">
                         <button
@@ -942,7 +976,7 @@ const changeRole = (newRole) => {
                             @click="unlockPhase(2, 'phase-2')"
                             class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-cyan-500/20 cursor-pointer"
                         >
-                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS A DISEÑAR!' }}</span>
+                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS A DIBUJAR!' }}</span>
                             <ArrowDown class="w-4 h-4" />
                         </button>
                     </div>
@@ -971,7 +1005,7 @@ const changeRole = (newRole) => {
                                 <span v-else>2</span>
                             </span>
                             <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Acción Maker: Mesa de Trabajo & Herramientas
+                                Paso 2: Mesa de Trabajo & Herramientas
                             </span>
                         </div>
 
@@ -1166,7 +1200,7 @@ const changeRole = (newRole) => {
                                 3
                             </span>
                             <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Entrega de Evidencia & Auditoría en Vivo con Gemini
+                                {{ selectedMissionIndex === 0 ? 'Paso 3: Entrega de Boceto & Control de Calidad IA' : 'Paso 3: Entrega de Evidencia & Control de Calidad IA' }}
                             </span>
                         </div>
 
@@ -1189,7 +1223,9 @@ const changeRole = (newRole) => {
                             <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
                                 {{ bitacoraForm.file.name }}
                             </p>
-                            <p class="text-[10px] text-slate-400">Presiona el botón verde para auditar con Gemini IA</p>
+                            <p class="text-[10px] text-slate-400">
+                                {{ selectedMissionIndex === 0 ? 'Presiona el botón verde para validar tu silueta con Gemini IA' : 'Presiona el botón verde para auditar con Gemini IA' }}
+                            </p>
                         </div>
 
                         <!-- Estado B: Evidencia ya guardada en base de datos previamente -->
@@ -1215,10 +1251,18 @@ const changeRole = (newRole) => {
                         <div v-else class="space-y-2">
                             <UploadCloud class="w-8 h-8 text-emerald-500 mx-auto" />
                             <p class="text-xs font-bold" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                                Arrastra tu boceto o archivo STL aquí o haz clic para subir
+                                <template v-if="selectedMissionIndex === 0">
+                                    Toma una foto de tu dibujo en papel y arrástrala aquí o haz clic para subir
+                                </template>
+                                <template v-else-if="selectedMissionIndex === 1">
+                                    Arrastra tu modelo digital extruido (STL 3D o SVG) o haz clic para subir
+                                </template>
+                                <template v-else>
+                                    Arrastra tu foto o archivo de evidencia aquí o haz clic para subir
+                                </template>
                             </p>
                             <p class="text-[10px] text-slate-400 font-mono">
-                                Acepta fotos con cámara (JPG/PNG) o archivos digitales (STL 3D / SVG)
+                                {{ selectedMissionIndex === 0 ? 'Acepta fotos nítidas con celular o cámara (JPG, PNG o WEBP)' : 'Acepta fotos (JPG/PNG) o modelos digitales (STL / SVG)' }}
                             </p>
                         </div>
                     </div>
@@ -1237,7 +1281,7 @@ const changeRole = (newRole) => {
                         >
                             <RefreshCw v-if="preflightLoading" class="w-4 h-4 animate-spin" />
                             <Sparkles v-else class="w-4 h-4" />
-                            <span>{{ preflightLoading ? 'AUDITANDO CON GEMINI IA...' : '🔍 AUDITAR CON COPILOTO IA' }}</span>
+                            <span>{{ preflightLoading ? 'AUDITANDO CON GEMINI IA...' : (selectedMissionIndex === 0 ? '✨ AUDITAR SILUETA CON GEMINI IA' : '🔍 AUDITAR CON COPILOTO IA') }}</span>
                         </button>
                     </div>
 
@@ -1270,15 +1314,15 @@ const changeRole = (newRole) => {
                         </div>
                     </div>
 
-                    <!-- PREGUNTA DE CIERRE REFLEXIVO DEL EXCEL ABR FABLAB -->
-                    <div class="pt-3 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
+                    <!-- PREGUNTA DE CIERRE REFLEXIVO (Únicamente al final del reto en Misión 5) -->
+                    <div v-if="selectedMissionIndex === 4" class="pt-3 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
                         <label class="block text-xs font-bold mb-1" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                            Cierre Reflexivo del Creador / Equipo: ¿Qué funcionó bien y qué mejorarían para la siguiente iteración?
+                            🎓 Cierre Reflexivo del Emprendedor Maker: ¿Qué fue lo más desafiante de todo el ciclo y qué mejorarías para tu próxima colección?
                         </label>
                         <textarea
                             v-model="bitacoraForm.reflection_text"
                             rows="2"
-                            placeholder="Escribe una breve conclusión o aprendizaje de la mesa de trabajo..."
+                            placeholder="Escribe tu reflexión final para que quede registrada en tu Pasaporte Maker..."
                             class="w-full rounded-2xl border p-3 text-xs leading-relaxed"
                             :class="isDarkTheme ? 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'"
                         ></textarea>
@@ -1295,7 +1339,7 @@ const changeRole = (newRole) => {
                             :disabled="bitacoraForm.processing || !bitacoraForm.file"
                             class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-40 cursor-pointer"
                         >
-                            <span>COMPLETAR MISIÓN & SUMAR PUNTOS</span>
+                            <span>{{ selectedMissionIndex === 4 ? 'LANZAR PRODUCTO & GRADUARSE' : `COMPLETAR MISIÓN ${selectedMissionIndex + 1} & SUMAR PUNTOS` }}</span>
                             <ArrowRight class="w-4 h-4" />
                         </button>
                     </div>
