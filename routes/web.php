@@ -10,7 +10,8 @@ use App\Http\Controllers\MicroAppManagerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectBuilderController;
 use App\Http\Controllers\StudentAuthController;
-use App\Http\Controllers\SquadController;
+use App\Http\Controllers\StudioController;
+use App\Http\Controllers\SquadController; // Alias retrocompatible
 use App\Http\Controllers\TeacherWarRoomController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -82,14 +83,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/teacher/classroom/{classroom}/reset-customization', [TeacherWarRoomController::class, 'resetCustomization'])->name('teacher.reset-customization');
 
     // Estudio Maker y Operaciones del Taller
-    Route::get('/studio', [SquadController::class, 'hud'])->name('student.studio');
-    Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud'); // Alias retrocompatible
-    Route::post('/squad/join-team', [SquadController::class, 'joinTeam'])->name('squad.join-team');
-    Route::post('/squad/set-individual', [SquadController::class, 'setIndividualMode'])->name('squad.set-individual');
-    Route::post('/squad/{squad}/switch-role', [SquadController::class, 'switchRole'])->name('squad.switch-role');
-    Route::post('/squad/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('squad.preflight');
-    Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');
-    Route::post('/squad/{squad}/level/{level}/bitacora', [SquadController::class, 'submitBitacora'])->name('squad.bitacora.submit');
+    Route::get('/studio', [StudioController::class, 'hud'])->name('student.studio');
+    Route::get('/hud', [StudioController::class, 'hud'])->name('student.hud'); // Alias retrocompatible
+    Route::post('/squad/join-team', [StudioController::class, 'joinTeam'])->name('squad.join-team');
+    Route::post('/squad/set-individual', [StudioController::class, 'setIndividualMode'])->name('squad.set-individual');
+    Route::post('/squad/{squad}/switch-role', [StudioController::class, 'switchRole'])->name('squad.switch-role');
+    Route::post('/squad/{squad}/pre-flight', [StudioController::class, 'preflight'])->name('squad.preflight');
+    Route::post('/squad/{squad}/level/{level}/fabricate', [StudioController::class, 'confirmFabrication'])->name('squad.fabricate');
+    Route::post('/squad/{squad}/level/{level}/bitacora', [StudioController::class, 'submitBitacora'])->name('squad.bitacora.submit');
     Route::post('/squad/{squad}/ai-chat', [AiTutorChatController::class, 'chat'])->name('squad.ai-chat');
     Route::get('/squad/{squad}/passport', [TeacherWarRoomController::class, 'passport'])->name('squad.passport');
 
