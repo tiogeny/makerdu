@@ -306,6 +306,16 @@ const bitacoraForm = useForm({
 const preflightLoading = ref(false);
 const preflightResult = ref(props.flash?.preflight_result || null);
 
+// Evidencia previa ya guardada en base de datos para la misión activa
+const existingEvidence = computed(() => {
+    return (props.bitacoras || []).find(b => b.level_id === selectedMission.value.id && b.file_url);
+});
+
+const isImageFile = (url) => {
+    if (!url) return false;
+    return /\.(png|jpe?g|webp|gif)$/i.test(url);
+};
+
 // Manejo de archivo
 const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -1011,7 +1021,36 @@ const changeRole = (newRole) => {
                             accept=".stl,.svg,.jpg,.jpeg,.png,.webp"
                             class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                         />
-                        <div v-if="!bitacoraForm.file" class="space-y-2">
+                        <!-- Estado A: Archivo recién seleccionado por el usuario -->
+                        <div v-if="bitacoraForm.file" class="space-y-1">
+                            <CheckCircle2 class="w-7 h-7 text-emerald-500 mx-auto" />
+                            <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
+                                {{ bitacoraForm.file.name }}
+                            </p>
+                            <p class="text-[10px] text-slate-400">Presiona el botón verde para auditar con Gemini IA</p>
+                        </div>
+
+                        <!-- Estado B: Evidencia ya guardada en base de datos previamente -->
+                        <div v-else-if="existingEvidence" class="space-y-2 py-1">
+                            <div v-if="isImageFile(existingEvidence.file_url)" class="relative inline-block">
+                                <img :src="existingEvidence.file_url" alt="Evidencia Guardada" class="max-h-40 mx-auto rounded-2xl border shadow-md object-contain bg-white p-1" />
+                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white font-mono text-[9px] font-black shadow">
+                                    ✓ GUARDADA
+                                </span>
+                            </div>
+                            <div v-else class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-400">
+                                📦 Archivo digital entregado (STL 3D / SVG)
+                            </div>
+                            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                Tu evidencia ya está registrada para esta misión.
+                            </p>
+                            <p class="text-[10px] text-slate-400">
+                                Arrastra o haz clic aquí si deseas reemplazarla por una nueva versión.
+                            </p>
+                        </div>
+
+                        <!-- Estado C: Caja vacía inicial -->
+                        <div v-else class="space-y-2">
                             <UploadCloud class="w-8 h-8 text-emerald-500 mx-auto" />
                             <p class="text-xs font-bold" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
                                 Arrastra tu boceto o archivo STL aquí o haz clic para subir
@@ -1019,13 +1058,6 @@ const changeRole = (newRole) => {
                             <p class="text-[10px] text-slate-400 font-mono">
                                 Acepta fotos con cámara (JPG/PNG) o archivos digitales (STL 3D / SVG)
                             </p>
-                        </div>
-                        <div v-else class="space-y-1">
-                            <CheckCircle2 class="w-7 h-7 text-emerald-500 mx-auto" />
-                            <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
-                                {{ bitacoraForm.file.name }}
-                            </p>
-                            <p class="text-[10px] text-slate-400">Presiona el botón verde para auditar con Gemini IA</p>
                         </div>
                     </div>
 
