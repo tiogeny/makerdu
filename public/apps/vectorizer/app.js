@@ -89,6 +89,25 @@ function initThree() {
 }
 initThree();
 
+// Soporte de precarga automática desde Makerdu Studio (Misión 1 ➔ Misión 2)
+const urlParams = new URLSearchParams(window.location.search);
+const initialImageUrl = urlParams.get('image_url');
+if (initialImageUrl) {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+        processCanvas.width = img.width;
+        processCanvas.height = img.height;
+        const ctx = processCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        if (cameraPrompt) cameraPrompt.classList.add('hidden');
+        processCanvas.classList.remove('hidden');
+        applyThresholdAndVectorize();
+    };
+    img.src = initialImageUrl;
+}
+
+
 // -------------------------------------------------------------
 // TABS SWITCHER
 // -------------------------------------------------------------

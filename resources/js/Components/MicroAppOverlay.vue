@@ -25,6 +25,10 @@ const props = defineProps({
         type: Number,
         default: 1,
     },
+    initialImageUrl: {
+        type: String,
+        default: null,
+    },
 });
 
 const emit = defineEmits(['close', 'assetReady']);
@@ -34,18 +38,24 @@ const lastReceivedAsset = ref(null);
 const computedAppName = computed(() => props.app?.name || props.appName || 'Herramienta de Fabricación Digital');
 const computedAppIcon = computed(() => props.app?.icon || props.appIcon || '🛠️');
 const computedAppUrl = computed(() => {
+    let baseUrl = '';
     if (props.app?.embed_path) {
-        return props.app.embed_path.endsWith('/index.html') 
+        baseUrl = props.app.embed_path.endsWith('/index.html') 
             ? props.app.embed_path 
             : `${props.app.embed_path.replace(/\/$/, '')}/index.html`;
+    } else if (props.appUrl) {
+        baseUrl = props.appUrl;
+    } else if (props.app?.slug) {
+        baseUrl = `/apps/${props.app.slug}/index.html`;
+    } else {
+        baseUrl = '/apps/vectorizer/index.html';
     }
-    if (props.appUrl) {
-        return props.appUrl;
+
+    if (props.initialImageUrl) {
+        baseUrl += (baseUrl.includes('?') ? '&' : '?') + `image_url=${encodeURIComponent(props.initialImageUrl)}`;
     }
-    if (props.app?.slug) {
-        return `/apps/${props.app.slug}/index.html`;
-    }
-    return '/apps/vectorizer/index.html';
+
+    return baseUrl;
 });
 
 const handleMessage = (event) => {

@@ -229,18 +229,19 @@ class AiPreflightService
                     . "2. ¿La silueta exterior está completamente cerrada o tiene aberturas? "
                     . "3. ¿La base inferior es amplia y estable para que el juguete se pare de pie solo en el escritorio? "
                     . "4. ¿Tiene espacios negativos bien definidos (ojos, boca, detalles)? "
+                    . "5. CRÍTICO (Regla de Estarcido / Stencil): ¿Tiene 'islas flotantes' o elementos desprendidos (ej. una pupila negra flotando dentro de un ojo blanco sin puentes que la unan al cuerpo)? Si detectas piezas flotantes desconectadas, ADVIERTE en pedagogical_tip que se caerán al cortar o extruir a menos que tengan un puente de unión o una base sólida. "
                     . "Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto: "
                     . json_encode([
-                        'headline' => 'Dinosaurio amigable en silueta cerrada autoportante',
+                        'headline' => 'Criatura cíclope con base amplia autoportante',
                         'strengths' => [
                             'Punto fuerte 1 sobre el trazo y personaje detectado',
-                            'Punto fuerte 2 sobre la estabilidad de la base o detalles'
+                            'Punto fuerte 2 sobre la estabilidad de la base'
                         ],
                         'slicing_recommendations' => [
                             'tecnica' => 'Extrusión 2.5D a 10 mm',
                             'base_estabilidad' => 'Base amplia autoportante'
                         ],
-                        'pedagogical_tip' => 'Consejo breve y motivador para extruirlo a 3D',
+                        'pedagogical_tip' => 'Consejo técnico sobre uniones de patas y advertencia si hay islas flotantes sueltas (como pupilas sin puentes)',
                         'verdict_title' => '¡SILUETA APROBADA!',
                         'text_summary' => 'Resumen amigable de 2 oraciones para el estudiante creador'
                     ]);

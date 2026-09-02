@@ -120,10 +120,19 @@ onUnmounted(() => {
 
 // Micro-Apps Overlay
 const activeTestingApp = ref(null);
+const initialAppImageUrl = ref(null);
 const showMicroAppModal = ref(false);
 
-const openMicroAppModal = (app) => {
+// Boceto aprobado de la Misión 1 (para precarga en Misión 2)
+const mission1Evidence = computed(() => {
+    const m1 = props.project.levels[0];
+    if (!m1) return null;
+    return (props.bitacoras || []).find(b => b.level_id === m1.id && b.file_url);
+});
+
+const openMicroAppModal = (app, imageUrl = null) => {
     activeTestingApp.value = app;
+    initialAppImageUrl.value = imageUrl;
     showMicroAppModal.value = true;
 };
 
@@ -888,6 +897,41 @@ const changeRole = (newRole) => {
                         {{ selectedMission.process?.instructions || 'Utiliza las herramientas para modelar tu diseño y prepararlo para la fabricación.' }}
                     </p>
 
+                    <!-- TARJETA DE INSUMO: BOCETO APROBADO EN MISIÓN 1 (Para Misión 2) -->
+                    <div 
+                        v-if="selectedMissionIndex === 1 && mission1Evidence" 
+                        class="p-4 rounded-2xl border bg-gradient-to-r from-cyan-500/10 via-sky-500/5 to-transparent border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-4"
+                    >
+                        <div class="flex items-center gap-3.5">
+                            <div class="relative">
+                                <img :src="mission1Evidence.file_url" class="w-14 h-14 rounded-xl object-contain bg-white border border-cyan-300 shadow-sm p-0.5" alt="Boceto M1" />
+                                <span class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-black text-[8px] font-mono">
+                                    M1
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-mono font-bold uppercase text-cyan-600 dark:text-cyan-400 block">
+                                    Insumo de Misión 1:
+                                </span>
+                                <strong class="text-xs text-slate-900 dark:text-white block">
+                                    Tu Boceto de Criatura Aprobado
+                                </strong>
+                                <span class="text-[10px] text-slate-400">
+                                    Pásalo directamente al Vectorizador para limpiarlo y extruirlo a 10 mm.
+                                </span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="openMicroAppModal(props.microApps.find(a => a.slug === 'vectorizer') || { slug: 'vectorizer', name: 'Vectorizador & Extrusor 2.5D' }, mission1Evidence.file_url)"
+                            class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20 cursor-pointer shrink-0"
+                        >
+                            <Sparkles class="w-3.5 h-3.5" />
+                            <span>Abrir en Vectorizador con este Boceto</span>
+                        </button>
+                    </div>
+
                     <!-- BOTONES DE MICRO-APPS DIGITALES -->
                     <div v-if="selectedMission.process?.mode === 'micro_app'" class="space-y-2.5">
                         <span class="text-[11px] font-bold text-slate-400 block uppercase font-mono">
@@ -1248,6 +1292,7 @@ const changeRole = (newRole) => {
         <MicroAppOverlay
             :is-open="showMicroAppModal"
             :app="activeTestingApp"
+            :initial-image-url="initialAppImageUrl"
             @close="showMicroAppModal = false"
             @asset-generated="handleMicroAppAsset"
         />
