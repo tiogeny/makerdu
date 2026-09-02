@@ -117,6 +117,21 @@ class SquadController extends Controller
                     ];
                 }),
             ],
+            // Compañeros en la misma aula para agruparse en equipo
+            'peers' => User::whereHas('squads', function ($q) use ($classroom) {
+                $q->where('classroom_id', $classroom->id);
+            })
+            ->where('users.id', '!=', $activeStudentId)
+            ->select('users.id', 'users.name', 'users.xp_points')
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'short_name' => explode(' ', $u->name)[0],
+                    'xp_points' => $u->xp_points,
+                ];
+            }),
             'animations' => \App\Models\MicroAnimation::where('is_active', true)->get(['id', 'slug', 'title_json', 'category', 'html_css_code']),
             'microApps' => \App\Models\MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']),
             'bitacoras' => $bitacoras,
@@ -124,6 +139,58 @@ class SquadController extends Controller
                 'preflight_result' => session('preflight_result'),
             ],
         ]);
+    }
+
+    /**
+     * Unirse a la mesa o equipo de otro compañero en el taller
+     */
+    public function joinTeam(Request $request)
+    {
+        $request->validate([
+            'partner_user_id' => ['required', 'exists:users,id'],
+        ]);
+
+        $activeStudentId = session('active_student_id', Auth::id());
+        $me = User::findOrFail($activeStudentId);
+        $partner = User::findOrFail($request->partner_user_id);
+
+        $partnerSquad = $partner->squads()->first();
+        if ($partnerSquad) {
+            $partnerSquad->members()->syncWithoutDetaching([
+                $me->id => ['current_role' => 'Quality', 'active_minutes' => 0]
+            ]);
+
+            session(['active_squad_id' => $partnerSquad->id]);
+
+            return back()->with('success', "¡Te has unido a la mesa con {$partner->name}!");
+        }
+
+        return back()->withErrors(['general' => 'No se encontró la mesa del compañero.']);
+    }
+
+    /**
+     * Volver a modo Creador Individual (su propia mesa personal)
+     */
+    public function setIndividualMode(Request $request)
+    {
+        $activeStudentId = session('active_student_id', Auth::id());
+        $me = User::findOrFail($activeStudentId);
+        
+        $classroomId = $me->squads()->first()?->classroom_id ?? 1;
+        $firstName = explode(' ', $me->name)[0];
+
+        $mySquad = Squad::firstOrCreate(
+            ['classroom_id' => $classroomId, 'name' => "Mesa · {$firstName}"],
+            ['fabcoins_balance' => 400]
+        );
+
+        $mySquad->members()->syncWithoutDetaching([
+            $me->id => ['current_role' => 'Architect', 'active_minutes' => 0]
+        ]);
+
+        session(['active_squad_id' => $mySquad->id]);
+
+        return back()->with('success', "Has vuelto a tu Mesa de Trabajo individual.");
     }
 
     /**

@@ -81,8 +81,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/teacher/classroom/{classroom}/customize', [TeacherWarRoomController::class, 'customize'])->name('teacher.customize');
     Route::post('/teacher/classroom/{classroom}/reset-customization', [TeacherWarRoomController::class, 'resetCustomization'])->name('teacher.reset-customization');
 
-    // HUD de la Escuadra y Operaciones Maker
-    Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud');
+    // Estudio Maker y Operaciones del Taller
+    Route::get('/studio', [SquadController::class, 'hud'])->name('student.studio');
+    Route::get('/hud', [SquadController::class, 'hud'])->name('student.hud'); // Alias retrocompatible
+    Route::post('/squad/join-team', [SquadController::class, 'joinTeam'])->name('squad.join-team');
+    Route::post('/squad/set-individual', [SquadController::class, 'setIndividualMode'])->name('squad.set-individual');
     Route::post('/squad/{squad}/switch-role', [SquadController::class, 'switchRole'])->name('squad.switch-role');
     Route::post('/squad/{squad}/pre-flight', [SquadController::class, 'preflight'])->name('squad.preflight');
     Route::post('/squad/{squad}/level/{level}/fabricate', [SquadController::class, 'confirmFabrication'])->name('squad.fabricate');

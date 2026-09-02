@@ -9,7 +9,7 @@ import {
     Download, ArrowLeft, ArrowRight, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap,
     PartyPopper, Compass, Palette, Scissors, CheckSquare, ListChecks, Sun, Moon,
     ChevronDown, UserCheck, RefreshCw, Undo2, Target, MessageSquare, Bot, HelpCircle,
-    ChevronUp, Rocket, Briefcase, ArrowDown
+    ChevronUp, Rocket, Briefcase, ArrowDown, X, User
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
@@ -42,6 +42,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    peers: {
+        type: Array,
+        default: () => [],
+    },
     flash: {
         type: Object,
         default: () => ({}),
@@ -49,6 +53,35 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+// Modal de Selección de Modalidad (Solo vs En Equipo)
+const showTeamModal = ref(false);
+
+const isSoloMode = computed(() => {
+    return (props.squad.members || []).length <= 1;
+});
+
+const teamMembers = computed(() => {
+    return props.squad.members || [];
+});
+
+const joinPeerTeam = (peer) => {
+    router.post(route('squad.join-team'), { partner_user_id: peer.id }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showTeamModal.value = false;
+        },
+    });
+};
+
+const setIndividual = () => {
+    router.post(route('squad.set-individual'), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showTeamModal.value = false;
+        },
+    });
+};
 
 // Obtener solo el primer nombre para un trato más humano y cercano
 const getFirstName = (fullName) => {
@@ -434,6 +467,24 @@ const changeRole = (newRole) => {
                         <Moon v-else class="w-4 h-4" />
                     </button>
 
+                    <!-- BOTÓN INDICADOR DE MODALIDAD (SOLO VS EQUIPO) -->
+                    <button
+                        type="button"
+                        @click="showTeamModal = true"
+                        :class="isDarkTheme ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-sm'"
+                        class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl border text-xs font-mono font-bold transition cursor-pointer"
+                        title="Cambiar entre modo Individual y modo En Equipo"
+                    >
+                        <span v-if="isSoloMode" class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <User class="w-3.5 h-3.5 text-cyan-500" />
+                            <span>Solo</span>
+                        </span>
+                        <span v-else class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-bold">
+                            <Users class="w-3.5 h-3.5" />
+                            <span>Equipo ({{ teamMembers.length }})</span>
+                        </span>
+                    </button>
+
                     <!-- CHIP MINIMALISTA DE USUARIO (Estilo Google Avatar) -->
                     <div class="relative">
                         <button
@@ -462,6 +513,15 @@ const changeRole = (newRole) => {
                                 <strong class="text-sm font-black">{{ activeStudent.name }}</strong>
                                 <span class="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block mt-0.5">{{ squad.name }}</span>
                             </div>
+
+                            <button
+                                type="button"
+                                @click="showTeamModal = true; showUserMenu = false;"
+                                class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-left cursor-pointer text-cyan-600 dark:text-cyan-400"
+                            >
+                                <Users class="w-4 h-4" />
+                                <span>{{ isSoloMode ? 'Unirme a un Equipo' : 'Gestionar Mi Equipo' }}</span>
+                            </button>
 
                             <Link
                                 :href="route('squad.passport', squad.id)"
@@ -1006,7 +1066,7 @@ const changeRole = (newRole) => {
                     <!-- PREGUNTA DE CIERRE REFLEXIVO DEL EXCEL ABR FABLAB -->
                     <div class="pt-3 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
                         <label class="block text-xs font-bold mb-1" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                            Cierre Reflexivo de la Escuadra: ¿Qué funcionó bien y qué mejorarían para la siguiente iteración?
+                            Cierre Reflexivo del Creador / Equipo: ¿Qué funcionó bien y qué mejorarían para la siguiente iteración?
                         </label>
                         <textarea
                             v-model="bitacoraForm.reflection_text"
@@ -1035,6 +1095,107 @@ const changeRole = (newRole) => {
                 </div>
             </section>
         </main>
+
+        <!-- ================================================================= -->
+        <!-- MODAL INTERACTIVO: MODALIDAD DE RETO (SOLO VS EN EQUIPO)          -->
+        <!-- ================================================================= -->
+        <div 
+            v-if="showTeamModal" 
+            class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+        >
+            <div 
+                :class="isDarkTheme ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-2xl'"
+                class="w-full max-w-md rounded-3xl border p-6 space-y-5 relative"
+            >
+                <!-- Cabecera del modal -->
+                <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200'">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-sm font-bold">
+                            👥
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-wide">Modalidad del Reto</h3>
+                            <span class="text-[10px] text-slate-400 font-mono">Elige cómo deseas conquistar este proyecto</span>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        @click="showTeamModal = false"
+                        class="p-1 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                    >
+                        <X class="w-4 h-4" />
+                    </button>
+                </div>
+
+                <!-- Estado Actual -->
+                <div class="p-3.5 rounded-2xl border" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'">
+                    <span class="text-[10px] font-mono uppercase font-bold text-slate-400 block mb-1">Tu Estado Actual:</span>
+                    <div v-if="isSoloMode" class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <User class="w-4 h-4 text-cyan-500" />
+                            <span class="text-xs font-bold">Creador Individual (Tu propia mesa)</span>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 font-mono font-bold">Activo</span>
+                    </div>
+                    <div v-else class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <Users class="w-4 h-4 text-purple-500" />
+                                <span class="text-xs font-bold">Trabajando en equipo en: {{ squad.name }}</span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            @click="setIndividual"
+                            class="w-full py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                            <User class="w-3.5 h-3.5" />
+                            <span>Volver a Mesa Individual</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Compañeros en el Taller para Unirse -->
+                <div class="space-y-2.5">
+                    <span class="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">
+                        Unirte a la mesa de un creador:
+                    </span>
+
+                    <div v-if="peers.length === 0" class="text-xs text-slate-400 p-4 text-center border rounded-2xl border-dashed">
+                        No hay otros creadores en esta sesión de taller por ahora.
+                    </div>
+
+                    <div v-else class="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+                        <div 
+                            v-for="peer in peers" 
+                            :key="peer.id"
+                            class="p-2.5 rounded-2xl border flex items-center justify-between transition"
+                            :class="isDarkTheme ? 'bg-slate-950 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-cyan-300 shadow-sm'"
+                        >
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-cyan-500/20 text-cyan-600 font-bold text-[10px] flex items-center justify-center font-mono">
+                                    {{ peer.name.charAt(0) }}
+                                </div>
+                                <div>
+                                    <strong class="text-xs block">{{ peer.short_name || peer.name }}</strong>
+                                    <span class="text-[9px] text-slate-400 font-mono">{{ peer.xp_points || 0 }} XP</span>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                @click="joinPeerTeam(peer)"
+                                class="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] font-black transition flex items-center gap-1 shadow-sm cursor-pointer"
+                            >
+                                <span>Unirme</span>
+                                <ArrowRight class="w-3 h-3" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ================================================================= -->
         <!-- MODAL OVERLAY PARA PROBAR MICRO-APPS EN VIVO                      -->
