@@ -47,7 +47,7 @@ class AiTutorChatController extends Controller
         }
 
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
-        $modelsToTry = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash'];
+        $modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
 
         $systemInstruction = "Eres el Tutor Inteligente de Fabricación Digital de Makerdu (un FabLab y LMS Figital para colegios y talleres). "
             . "Estás hablando con {$firstName}, de la '{$squad->name}'. "
