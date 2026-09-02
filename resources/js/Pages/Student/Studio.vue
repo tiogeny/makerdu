@@ -1286,10 +1286,20 @@ const changeRole = (newRole) => {
                     </div>
 
                     <!-- TARJETA DE VEREDICTO DE GEMINI -->
-                    <div v-if="preflightResult" class="p-5 rounded-2xl border space-y-3 animate-fade-in" :class="isDarkTheme ? 'bg-slate-950 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'">
+                    <div 
+                        v-if="preflightResult" 
+                        class="p-5 rounded-2xl border space-y-3.5 animate-fade-in" 
+                        :class="isDarkTheme 
+                            ? (preflightResult.is_valid ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
+                            : (preflightResult.is_valid ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
+                    >
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400">
-                                ● {{ preflightResult.dashboard?.verdict_title || 'EVALUACIÓN DE LA IA' }}
+                            <span 
+                                class="text-xs font-mono font-black flex items-center gap-1.5"
+                                :class="preflightResult.is_valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+                            >
+                                <span>{{ preflightResult.is_valid ? '●' : '⚠️' }}</span>
+                                <span>{{ preflightResult.dashboard?.verdict_title || (preflightResult.is_valid ? '¡SILUETA APROBADA!' : 'REQUIERE AJUSTES') }}</span>
                             </span>
                             <span class="text-[10px] font-mono text-slate-400">Gemini 2.0 Flash Vision</span>
                         </div>
@@ -1298,19 +1308,42 @@ const changeRole = (newRole) => {
                             {{ preflightResult.dashboard?.headline || preflightResult.ai_feedback }}
                         </p>
 
+                        <!-- Violaciones / Ajustes Detectados -->
+                        <div v-if="preflightResult.violations?.length > 0" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+                            <span class="font-bold flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider">
+                                ⚠️ Detalle a Corregir:
+                            </span>
+                            <div v-for="(v, vIdx) in preflightResult.violations" :key="vIdx" class="flex items-start gap-1.5 leading-relaxed">
+                                <span class="font-bold">➔</span>
+                                <span>{{ v }}</span>
+                            </div>
+                        </div>
+
                         <!-- Puntos Fuertes -->
                         <div v-if="preflightResult.dashboard?.strengths?.length > 0" class="space-y-1">
                             <span class="text-[10px] font-mono font-bold text-emerald-600 uppercase">Puntos Fuertes Detectados:</span>
                             <div v-for="(st, sIdx) in preflightResult.dashboard.strengths" :key="sIdx" class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                <span>✓</span>
+                                <span class="text-emerald-500 font-bold">✓</span>
                                 <span>{{ st }}</span>
                             </div>
                         </div>
 
-                        <!-- Consejo del Mentor -->
-                        <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
+                        <!-- Consejo del Mentor con las Soluciones Exactas -->
+                        <div 
+                            class="p-3.5 rounded-xl border text-xs flex items-start gap-2.5" 
+                            :class="preflightResult.is_valid 
+                                ? 'bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
+                                : 'bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'"
+                        >
                             <Lightbulb class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                            <span>{{ preflightResult.dashboard?.pedagogical_tip || '¡Buen trabajo! Su diseño cumple las normas de fabricación.' }}</span>
+                            <div class="space-y-1 flex-1">
+                                <strong class="font-mono text-[10px] uppercase tracking-wider block text-amber-600 dark:text-amber-400">
+                                    💡 Sugerencia del Mentor Maker:
+                                </strong>
+                                <p class="leading-relaxed">
+                                    {{ preflightResult.dashboard?.pedagogical_tip || 'Asegúrate de seguir las 4 reglas del boceto.' }}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
