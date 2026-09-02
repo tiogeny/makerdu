@@ -118,8 +118,8 @@ class SquadController extends Controller
                 }),
             ],
             // Compañeros en la misma aula para agruparse en equipo
-            'peers' => User::whereHas('squads', function ($q) use ($classroom) {
-                $q->where('classroom_id', $classroom->id);
+            'peers' => User::whereHas('squads', function ($q) use ($squad) {
+                $q->where('classroom_id', $squad->classroom_id);
             })
             ->where('users.id', '!=', $activeStudentId)
             ->select('users.id', 'users.name', 'users.xp_points')

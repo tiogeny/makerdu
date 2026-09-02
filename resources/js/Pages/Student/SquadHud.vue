@@ -166,6 +166,7 @@ const missionUnlockedPhases = ref({
     1: 1,
     2: 1,
     3: 1,
+    4: 1,
 });
 
 // Fase activa actual para la misión seleccionada
@@ -226,8 +227,8 @@ const missionSocraticPills = ref({
     2: [
         {
             id: 'p3_1',
-            q: '¿Qué es el Pre-Flight Check antes de fabricar?',
-            a: 'Igual que los pilotos revisan su avión antes de despegar, en el taller revisamos el archivo digital antes de calentar la máquina: que la base esté 100% pegada a la bandeja, que no supere las medidas máximas y que no desperdicie plástico.'
+            q: '¿Qué es el Control de Calidad IA antes de fabricar?',
+            a: 'Igual que los ingenieros revisan su prototipo antes de producirlo en masa, en el taller revisamos el archivo digital con IA: que la base esté plana, que no supere medidas y que gaste el plástico justo.'
         },
         {
             id: 'p3_2',
@@ -238,13 +239,25 @@ const missionSocraticPills = ref({
     3: [
         {
             id: 'p4_1',
-            q: '¿Cómo calculo el costo de mi Art Toy para venderlo?',
-            a: 'Suma el costo del filamento PLA (según los gramos usados), el tiempo de máquina en FabCoins y tu trabajo de diseño creativo. ¡Así cotizan los diseñadores de productos reales!'
+            q: '¿Por qué se usa lija al agua sobre el PLA?',
+            a: 'La lija al agua evita que el calor de la fricción derrita el plástico. Absorbe las partículas y deja una superficie sedosa y suave, lista para exhibir o pintar.'
         },
         {
             id: 'p4_2',
-            q: '¿Por qué es clave documentar en la bitácora?',
-            a: 'En la cultura emprendedora y maker, documentar lo que falló y cómo lo resolvieron es lo que transforma un simple juguete en un prototipo comercial validado.'
+            q: '¿Cómo influye el empaque en el valor del producto?',
+            a: 'Un empaque con tu logo y la tarjeta de historia de tu personaje convierte una pieza de plástico en un objeto de diseño coleccionable de alto valor.'
+        }
+    ],
+    4: [
+        {
+            id: 'p5_1',
+            q: '¿Cómo estructuro mi pitch de 30 segundos?',
+            a: '1) Gancho: ¿Quién es tu criatura? 2) Problema o historia: ¿Qué poder tiene? 3) Fabricación: hecho en PLA ecológico con impresión 3D 4) Llamado a la acción: ¡Consigue el tuyo para tu escritorio!'
+        },
+        {
+            id: 'p5_2',
+            q: '¿Cómo me pueden apoyar mis papás en el lanzamiento?',
+            a: 'Tus papás pueden ayudarte a grabar tu video pitch con buena luz y sonido en su celular, y compartir el afiche en sus redes para tus primeras ventas.'
         }
     ]
 });
@@ -563,7 +576,7 @@ const changeRole = (newRole) => {
                                 <span>RETO EMPRENDEDOR</span>
                             </span>
                             <span class="text-xs font-mono text-slate-400 font-bold">
-                                Ciclo Maker de 4 Misiones
+                                Ciclo Maker de 5 Misiones
                             </span>
                         </div>
 
