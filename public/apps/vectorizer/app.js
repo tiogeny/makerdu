@@ -198,58 +198,130 @@ function applyThresholdAndVectorize() {
     const ctx = processCanvas.getContext('2d');
     if (!processCanvas.width || !processCanvas.height) return;
 
-    const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
+    const w = processCanvas.width;
+    const h = processCanvas.height;
+    const imgData = ctx.getImageData(0, 0, w, h);
     const data = imgData.data;
     const threshold = parseInt(thresholdSlider.value);
 
-    // Simple Marching Squares / Contour Points Extractor
-    const sampledPoints = [];
-    const step = 4;
+    // Matriz binaria rápida
+    const isDark = (x, y) => {
+        if (x < 0 || x >= w || y < 0 || y >= h) return false;
+        const idx = (y * w + x) * 4;
+        return ((data[idx] + data[idx + 1] + data[idx + 2]) / 3) < threshold;
+    };
 
-    for (let y = 0; y < processCanvas.height; y += step) {
-        for (let x = 0; x < processCanvas.width; x += step) {
-            const idx = (y * processCanvas.width + x) * 4;
-            const avg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-            const isDark = avg < threshold;
-
-            if (isDark) {
-                // Check if border pixel
-                sampledPoints.push({ x: (x / processCanvas.width - 0.5) * 50, y: -(y / processCanvas.height - 0.5) * 50 });
+    // 1. Encontrar el primer pixel oscuro (punto de inicio del borde)
+    let startX = -1, startY = -1;
+    for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+            if (isDark(x, y)) {
+                startX = x;
+                startY = y;
+                break;
             }
         }
+        if (startX !== -1) break;
     }
 
-    if (sampledPoints.length > 10) {
-        // Create convex / simplified hull shape
-        currentPoints = createHull(sampledPoints);
-        extrude3D();
+    if (startX === -1) return;
+
+    // 2. Trazado de contorno perimetral (Moore-Neighbor Tracing 8-direcciones)
+    const neighbors = [
+        [-1, 0], [-1, -1], [0, -1], [1, -1],
+        [1, 0], [1, 1], [0, 1], [-1, 1]
+    ];
+
+    const contour = [];
+    let curX = startX, curY = startY;
+    let backtrackDir = 0;
+    const maxSteps = 5000;
+    let steps = 0;
+
+    do {
+        contour.push({ x: curX, y: curY });
+        let nextX = -1, nextY = -1;
+        let foundDir = -1;
+
+        for (let i = 0; i < 8; i++) {
+            const checkDir = (backtrackDir + i) % 8;
+            const nx = curX + neighbors[checkDir][0];
+            const ny = curY + neighbors[checkDir][1];
+
+            if (isDark(nx, ny)) {
+                nextX = nx;
+                nextY = ny;
+                foundDir = checkDir;
+                break;
+            }
+        }
+
+        if (foundDir === -1) break;
+
+        backtrackDir = (foundDir + 5) % 8;
+        curX = nextX;
+        curY = nextY;
+        steps++;
+    } while ((curX !== startX || curY !== startY) && steps < maxSteps);
+
+    if (contour.length < 8) return;
+
+    // 3. Suavizar y reducir vértices con Ramer-Douglas-Peucker (fidelidad estética)
+    const simplified = simplifyDouglasPeucker(contour, 2.0);
+
+    // 4. Centrar y escalar a dimensiones del reto (48 mm x 48 mm)
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const p of simplified) {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+    }
+
+    const bboxW = Math.max(1, maxX - minX);
+    const bboxH = Math.max(1, maxY - minY);
+    const scale = 48 / Math.max(bboxW, bboxH);
+    const midX = (minX + maxX) / 2;
+    const midY = (minY + maxY) / 2;
+
+    currentPoints = simplified.map(p => ({
+        x: (p.x - midX) * scale,
+        y: -(p.y - midY) * scale
+    }));
+
+    extrude3D();
+}
+
+function simplifyDouglasPeucker(points, epsilon) {
+    if (points.length <= 2) return points;
+
+    let dmax = 0;
+    let index = 0;
+    const p1 = points[0];
+    const p2 = points[points.length - 1];
+
+    for (let i = 1; i < points.length - 1; i++) {
+        const d = perpendicularDist(points[i], p1, p2);
+        if (d > dmax) {
+            index = i;
+            dmax = d;
+        }
+    }
+
+    if (dmax > epsilon) {
+        const rec1 = simplifyDouglasPeucker(points.slice(0, index + 1), epsilon);
+        const rec2 = simplifyDouglasPeucker(points.slice(index), epsilon);
+        return rec1.slice(0, rec1.length - 1).concat(rec2);
+    } else {
+        return [p1, p2];
     }
 }
 
-// Simple Convex Hull for vector profile
-function createHull(points) {
-    points.sort((a, b) => a.x - b.x || a.y - b.y);
-    const lower = [];
-    for (let p of points) {
-        while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
-            lower.pop();
-        }
-        lower.push(p);
-    }
-    const upper = [];
-    for (let i = points.length - 1; i >= 0; i--) {
-        const p = points[i];
-        while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
-            upper.pop();
-        }
-        upper.push(p);
-    }
-    upper.pop();
-    lower.pop();
-    return lower.concat(upper);
-}
-function cross(a, b, o) {
-    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+function perpendicularDist(p, p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    if (dx === 0 && dy === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
+    return Math.abs(dy * p.x - dx * p.y + p2.x * p1.y - p2.y * p1.x) / Math.hypot(dx, dy);
 }
 
 // -------------------------------------------------------------
@@ -411,24 +483,59 @@ function buildSvgString() {
 </svg>`;
 }
 
+// Generador de STL ASCII estándar para Three.js ExtrudeGeometry
+function generateAsciiStl(mesh) {
+    if (!mesh || !mesh.geometry) return '';
+    const geom = mesh.geometry.clone();
+    geom.applyMatrix4(mesh.matrixWorld);
+    const pos = geom.attributes.position;
+    if (!pos) return '';
+
+    let stl = 'solid makerdu_art_toy\n';
+    for (let i = 0; i < pos.count; i += 3) {
+        const ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
+        const bx = pos.getX(i + 1), by = pos.getY(i + 1), bz = pos.getZ(i + 1);
+        const cx = pos.getX(i + 2), cy = pos.getY(i + 2), cz = pos.getZ(i + 2);
+
+        // Vector normal
+        const ux = bx - ax, uy = by - ay, uz = bz - az;
+        const vx = cx - ax, vy = cy - ay, vz = cz - az;
+        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const len = Math.hypot(nx, ny, nz);
+        if (len > 0) { nx /= len; ny /= len; nz /= len; }
+
+        stl += `  facet normal ${nx.toFixed(4)} ${ny.toFixed(4)} ${nz.toFixed(4)}\n`;
+        stl += '    outer loop\n';
+        stl += `      vertex ${ax.toFixed(3)} ${ay.toFixed(3)} ${az.toFixed(3)}\n`;
+        stl += `      vertex ${bx.toFixed(3)} ${by.toFixed(3)} ${bz.toFixed(3)}\n`;
+        stl += `      vertex ${cx.toFixed(3)} ${cy.toFixed(3)} ${cz.toFixed(3)}\n`;
+        stl += '    endloop\n';
+        stl += '  endfacet\n';
+    }
+    stl += 'endsolid makerdu_art_toy\n';
+    return stl;
+}
+
 // -------------------------------------------------------------
 // POSTMESSAGE & LMS INTEGRATION
 // -------------------------------------------------------------
 btnSendToLms.addEventListener('click', () => {
-    if (!currentSvgString && currentPoints.length < 3) {
-        alert('Por favor dibuja o captura un boceto antes de enviar a la bitácora.');
+    if (!currentMesh || currentPoints.length < 3) {
+        alert('Por favor vectoriza un boceto antes de enviar a la bitácora.');
         return;
     }
 
     buildSvgString();
+    const stlString = generateAsciiStl(currentMesh);
 
     const payload = {
         type: 'MAKERDU_MICROAPP_ASSET',
         appName: 'vectorizer',
-        fileType: 'svg',
-        fileName: 'diseno_vector_2.5d.svg',
+        fileType: 'stl',
+        fileName: 'art_toy_extruido.stl',
+        stlContent: stlString,
         content: currentSvgString,
-        depth_mm: parseFloat(heightSlider.value) || 5,
+        depth_mm: parseFloat(heightSlider.value) || 10,
         has_hook_hole: checkHole.checked,
     };
 
@@ -436,7 +543,11 @@ btnSendToLms.addEventListener('click', () => {
     if (window.parent && window.parent !== window) {
         window.parent.postMessage(payload, '*');
     } else {
-        alert('¡Diseño listo! (Modo Standalone: Usa los botones de abajo para descargar tu SVG o STL).');
+        const blob = new Blob([stlString], { type: 'model/stl' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'art_toy_extruido.stl';
+        a.click();
     }
 });
 
@@ -454,5 +565,10 @@ btnDownloadSvg.addEventListener('click', () => {
 
 btnDownloadStl.addEventListener('click', () => {
     if (!currentMesh) { alert('Genera un modelo 3D primero.'); return; }
-    alert('Exportando STL binario optimizado para impresión 3D...');
+    const stlString = generateAsciiStl(currentMesh);
+    const blob = new Blob([stlString], { type: 'model/stl' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'makerdu_art_toy.stl';
+    a.click();
 });

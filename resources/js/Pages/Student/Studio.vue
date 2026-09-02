@@ -136,30 +136,6 @@ const openMicroAppModal = (app, imageUrl = null) => {
     showMicroAppModal.value = true;
 };
 
-const handleMicroAppAsset = (asset) => {
-    if (asset && asset.content) {
-        bitacoraForm.content_text = `Entregable generado con Micro-App '${asset.appName || 'Makerdu'}': ${asset.fileName || 'archivo'} (${asset.depth_mm || 10} mm espesor).`;
-        showMicroAppModal.value = false;
-        
-        // Desbloquear Fase 3 y deslizar suavemente
-        unlockPhase(3, 'phase-3');
-
-        copilotChatMessages.value.push({
-            sender: 'user',
-            text: `¡Listo! Acabamos de exportar nuestro diseño '${asset.fileName}' desde ${asset.appName || 'el estudio digital'}.`,
-            time: 'Ahora'
-        });
-
-        setTimeout(() => {
-            copilotChatMessages.value.push({
-                sender: 'copilot',
-                text: `¡Gran avance en el modelado! Recibí su geometría de ${asset.depth_mm || 10} mm. Ahora solo nos queda la auditoría de calidad con Gemini antes de mandar a fabricar.`,
-                time: 'Ahora'
-            });
-        }, 400);
-    }
-};
-
 // Misión activa seleccionada (Navegación no restrictiva)
 const selectedMissionIndex = ref(0);
 
@@ -506,6 +482,47 @@ const getMissionMicroApps = (mission) => {
     const slugs = mission.process?.micro_app_slugs || (mission.process?.micro_app_slug ? [mission.process.micro_app_slug] : []);
     if (slugs.length === 0) return props.microApps.slice(0, 2);
     return props.microApps.filter(app => slugs.includes(app.slug));
+};
+
+// Referencia al input de subida de evidencia
+const evidenceFileInput = ref(null);
+
+// Procesar asset generado por Micro-Apps (ej. Vectorizador 3D)
+const handleMicroAppAsset = (asset) => {
+    showMicroAppModal.value = false;
+    if (!asset) return;
+
+    const fileContent = asset.stlContent || asset.content;
+    if (!fileContent) return;
+
+    const fileName = asset.fileName || (asset.fileType === 'stl' ? 'art_toy_2.5d.stl' : 'art_toy_2.5d.svg');
+    const mimeType = asset.fileType === 'stl' ? 'model/stl' : 'image/svg+xml';
+    
+    const blob = new Blob([fileContent], { type: mimeType });
+    const file = new File([blob], fileName, { type: mimeType });
+    
+    bitacoraForm.file = file;
+
+    // Desbloquear Fase 3 de entrega
+    unlockPhase(3, 'phase-3');
+
+    // Registrar en el chat del Copiloto
+    if (!missionChatMessages.value[selectedMissionIndex.value]) {
+        missionChatMessages.value[selectedMissionIndex.value] = [];
+    }
+
+    missionChatMessages.value[selectedMissionIndex.value].push({
+        sender: 'copilot',
+        text: `📐 ¡He recibido tu archivo 3D extruido ('${fileName}', espesor ${asset.depth_mm || 10} mm) desde el Vectorizador! Lo he colocado en tu entrega de Fase 3. Presiona el botón verde de auditoría para verificar los parámetros de impresión y FabCoins.`,
+        time: 'Ahora'
+    });
+
+    nextTick(() => {
+        const phase3El = document.getElementById('phase-3');
+        if (phase3El) {
+            phase3El.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 };
 
 // Cambiar Rol
@@ -1212,6 +1229,7 @@ const changeRole = (newRole) => {
                     <!-- CAJA DE ARRASTRE O SUBIDA DE ARCHIVO -->
                     <div class="border-2 border-dashed rounded-2xl p-6 text-center transition cursor-pointer relative" :class="isDarkTheme ? 'border-slate-800 hover:border-emerald-500/50 bg-slate-950' : 'border-slate-200 hover:border-emerald-400 bg-slate-50/50'">
                         <input
+                            ref="evidenceFileInput"
                             type="file"
                             @change="handleFileUpload"
                             accept=".stl,.svg,.jpg,.jpeg,.png,.webp"
@@ -1242,9 +1260,16 @@ const changeRole = (newRole) => {
                             <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                 Tu evidencia ya está registrada para esta misión.
                             </p>
-                            <p class="text-[10px] text-slate-400">
-                                Arrastra o haz clic aquí si deseas reemplazarla por una nueva versión.
-                            </p>
+                            <div class="pt-2">
+                                <button
+                                    type="button"
+                                    @click="evidenceFileInput?.click()"
+                                    class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-cyan-400 hover:bg-slate-800 text-xs font-bold transition inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                                >
+                                    <RefreshCw class="w-3.5 h-3.5" />
+                                    <span>{{ selectedMissionIndex === 0 ? '🔄 Cambiar por otro boceto' : '🔄 Subir otro archivo' }}</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Estado C: Caja vacía inicial -->
@@ -1285,27 +1310,27 @@ const changeRole = (newRole) => {
                         </button>
                     </div>
 
-                    <!-- TARJETA DE VEREDICTO DE GEMINI -->
+                    <!-- TARJETA DE VEREDICTO DE GEMINI (En vivo o recuperado de bitácora) -->
                     <div 
-                        v-if="preflightResult" 
+                        v-if="preflightResult || (existingEvidence && existingEvidence.ai_feedback)" 
                         class="p-5 rounded-2xl border space-y-3.5 animate-fade-in" 
                         :class="isDarkTheme 
-                            ? (preflightResult.is_valid ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
-                            : (preflightResult.is_valid ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
+                            ? ((preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
+                            : ((preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
                     >
                         <div class="flex items-center justify-between">
                             <span 
                                 class="text-xs font-mono font-black flex items-center gap-1.5"
-                                :class="preflightResult.is_valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+                                :class="(preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
                             >
-                                <span>{{ preflightResult.is_valid ? '●' : '⚠️' }}</span>
-                                <span>{{ preflightResult.dashboard?.verdict_title || (preflightResult.is_valid ? '¡SILUETA APROBADA!' : 'REQUIERE AJUSTES') }}</span>
+                                <span>{{ (preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? '●' : '⚠️' }}</span>
+                                <span>{{ preflightResult?.dashboard?.verdict_title || (existingEvidence?.status === 'approved' ? '¡SILUETA APROBADA!' : 'REQUIERE AJUSTES') }}</span>
                             </span>
-                            <span class="text-[10px] font-mono text-slate-400">Gemini 2.0 Flash Vision</span>
+                            <span class="text-[10px] font-mono text-slate-400">Control de Calidad IA</span>
                         </div>
 
                         <p class="text-xs font-bold leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                            {{ preflightResult.dashboard?.headline || preflightResult.ai_feedback }}
+                            {{ preflightResult?.dashboard?.headline || preflightResult?.ai_feedback || existingEvidence?.ai_feedback }}
                         </p>
 
                         <!-- Violaciones / Ajustes Detectados -->

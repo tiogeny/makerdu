@@ -65,6 +65,7 @@ const handleMessage = (event) => {
     showSuccessNotification.value = true;
 
     emit('assetReady', event.data);
+    emit('asset-generated', event.data);
 
     setTimeout(() => {
         showSuccessNotification.value = false;
