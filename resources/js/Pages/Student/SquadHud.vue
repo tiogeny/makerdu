@@ -424,6 +424,9 @@ const changeRole = (newRole) => {
                             <ChevronDown class="w-3 h-3 text-slate-400" />
                         </button>
 
+                        <!-- Backdrop invisible para cerrar al hacer clic afuera (Click-Outside) -->
+                        <div v-if="showUserMenu" @click="showUserMenu = false" class="fixed inset-0 z-40 bg-transparent"></div>
+
                         <!-- Menú Desplegable Flotante -->
                         <div 
                             v-if="showUserMenu"
@@ -431,25 +434,9 @@ const changeRole = (newRole) => {
                             class="absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-2xl z-50 space-y-1 text-xs animate-fade-in"
                         >
                             <div class="p-2 border-b border-slate-200 dark:border-slate-800">
-                                <span class="text-[10px] text-slate-400 font-mono block">Escuadra Asignada:</span>
-                                <strong class="text-sm font-black">{{ squad.name }}</strong>
-                                <span class="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block mt-0.5">Rol: {{ activeStudent.current_role }}</span>
-                            </div>
-
-                            <!-- Rotar Rol -->
-                            <div class="p-2">
-                                <span class="text-[10px] text-slate-400 font-bold block mb-1">Rotar Rol en la Mesa:</span>
-                                <div class="grid grid-cols-2 gap-1">
-                                    <button 
-                                        v-for="r in ['Architect', 'Quality', 'Finance', 'Relator']"
-                                        :key="r"
-                                        @click="changeRole(r)"
-                                        :class="activeStudent.current_role === r ? 'bg-cyan-500 text-slate-950 font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500'"
-                                        class="p-1 rounded-lg text-[10px] text-center transition cursor-pointer"
-                                    >
-                                        {{ r }}
-                                    </button>
-                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono block">Creador / Equipo:</span>
+                                <strong class="text-sm font-black">{{ activeStudent.name }}</strong>
+                                <span class="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block mt-0.5">{{ squad.name }}</span>
                             </div>
 
                             <Link
@@ -505,18 +492,28 @@ const changeRole = (newRole) => {
                         <p class="text-xs sm:text-sm leading-relaxed max-w-3xl" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
                             ¿Te imaginas crear un personaje que hoy solo vive en tu imaginación y mañana tenerlo de pie sobre tu mesa en plástico real? Dibuja tu criatura con plumón, dale volumen digital y fabrícala en el taller para lanzarla como tu primer producto de autor.
                         </p>
+
+                        <!-- FRASE PUENTE EXPLICATIVA (Ruta del Reto a la izquierda) -->
+                        <p class="text-[11px] font-mono font-bold text-cyan-700 dark:text-cyan-400 pt-1 flex items-center gap-1.5">
+                            <span>➔</span>
+                            <span>Para conquistar este reto, a tu izquierda tienes tu <strong>Ruta del Reto</strong>. En cada misión contarás con recursos visuales, herramientas interactivas y a tu Copiloto IA para validar tu avance.</span>
+                        </p>
                     </div>
 
-                    <!-- Insignia de Recompensa de Producto -->
+                    <!-- SHOWCASE VISUAL VIVO DEL RETO (Resultado Físico Deseado) -->
                     <div 
-                        :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'"
-                        class="p-3.5 rounded-2xl border flex items-center gap-3 shrink-0"
+                        :class="isDarkTheme ? 'bg-slate-950/80 border-slate-800' : 'bg-white border-slate-200 shadow-md'"
+                        class="p-3.5 rounded-3xl border flex items-center gap-3.5 shrink-0 max-w-xs"
                     >
-                        <span class="text-3xl">🧸</span>
-                        <div class="text-xs">
-                            <span class="text-[10px] font-mono text-slate-400 uppercase font-bold block">Producto Físico:</span>
-                            <strong class="text-cyan-600 dark:text-cyan-400 font-black">Art Toy 3D en PLA</strong>
-                            <span class="text-[10px] text-slate-500 block font-mono">10 mm auto-portante</span>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                            🦖
+                        </div>
+                        <div class="text-xs space-y-0.5">
+                            <span class="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider block">
+                                META DEL PRODUCTO
+                            </span>
+                            <strong class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Art Toy 2.5D Autoportante</strong>
+                            <p class="text-[10px] text-slate-400 leading-tight">10 mm espesor en PLA · Se para solo en tu escritorio</p>
                         </div>
                     </div>
                 </div>

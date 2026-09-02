@@ -1,158 +1,147 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { Sparkles, Users, Laptop, ShieldCheck, ArrowRight, BookOpen, Layers, Coins, Trophy, Globe, Lock, Cpu } from 'lucide-vue-next';
-import { t, currentLang, setLanguage } from '@/i18n.js';
+import { ref } from 'vue';
+import {
+    Sparkles, Users, Laptop, ShieldCheck, ArrowRight, BookOpen,
+    Layers, Coins, Trophy, Globe, Lock, Cpu, Sun, Moon, Rocket, Palette
+} from 'lucide-vue-next';
+import { t, trans, currentLang, setLanguage } from '@/i18n.js';
 
 defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
 });
+
+const isDarkTheme = ref(false);
+const toggleTheme = () => {
+    isDarkTheme.value = !isDarkTheme.value;
+};
 </script>
 
 <template>
-    <Head :title="`${t('app.name')} ${t('app.version')} - ${t('app.subtitle')}`" />
-
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-amber-500 selection:text-black relative overflow-hidden">
-        <!-- Ambient Lights -->
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-cyan-500/20 via-amber-500/10 to-transparent blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div :class="isDarkTheme ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'" class="min-h-screen transition-colors duration-300 flex flex-col justify-between font-sans selection:bg-cyan-500 selection:text-slate-950 relative overflow-hidden">
+        
         <!-- NAVBAR -->
-        <header class="max-w-7xl w-full mx-auto p-6 flex items-center justify-between relative z-10">
+        <header class="max-w-7xl w-full mx-auto p-4 sm:p-6 flex items-center justify-between relative z-10">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-cyan-500/20">
-                    <Sparkles class="w-6 h-6" />
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black shadow-md shadow-cyan-500/20">
+                    ⚡
                 </div>
                 <div>
-                    <span class="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-                        MAKER<span class="text-amber-400">DU</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">{{ t('app.version') }}</span>
+                    <span class="text-xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                        Makerdu Studio
+                    </span>
+                    <span class="text-[10px] block font-mono font-bold text-cyan-600 dark:text-cyan-400">
+                        MICRO-FÁBRICA DIGITAL · FABLAB NETWORK
                     </span>
                 </div>
             </div>
 
-            <nav class="flex items-center gap-3">
+            <nav class="flex items-center gap-2 sm:gap-3">
                 <!-- Selector de Idioma -->
                 <button
                     type="button"
                     @click="setLanguage(currentLang === 'es' ? 'en' : 'es')"
-                    class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold font-mono text-cyan-300 border border-slate-800 transition flex items-center gap-1.5"
-                    title="Change Language"
+                    :class="isDarkTheme ? 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border-slate-800' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-sm'"
+                    class="px-3 py-1.5 rounded-xl border text-xs font-bold font-mono transition flex items-center gap-1.5 cursor-pointer"
                 >
-                    <Globe class="w-4 h-4" />
+                    <Globe class="w-3.5 h-3.5" />
                     <span>{{ currentLang.toUpperCase() }}</span>
+                </button>
+
+                <!-- Switch Tema -->
+                <button
+                    type="button"
+                    @click="toggleTheme"
+                    :class="isDarkTheme ? 'bg-slate-800 text-amber-400 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200 shadow-sm'"
+                    class="p-2 rounded-xl border transition cursor-pointer"
+                >
+                    <Sun v-if="isDarkTheme" class="w-4 h-4" />
+                    <Moon v-else class="w-4 h-4" />
                 </button>
 
                 <Link
                     :href="route('student.login')"
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-xs tracking-wide transition shadow-lg shadow-cyan-500/20"
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition shadow-md shadow-cyan-500/20"
                 >
-                    {{ t('welcome.card_student_btn') }}
-                </Link>
-                <Link
-                    :href="route('login')"
-                    class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-bold transition"
-                >
-                    {{ t('nav.teacher_portal') }}
+                    {{ currentLang === 'en' ? 'ENTER WORKSHOP' : 'ENTRAR AL TALLER' }}
                 </Link>
             </nav>
         </header>
 
         <!-- HERO SECTION -->
-        <main class="max-w-6xl w-full mx-auto px-6 py-12 flex flex-col items-center text-center relative z-10">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-semibold text-cyan-300 mb-6 backdrop-blur-md">
-                <ShieldCheck class="w-4 h-4 text-amber-400" />
-                {{ t('welcome.badge') }}
+        <main class="max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 flex flex-col items-center text-center relative z-10 my-auto">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold mb-6 border" :class="isDarkTheme ? 'bg-slate-900 border-slate-800 text-cyan-400' : 'bg-cyan-50 border-cyan-200 text-cyan-800'">
+                <Sparkles class="w-3.5 h-3.5 text-cyan-500" />
+                <span>{{ currentLang === 'en' ? 'Challenge-Based Learning & Digital Fabrication' : 'Aprendizaje Basado en Retos & Fabricación Digital' }}</span>
             </div>
 
-            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white max-w-4xl leading-none mb-6">
-                {{ t('welcome.hero_title') }} <br />
-                <span class="bg-gradient-to-r from-cyan-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">
-                    {{ t('welcome.hero_highlight') }}
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight max-w-3xl leading-tight mb-5" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                {{ currentLang === 'en' ? 'From Idea to Real Physical Product:' : 'De la Idea al Producto en tus Manos:' }} <br />
+                <span class="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    {{ currentLang === 'en' ? 'Your Personal Digital Micro-Factory' : 'Tu Micro-Fábrica Digital de Art Toys' }}
                 </span>
             </h1>
 
-            <p class="text-slate-400 text-base sm:text-lg max-w-2xl mb-10 leading-relaxed">
-                {{ t('welcome.hero_subtitle') }}
+            <p class="text-sm sm:text-base max-w-2xl mb-8 leading-relaxed" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">
+                {{ currentLang === 'en' 
+                    ? 'Empowering young creators to design, simulate, cost, and fabricate real 3D objects with the guidance of their AI Maker Copilot.'
+                    : 'Aprende a transformar un boceto en papel en un producto físico tridimensional con herramientas digitales autónomas y la guía de tu Copiloto IA.' }}
             </p>
 
-            <!-- ACTION CARDS -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl text-left mb-16">
-                <!-- Tarjeta Alumno (PIN & Aula) -->
+            <!-- TARJETAS DE ACCESO -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl text-left">
+                <!-- Tarjeta Creador / Alumno -->
                 <Link
                     :href="route('student.login')"
-                    class="group p-8 rounded-3xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition-all duration-300 relative shadow-2xl flex flex-col justify-between"
+                    class="group p-6 rounded-3xl border transition-all duration-300 shadow-md flex flex-col justify-between hover:scale-[1.02]"
+                    :class="isDarkTheme ? 'bg-slate-900/80 hover:bg-slate-900 border-slate-800 hover:border-cyan-500/50' : 'bg-white hover:bg-cyan-50/40 border-slate-200 hover:border-cyan-400'"
                 >
                     <div>
-                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
-                            <Laptop class="w-6 h-6" />
+                        <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg mb-3">
+                            🎨
                         </div>
-                        <h2 class="text-xl font-black text-white group-hover:text-cyan-300 transition">{{ t('welcome.card_student_title') }}</h2>
-                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                            {{ t('welcome.card_student_desc') }}
+                        <h2 class="text-lg font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                            {{ currentLang === 'en' ? 'Creator / Student Access' : 'Acceso para Creadores Maker' }}
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                            {{ currentLang === 'en' ? 'Enter with your 4-digit PIN to access your workbench, micro-apps, and missions.' : 'Ingresa con tu PIN de 4 dígitos para acceder a tu mesa de trabajo, herramientas y misiones.' }}
                         </p>
                     </div>
 
-                    <div class="mt-6 flex items-center gap-2 text-xs font-bold text-cyan-400 group-hover:translate-x-1 transition">
-                        <span>{{ t('welcome.card_student_btn') }}</span>
-                        <ArrowRight class="w-4 h-4" />
+                    <div class="mt-4 flex items-center gap-2 text-xs font-bold text-cyan-600 group-hover:translate-x-1 transition">
+                        <span>{{ currentLang === 'en' ? 'Start creating ➔' : 'Comenzar a crear ➔' }}</span>
                     </div>
                 </Link>
 
-                <!-- Tarjeta Docente / Adulto (Email) -->
+                <!-- Tarjeta Docente / Instructor -->
                 <Link
                     :href="route('login')"
-                    class="group p-8 rounded-3xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all duration-300 relative shadow-2xl flex flex-col justify-between"
+                    class="group p-6 rounded-3xl border transition-all duration-300 shadow-md flex flex-col justify-between hover:scale-[1.02]"
+                    :class="isDarkTheme ? 'bg-slate-900/80 hover:bg-slate-900 border-slate-800 hover:border-purple-500/50' : 'bg-white hover:bg-purple-50/40 border-slate-200 hover:border-purple-400'"
                 >
                     <div>
-                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
-                            <Layers class="w-6 h-6" />
+                        <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg mb-3">
+                            🎓
                         </div>
-                        <h2 class="text-xl font-black text-white group-hover:text-amber-300 transition">{{ t('welcome.card_teacher_title') }}</h2>
-                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                            {{ t('welcome.card_teacher_desc') }}
+                        <h2 class="text-lg font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                            {{ currentLang === 'en' ? 'Instructor Control Tower' : 'Torre de Control del Docente' }}
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                            {{ currentLang === 'en' ? 'Manage workshops, customize pedagogical context, and monitor live fabrication.' : 'Gestiona tus talleres, personaliza tus retos y monitorea la fabricación física en vivo.' }}
                         </p>
                     </div>
 
-                    <div class="mt-6 flex items-center gap-2 text-xs font-bold text-amber-400 group-hover:translate-x-1 transition">
-                        <span>{{ t('welcome.card_teacher_btn') }}</span>
-                        <ArrowRight class="w-4 h-4" />
+                    <div class="mt-4 flex items-center gap-2 text-xs font-bold text-purple-600 group-hover:translate-x-1 transition">
+                        <span>{{ currentLang === 'en' ? 'Instructor Portal ➔' : 'Panel de Control ➔' }}</span>
                     </div>
                 </Link>
-            </div>
-
-            <!-- FEATURE STATS -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl border-t border-slate-800/80 pt-8 text-center sm:text-left">
-                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-                    <div class="flex items-center gap-2 mb-1 justify-center sm:justify-start">
-                        <Coins class="w-4 h-4 text-amber-400" />
-                        <h3 class="text-xs font-black text-white">{{ t('welcome.stats_phygital') }}</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400">{{ t('welcome.stats_phygital_desc') }}</p>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-                    <div class="flex items-center gap-2 mb-1 justify-center sm:justify-start">
-                        <Cpu class="w-4 h-4 text-cyan-400" />
-                        <h3 class="text-xs font-black text-white">{{ t('welcome.stats_ai') }}</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400">{{ t('welcome.stats_ai_desc') }}</p>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-                    <div class="flex items-center gap-2 mb-1 justify-center sm:justify-start">
-                        <Trophy class="w-4 h-4 text-purple-400" />
-                        <h3 class="text-xs font-black text-white">{{ t('welcome.stats_cneb') }}</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400">{{ t('welcome.stats_cneb_desc') }}</p>
-                </div>
             </div>
         </main>
 
         <!-- FOOTER -->
-        <footer class="max-w-7xl w-full mx-auto p-6 border-t border-slate-900 text-center text-xs text-slate-500 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>Makerdu {{ t('app.version') }} • Google DeepMind &amp; STEAM Phygital Education Platform</p>
-            <p>Laravel v11 • Vue 3 • Three.js • Gemini 2.0 Flash AI</p>
+        <footer class="p-6 text-center text-xs text-slate-400 font-mono border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/80'">
+            Makerdu v4.0 · Open STEAM & Youth Maker Studio · FabLab Eco-Platform
         </footer>
     </div>
 </template>

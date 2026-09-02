@@ -12,9 +12,22 @@ class StudentAuthController extends Controller
 {
     public function showLogin()
     {
+        $demoFabbers = [
+            ['name' => 'Benito Juarez', 'pin' => '1001', 'code' => 'MK2026', 'avatar' => 'BJ'],
+            ['name' => 'María Angela Mejía', 'pin' => '1002', 'code' => 'MK2026', 'avatar' => 'MM'],
+            ['name' => 'Delia Barriga', 'pin' => '1003', 'code' => 'MK2026', 'avatar' => 'DB'],
+            ['name' => 'Grace Schwan', 'pin' => '1004', 'code' => 'MK2026', 'avatar' => 'GS'],
+            ['name' => 'Silvana Espinoza', 'pin' => '1005', 'code' => 'MK2026', 'avatar' => 'SE'],
+            ['name' => 'Hayashi Mateo', 'pin' => '1006', 'code' => 'MK2026', 'avatar' => 'HM'],
+            ['name' => 'Esteban Valladares', 'pin' => '1007', 'code' => 'MK2026', 'avatar' => 'EV'],
+            ['name' => 'Evelyn Cuadrado', 'pin' => '1008', 'code' => 'MK2026', 'avatar' => 'EC'],
+            ['name' => 'Victor Freundt', 'pin' => '1009', 'code' => 'MK2026', 'avatar' => 'VF'],
+        ];
+
         return Inertia::render('Student/Login', [
-            'defaultClassCode' => 'MK402',
-            'demoPin' => '1234',
+            'defaultClassCode' => 'MK2026',
+            'demoPin' => '1001',
+            'demoFabbers' => $demoFabbers,
         ]);
     }
 
