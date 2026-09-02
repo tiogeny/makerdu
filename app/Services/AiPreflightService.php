@@ -211,7 +211,8 @@ class AiPreflightService
     private function generateAiFeedback(string $fileName, array $metrics, array $violations, bool $isValid, array $rules = [], ?string $imageBase64 = null): array
     {
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
-        $modelsToTry = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+        // Prioridad: Modelos Lite (500 peticiones/día gratuitas) antes de modelos estándar (20 peticiones/día)
+        $modelsToTry = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
 
         $maxX = $rules['max_x_mm'] ?? 50;
         $maxY = $rules['max_y_mm'] ?? 50;

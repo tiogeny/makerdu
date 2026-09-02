@@ -1,6 +1,6 @@
 <script setup>
 import { Head, router, useForm, usePage, Link } from '@inertiajs/vue3';
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import {
     Sparkles, Coins, Trophy, Users, ShieldCheck, Wrench, CheckCircle2,
     Clock, BookOpen, ExternalLink, Send, FileText, ChevronRight, LogOut,
@@ -50,6 +50,12 @@ const props = defineProps({
 
 const page = usePage();
 
+// Obtener solo el primer nombre para un trato más humano y cercano
+const getFirstName = (fullName) => {
+    if (!fullName) return 'Creador';
+    return fullName.trim().split(' ')[0];
+};
+
 // TEMA: Claro por defecto (Estilo Google Learn About / Papel limpio)
 const isDarkTheme = ref(false);
 
@@ -59,6 +65,25 @@ const toggleTheme = () => {
 
 // Menú desplegable de Avatar de Escuadra
 const showUserMenu = ref(false);
+
+// Click-Outside infalible a nivel de ventana para cerrar el menú de usuario
+const onWindowClick = (e) => {
+    if (showUserMenu.value) {
+        const trigger = document.getElementById('user-menu-trigger');
+        const dropdown = document.getElementById('user-menu-dropdown');
+        if (trigger && !trigger.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
+            showUserMenu.value = false;
+        }
+    }
+};
+
+onMounted(() => {
+    window.addEventListener('click', onWindowClick);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('click', onWindowClick);
+});
 
 // Micro-Apps Overlay
 const activeTestingApp = ref(null);
@@ -412,6 +437,7 @@ const changeRole = (newRole) => {
                     <!-- CHIP MINIMALISTA DE USUARIO (Estilo Google Avatar) -->
                     <div class="relative">
                         <button
+                            id="user-menu-trigger"
                             type="button"
                             @click="showUserMenu = !showUserMenu"
                             :class="isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-white' : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-800 shadow-sm'"
@@ -420,21 +446,19 @@ const changeRole = (newRole) => {
                             <div class="w-5 h-5 rounded-full bg-cyan-500 text-slate-950 font-black text-[10px] flex items-center justify-center">
                                 {{ squad.name.charAt(0) }}
                             </div>
-                            <span class="truncate max-w-[90px] sm:max-w-[120px]">{{ activeStudent.name }}</span>
+                            <span class="truncate max-w-[90px] sm:max-w-[120px]">{{ getFirstName(activeStudent.name) }}</span>
                             <ChevronDown class="w-3 h-3 text-slate-400" />
                         </button>
 
-                        <!-- Backdrop invisible para cerrar al hacer clic afuera (Click-Outside) -->
-                        <div v-if="showUserMenu" @click="showUserMenu = false" class="fixed inset-0 z-40 bg-transparent"></div>
-
                         <!-- Menú Desplegable Flotante -->
                         <div 
+                            id="user-menu-dropdown"
                             v-if="showUserMenu"
                             :class="isDarkTheme ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-700 shadow-xl'"
                             class="absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-2xl z-50 space-y-1 text-xs animate-fade-in"
                         >
                             <div class="p-2 border-b border-slate-200 dark:border-slate-800">
-                                <span class="text-[10px] text-slate-400 font-mono block">Creador / Equipo:</span>
+                                <span class="text-[10px] text-slate-400 font-mono block">Creador / Mesa:</span>
                                 <strong class="text-sm font-black">{{ activeStudent.name }}</strong>
                                 <span class="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block mt-0.5">{{ squad.name }}</span>
                             </div>
@@ -712,7 +736,7 @@ const changeRole = (newRole) => {
                             </p>
                             <!-- Estado C: Primera vez que llega a la misión -->
                             <p v-else class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
-                                ¡Hola, {{ activeStudent.name }}! Para esta misión de <strong class="font-black">{{ selectedMission.title }}</strong>, miren primero este micro-tutorial de 20 segundos para entender cómo debe ser la silueta antes de pasar a las herramientas.
+                                ¡Hola, {{ getFirstName(activeStudent.name) }}! Para esta misión de <strong class="font-black">{{ selectedMission.title }}</strong>, miren primero este micro-tutorial de 20 segundos para entender cómo debe ser la silueta antes de pasar a las herramientas.
                             </p>
                         </div>
                     </div>
