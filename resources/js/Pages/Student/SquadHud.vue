@@ -9,7 +9,7 @@ import {
     Download, ArrowLeft, ArrowRight, Play, Lock, Award, Eye, Star, Heart, Lightbulb, Zap,
     PartyPopper, Compass, Palette, Scissors, CheckSquare, ListChecks, Sun, Moon,
     ChevronDown, UserCheck, RefreshCw, Undo2, Target, MessageSquare, Bot, HelpCircle,
-    ChevronUp, Rocket, Briefcase
+    ChevronUp, Rocket, Briefcase, ArrowDown
 } from 'lucide-vue-next';
 import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
@@ -74,8 +74,8 @@ const handleMicroAppAsset = (asset) => {
         bitacoraForm.content_text = `Entregable generado con Micro-App '${asset.appName || 'Makerdu'}': ${asset.fileName || 'archivo'} (${asset.depth_mm || 10} mm espesor).`;
         showMicroAppModal.value = false;
         
-        // Auto-avanzar a la fase 3 (Entrega & Auditoría)
-        activePhase.value = 3;
+        // Desbloquear Fase 3 y deslizar suavemente
+        unlockPhase(3, 'phase-3');
 
         copilotChatMessages.value.push({
             sender: 'user',
@@ -89,7 +89,7 @@ const handleMicroAppAsset = (asset) => {
                 text: `¡Gran avance en el modelado! Recibí su geometría de ${asset.depth_mm || 10} mm. Ahora solo nos queda la auditoría de calidad con Gemini antes de mandar a fabricar.`,
                 time: 'Ahora'
             });
-        }, 500);
+        }, 400);
     }
 };
 
@@ -101,20 +101,35 @@ const selectedMission = computed(() => {
     return props.project.levels[selectedMissionIndex.value] || props.project.levels[0];
 });
 
-// Memoria de navegación por sesión: rastrea qué misiones ya pisó el estudiante
-const visitedMissionIndices = ref(new Set([0]));
-const previousMissionIndex = ref(null);
-
-// Detectar si regresa a una misión que ya había visitado
-const isRevisitingMission = computed(() => {
-    return visitedMissionIndices.value.has(selectedMissionIndex.value) && previousMissionIndex.value !== null && previousMissionIndex.value !== selectedMissionIndex.value;
+// MEMORIA DE PROGRESO POR MISIÓN:
+// Cada misión recuerda qué fase desbloqueó el estudiante (1, 2 o 3)
+const missionUnlockedPhases = ref({
+    0: 1,
+    1: 1,
+    2: 1,
+    3: 1,
 });
 
-// FASE ACTIVA DENTRO DE LA MISIÓN (Revelación Progresiva):
-// 1 = Inspiración & Tutorial
-// 2 = Acción Maker & Herramientas
-// 3 = Entrega, Auditoría IA & Cierre
-const activePhase = ref(1);
+// Fase activa actual para la misión seleccionada
+const currentPhase = computed(() => {
+    return missionUnlockedPhases.value[selectedMissionIndex.value] || 1;
+});
+
+// Desbloquear fase con auto-scroll suave hacia el elemento destino
+const unlockPhase = (phaseNumber, targetElementId = null) => {
+    if (phaseNumber > (missionUnlockedPhases.value[selectedMissionIndex.value] || 1)) {
+        missionUnlockedPhases.value[selectedMissionIndex.value] = phaseNumber;
+    }
+
+    if (targetElementId) {
+        nextTick(() => {
+            const targetEl = document.getElementById(targetElementId);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+};
 
 // Mensajes interactivos del hilo conversacional del Copiloto
 const copilotChatMessages = ref([]);
@@ -182,7 +197,7 @@ const currentPills = computed(() => {
 });
 
 const askSocraticQuestion = (item) => {
-    // 1. Agregar pregunta y respuesta al chat
+    // 1. Agregar al chat
     copilotChatMessages.value.push({
         sender: 'user',
         text: item.q,
@@ -195,9 +210,17 @@ const askSocraticQuestion = (item) => {
             text: item.a,
             time: 'Ahora'
         });
+
+        // Suave scroll al nuevo mensaje
+        nextTick(() => {
+            const chatBox = document.getElementById('chat-messages-container');
+            if (chatBox) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
     }, 250);
 
-    // 2. Eliminar la píldora de las opciones disponibles
+    // 2. Eliminar la píldora de las opciones
     missionSocraticPills.value[selectedMissionIndex.value] = missionSocraticPills.value[selectedMissionIndex.value].filter(p => p.id !== item.id);
 };
 
@@ -281,16 +304,15 @@ const submitMissionEvidence = () => {
     });
 };
 
-// Seleccionar misión desde la ruta lateral con memoria de navegación
+// Seleccionar misión desde la ruta lateral preservando el progreso de fases de cada misión
 const selectMission = (idx) => {
-    previousMissionIndex.value = selectedMissionIndex.value;
     selectedMissionIndex.value = idx;
-    visitedMissionIndices.value.add(idx);
-    
-    // Iniciar en Fase 1 para la nueva misión
-    activePhase.value = 1;
     preflightResult.value = null;
-    copilotChatMessages.value = [];
+    
+    // Auto-scroll suave a la parte superior de la sección de trabajo
+    nextTick(() => {
+        window.scrollTo({ top: 120, behavior: 'smooth' });
+    });
 };
 
 // Helper para encontrar animación
@@ -608,20 +630,20 @@ const changeRole = (newRole) => {
                         </h2>
                     </div>
 
-                    <!-- Indicador de Fases -->
+                    <!-- Indicador de Fases Dinámico -->
                     <div class="flex items-center gap-1.5 text-[11px] font-mono font-bold">
                         <span 
-                            :class="activePhase >= 1 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-200 text-slate-500'"
+                            :class="currentPhase >= 1 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-200 text-slate-500'"
                             class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
                         >1</span>
                         <span class="text-slate-300">➔</span>
                         <span 
-                            :class="activePhase >= 2 ? 'bg-purple-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+                            :class="currentPhase >= 2 ? 'bg-purple-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
                             class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
                         >2</span>
                         <span class="text-slate-300">➔</span>
                         <span 
-                            :class="activePhase >= 3 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+                            :class="currentPhase >= 3 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
                             class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
                         >3</span>
                     </div>
@@ -631,9 +653,10 @@ const changeRole = (newRole) => {
                 <!-- FASE 1: INSPIRACIÓN & TUTORIAL (Input)                    -->
                 <!-- ========================================================= -->
                 <div 
+                    id="phase-1"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4',
-                        activePhase === 1
+                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 scroll-mt-28',
+                        currentPhase === 1
                             ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-950/40' : 'bg-white border-cyan-400 shadow-md ring-2 ring-cyan-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
                     ]"
@@ -642,10 +665,10 @@ const changeRole = (newRole) => {
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
                         <div class="flex items-center gap-2.5">
                             <span 
-                                :class="activePhase > 1 ? 'bg-emerald-500 text-white' : 'bg-cyan-500 text-slate-950'"
+                                :class="currentPhase > 1 ? 'bg-emerald-500 text-white' : 'bg-cyan-500 text-slate-950'"
                                 class="w-6 h-6 rounded-full font-mono text-xs font-black flex items-center justify-center"
                             >
-                                <Check v-if="activePhase > 1" class="w-3.5 h-3.5 stroke-[3]" />
+                                <Check v-if="currentPhase > 1" class="w-3.5 h-3.5 stroke-[3]" />
                                 <span v-else>1</span>
                             </span>
                             <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
@@ -654,18 +677,18 @@ const changeRole = (newRole) => {
                         </div>
 
                         <span 
-                            v-if="activePhase === 1" 
+                            v-if="currentPhase === 1" 
                             class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/30 animate-pulse"
                         >
                             ⚡ EN CURSO
                         </span>
-                        <button 
+                        <span 
                             v-else 
-                            @click="activePhase = 1" 
-                            class="text-xs font-bold text-cyan-600 hover:underline cursor-pointer"
+                            class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
                         >
-                            Revisar tutorial ➔
-                        </button>
+                            <Check class="w-3.5 h-3.5" />
+                            <span>Tutorial visto</span>
+                        </span>
                     </div>
 
                     <!-- Diálogo vivo del Copiloto -->
@@ -676,13 +699,19 @@ const changeRole = (newRole) => {
                         <div class="space-y-1.5 flex-1 text-xs">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-cyan-600 dark:text-cyan-400 font-mono text-[11px]">Copiloto Maker</span>
-                                <span class="text-[10px] text-slate-400">· hace un momento</span>
+                                <span class="text-[10px] text-slate-400">· mentor en vivo</span>
                             </div>
 
-                            <!-- Mensaje contextual inteligente -->
-                            <p v-if="isRevisitingMission" class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
-                                ¡Volviste a la Misión {{ selectedMissionIndex + 1 }}! 🎨 ¿Quieres ajustar el trazo de tu silueta, revisar las medidas o explorar una nueva variante antes de continuar con la fabricación?
+                            <!-- 3 ESTADOS HUMANOS DE MENSAJE: -->
+                            <!-- Estado A: Misión completada -->
+                            <p v-if="selectedMission.is_completed" class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
+                                ¡Esta misión ya fue superada con éxito! 🎉 Tienen su evidencia aprobada. Si desean pulir algún detalle del trazo o experimentar con otra versión, pueden hacerlo con total libertad.
                             </p>
+                            <!-- Estado B: Revisitando a medias -->
+                            <p v-else-if="currentPhase > 1" class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
+                                ¡De vuelta en acción! Ya tienen este tutorial revisado. Continuemos avanzando en la <strong class="font-bold">Fase {{ currentPhase }}</strong> para completar su diseño.
+                            </p>
+                            <!-- Estado C: Primera vez que llega a la misión -->
                             <p v-else class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
                                 ¡Hola, {{ activeStudent.name }}! Para esta misión de <strong class="font-black">{{ selectedMission.title }}</strong>, miren primero este micro-tutorial de 20 segundos para entender cómo debe ser la silueta antes de pasar a las herramientas.
                             </p>
@@ -694,15 +723,15 @@ const changeRole = (newRole) => {
                         <div v-html="getMissionAnimation(selectedMission)" class="w-full"></div>
                     </div>
 
-                    <!-- Botón para avanzar a la Fase 2 -->
-                    <div v-if="activePhase === 1" class="pt-2 flex justify-end">
+                    <!-- Botón para avanzar a la Fase 2 con auto-scroll -->
+                    <div class="pt-2 flex justify-end">
                         <button
                             type="button"
-                            @click="activePhase = 2"
+                            @click="unlockPhase(2, 'phase-2')"
                             class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-cyan-500/20 cursor-pointer"
                         >
-                            <span>¡ENTENDIDO, VAMOS A DISEÑAR!</span>
-                            <ArrowRight class="w-4 h-4" />
+                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS A DISEÑAR!' }}</span>
+                            <ArrowDown class="w-4 h-4" />
                         </button>
                     </div>
                 </div>
@@ -711,10 +740,11 @@ const changeRole = (newRole) => {
                 <!-- FASE 2: ACCIÓN MAKER & HERRAMIENTAS (Process)             -->
                 <!-- ========================================================= -->
                 <div 
-                    v-if="activePhase >= 2"
+                    v-if="currentPhase >= 2"
+                    id="phase-2"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in',
-                        activePhase === 2
+                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
+                        currentPhase === 2
                             ? (isDarkTheme ? 'bg-slate-900 border-purple-500/50 shadow-lg shadow-purple-950/40' : 'bg-white border-purple-400 shadow-md ring-2 ring-purple-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
                     ]"
@@ -722,10 +752,10 @@ const changeRole = (newRole) => {
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
                         <div class="flex items-center gap-2.5">
                             <span 
-                                :class="activePhase > 2 ? 'bg-emerald-500 text-white' : 'bg-purple-500 text-white'"
+                                :class="currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-purple-500 text-white'"
                                 class="w-6 h-6 rounded-full font-mono text-xs font-black flex items-center justify-center"
                             >
-                                <Check v-if="activePhase > 2" class="w-3.5 h-3.5 stroke-[3]" />
+                                <Check v-if="currentPhase > 2" class="w-3.5 h-3.5 stroke-[3]" />
                                 <span v-else>2</span>
                             </span>
                             <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
@@ -734,18 +764,18 @@ const changeRole = (newRole) => {
                         </div>
 
                         <span 
-                            v-if="activePhase === 2" 
+                            v-if="currentPhase === 2" 
                             class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/30 animate-pulse"
                         >
                             ⚡ EN CURSO
                         </span>
-                        <button 
+                        <span 
                             v-else 
-                            @click="activePhase = 2" 
-                            class="text-xs font-bold text-purple-600 hover:underline cursor-pointer"
+                            class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
                         >
-                            Ver herramientas ➔
-                        </button>
+                            <Check class="w-3.5 h-3.5" />
+                            <span>Herramienta lista</span>
+                        </span>
                     </div>
 
                     <p class="text-xs leading-relaxed" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
@@ -789,28 +819,8 @@ const changeRole = (newRole) => {
                         </p>
                     </div>
 
-                    <!-- PÍLDORAS SOCRÁTICAS INTERACTIVAS (Se borran al hacer clic) -->
-                    <div v-if="currentPills.length > 0" class="pt-2 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                            💡 Preguntas Frecuentes al Copiloto (Haz clic para despejar dudas):
-                        </span>
-                        <div class="flex flex-wrap gap-2">
-                            <button
-                                v-for="item in currentPills"
-                                :key="item.id"
-                                type="button"
-                                @click="askSocraticQuestion(item)"
-                                :class="isDarkTheme ? 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'"
-                                class="px-3 py-1.5 rounded-full border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-[1.02]"
-                            >
-                                <span>❓</span>
-                                <span>{{ item.q }}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Hilo de Respuestas del Chat dentro de Fase 2 -->
-                    <div v-if="copilotChatMessages.length > 0" class="space-y-2.5 pt-2">
+                    <!-- HILO CONVERSACIONAL DE PREGUNTAS (Aparece primero para el flujo visual) -->
+                    <div id="chat-messages-container" v-if="copilotChatMessages.length > 0" class="space-y-2.5 pt-2 max-h-60 overflow-y-auto">
                         <div 
                             v-for="(msg, mIdx) in copilotChatMessages" 
                             :key="mIdx"
@@ -836,15 +846,35 @@ const changeRole = (newRole) => {
                         </div>
                     </div>
 
-                    <!-- Botón para avanzar a la Fase 3 -->
-                    <div v-if="activePhase === 2" class="pt-2 flex justify-end">
+                    <!-- PÍLDORAS SOCRÁTICAS AL FINAL DEL DIÁLOGO (Flujo natural hacia abajo) -->
+                    <div v-if="currentPills.length > 0" class="pt-2 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
+                        <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                            💡 Preguntas Frecuentes al Copiloto (Haz clic para despejar dudas):
+                        </span>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                v-for="item in currentPills"
+                                :key="item.id"
+                                type="button"
+                                @click="askSocraticQuestion(item)"
+                                :class="isDarkTheme ? 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'"
+                                class="px-3 py-1.5 rounded-full border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-[1.02]"
+                            >
+                                <span>❓</span>
+                                <span>{{ item.q }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botón para avanzar a la Fase 3 con auto-scroll suave -->
+                    <div class="pt-2 flex justify-end">
                         <button
                             type="button"
-                            @click="activePhase = 3"
+                            @click="unlockPhase(3, 'phase-3')"
                             class="px-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-black text-xs transition flex items-center gap-2 shadow-md shadow-purple-500/20 cursor-pointer"
                         >
-                            <span>TENGO MI EVIDENCIA LISTA</span>
-                            <ArrowRight class="w-4 h-4" />
+                            <span>{{ currentPhase > 2 ? 'CONTINUAR A LA AUDITORÍA' : 'TENGO MI EVIDENCIA LISTA' }}</span>
+                            <ArrowDown class="w-4 h-4" />
                         </button>
                     </div>
                 </div>
@@ -853,10 +883,11 @@ const changeRole = (newRole) => {
                 <!-- FASE 3: ENTREGA, AUDITORÍA GEMINI & CIERRE (Output)       -->
                 <!-- ========================================================= -->
                 <div 
-                    v-if="activePhase >= 3"
+                    v-if="currentPhase >= 3"
+                    id="phase-3"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in',
-                        activePhase === 3
+                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
+                        currentPhase === 3
                             ? (isDarkTheme ? 'bg-slate-900 border-emerald-500/50 shadow-lg shadow-emerald-950/40' : 'bg-white border-emerald-400 shadow-md ring-2 ring-emerald-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50/90 border-slate-200')
                     ]"
