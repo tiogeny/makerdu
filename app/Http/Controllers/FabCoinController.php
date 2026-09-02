@@ -23,7 +23,7 @@ class FabCoinController extends Controller
         $squad = $user->squads()->with(['classroom.project', 'members'])->first();
 
         if (!$squad) {
-            return redirect()->route('student.hud');
+            return redirect()->route('student.studio');
         }
 
         // Historial de transacciones

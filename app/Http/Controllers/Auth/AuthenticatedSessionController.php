@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
         } elseif ($user->role_type === 'teacher') {
             return redirect()->intended(route('teacher.war-room', absolute: false));
         }
-        return redirect()->intended(route('student.hud', absolute: false));
+        return redirect()->intended(route('student.studio', absolute: false));
     }
 
     /**

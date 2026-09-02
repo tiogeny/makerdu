@@ -71,7 +71,7 @@ class StudentAuthController extends Controller
             'active_student_id' => $matchedStudent->id,
         ]);
 
-        return redirect()->route('student.hud');
+        return redirect()->route('student.studio');
     }
 
     public function logout(Request $request)

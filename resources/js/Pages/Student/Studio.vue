@@ -1334,7 +1334,7 @@ const changeRole = (newRole) => {
                         </p>
 
                         <!-- Violaciones / Ajustes Detectados -->
-                        <div v-if="preflightResult.violations?.length > 0" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+                        <div v-if="preflightResult?.violations?.length > 0" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 space-y-1">
                             <span class="font-bold flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider">
                                 ⚠️ Detalle a Corregir:
                             </span>
@@ -1345,7 +1345,7 @@ const changeRole = (newRole) => {
                         </div>
 
                         <!-- Puntos Fuertes -->
-                        <div v-if="preflightResult.dashboard?.strengths?.length > 0" class="space-y-1">
+                        <div v-if="preflightResult?.dashboard?.strengths?.length > 0" class="space-y-1">
                             <span class="text-[10px] font-mono font-bold text-emerald-600 uppercase">Puntos Fuertes Detectados:</span>
                             <div v-for="(st, sIdx) in preflightResult.dashboard.strengths" :key="sIdx" class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                                 <span class="text-emerald-500 font-bold">✓</span>
@@ -1356,7 +1356,7 @@ const changeRole = (newRole) => {
                         <!-- Consejo del Mentor con las Soluciones Exactas -->
                         <div 
                             class="p-3.5 rounded-xl border text-xs flex items-start gap-2.5" 
-                            :class="preflightResult.is_valid 
+                            :class="(preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) 
                                 ? 'bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
                                 : 'bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'"
                         >
@@ -1366,7 +1366,7 @@ const changeRole = (newRole) => {
                                     💡 Sugerencia del Mentor Maker:
                                 </strong>
                                 <p class="leading-relaxed">
-                                    {{ preflightResult.dashboard?.pedagogical_tip || 'Asegúrate de seguir las 4 reglas del boceto.' }}
+                                    {{ preflightResult?.dashboard?.pedagogical_tip || (existingEvidence?.status === 'approved' ? '¡Tu silueta cumple las reglas maker y está lista para fabricar!' : 'Asegúrate de seguir las 4 reglas del boceto.') }}
                                 </p>
                             </div>
                         </div>

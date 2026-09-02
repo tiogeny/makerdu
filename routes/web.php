@@ -43,7 +43,7 @@ Route::middleware(['auth'])->group(function () {
         } elseif ($user->role_type === 'teacher') {
             return redirect()->route('teacher.war-room');
         }
-        return redirect()->route('student.hud');
+        return redirect()->route('student.studio');
     })->name('dashboard');
 
     // Super Administrador Makerdu v4.0 (Técnicas STEAM, Micro-Apps, Gemini AI Sandbox)
@@ -84,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Estudio Maker y Operaciones del Taller
     Route::get('/studio', [StudioController::class, 'hud'])->name('student.studio');
-    Route::get('/hud', [StudioController::class, 'hud'])->name('student.hud'); // Alias retrocompatible
+    Route::get('/hud', function () { return redirect()->route('student.studio'); })->name('student.hud');
     Route::post('/squad/join-team', [StudioController::class, 'joinTeam'])->name('squad.join-team');
     Route::post('/squad/set-individual', [StudioController::class, 'setIndividualMode'])->name('squad.set-individual');
     Route::post('/squad/{squad}/switch-role', [StudioController::class, 'switchRole'])->name('squad.switch-role');
