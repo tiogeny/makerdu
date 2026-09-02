@@ -199,8 +199,80 @@ const unlockPhase = (phaseNumber, targetElementId = null) => {
     }
 };
 
-// Mensajes interactivos del hilo conversacional del Copiloto
-const copilotChatMessages = ref([]);
+// Mensajes interactivos del hilo conversacional del Copiloto (por cada misión)
+const missionChatMessages = ref({
+    0: [],
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+});
+
+const copilotChatMessages = computed(() => {
+    return missionChatMessages.value[selectedMissionIndex.value] || [];
+});
+
+const customQuestionText = ref('');
+const copilotAnswering = ref(false);
+
+const sendCustomQuestion = async () => {
+    const text = customQuestionText.value.trim();
+    if (!text || copilotAnswering.value) return;
+
+    if (!missionChatMessages.value[selectedMissionIndex.value]) {
+        missionChatMessages.value[selectedMissionIndex.value] = [];
+    }
+
+    missionChatMessages.value[selectedMissionIndex.value].push({
+        sender: 'user',
+        text: text,
+        time: 'Ahora'
+    });
+
+    customQuestionText.value = '';
+    copilotAnswering.value = true;
+
+    try {
+        const response = await fetch(route('squad.ai-chat', { squad: props.squad.id }), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            body: JSON.stringify({
+                message: text,
+                level_id: selectedMission.value.id,
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            missionChatMessages.value[selectedMissionIndex.value].push({
+                sender: 'copilot',
+                text: data.reply || '¡Interesante pregunta! Recuerda asegurar una base amplia y espesor de 10 mm.',
+                time: 'Ahora'
+            });
+        } else {
+            missionChatMessages.value[selectedMissionIndex.value].push({
+                sender: 'copilot',
+                text: 'En esta misión, recuerda verificar que tu modelo tenga 10 mm de espesor y base estable.',
+                time: 'Ahora'
+            });
+        }
+    } catch (e) {
+        missionChatMessages.value[selectedMissionIndex.value].push({
+            sender: 'copilot',
+            text: '¡Buena pregunta! Ten en cuenta siempre la base de apoyo y el espesor uniforme.',
+            time: 'Ahora'
+        });
+    } finally {
+        copilotAnswering.value = false;
+        nextTick(() => {
+            const chatBox = document.getElementById('chat-messages-container');
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    }
+};
 
 // Píldoras Socráticas disponibles por misión (se eliminan al hacer clic)
 const missionSocraticPills = ref({
@@ -277,15 +349,18 @@ const currentPills = computed(() => {
 });
 
 const askSocraticQuestion = (item) => {
-    // 1. Agregar al chat
-    copilotChatMessages.value.push({
+    if (!missionChatMessages.value[selectedMissionIndex.value]) {
+        missionChatMessages.value[selectedMissionIndex.value] = [];
+    }
+
+    missionChatMessages.value[selectedMissionIndex.value].push({
         sender: 'user',
         text: item.q,
         time: 'Ahora'
     });
 
     setTimeout(() => {
-        copilotChatMessages.value.push({
+        missionChatMessages.value[selectedMissionIndex.value].push({
             sender: 'copilot',
             text: item.a,
             time: 'Ahora'
@@ -331,7 +406,11 @@ const handleFileUpload = (e) => {
     if (!file) return;
     bitacoraForm.file = file;
 
-    copilotChatMessages.value.push({
+    if (!missionChatMessages.value[selectedMissionIndex.value]) {
+        missionChatMessages.value[selectedMissionIndex.value] = [];
+    }
+
+    missionChatMessages.value[selectedMissionIndex.value].push({
         sender: 'user',
         text: `Subí el archivo de evidencia: ${file.name} (${Math.round(file.size / 1024)} KB).`,
         time: 'Ahora'
@@ -363,9 +442,13 @@ const runPreflightCheck = () => {
                 const verdictMsg = res.dashboard?.headline || res.ai_feedback || 'He analizado su evidencia.';
                 const tipMsg = res.dashboard?.pedagogical_tip ? ` Consejo del Mentor: ${res.dashboard.pedagogical_tip}` : '';
                 
-                copilotChatMessages.value.push({
+                if (!missionChatMessages.value[selectedMissionIndex.value]) {
+                    missionChatMessages.value[selectedMissionIndex.value] = [];
+                }
+
+                missionChatMessages.value[selectedMissionIndex.value].push({
                     sender: 'copilot',
-                    text: `🔍 [Auditoría Gemini 2.0]: ${verdictMsg}${tipMsg}`,
+                    text: `🔍 [Control de Calidad IA]: ${verdictMsg}${tipMsg}`,
                     isVerdict: true,
                     verdictTitle: res.dashboard?.verdict_title || (res.is_valid ? '¡DISEÑO VALIDADO!' : 'REQUIERE AJUSTES'),
                     isValid: res.is_valid,
@@ -619,17 +702,31 @@ const changeRole = (newRole) => {
                     <!-- SHOWCASE VISUAL VIVO DEL RETO (Resultado Físico Deseado) -->
                     <div 
                         :class="isDarkTheme ? 'bg-slate-950/80 border-slate-800' : 'bg-white border-slate-200 shadow-md'"
-                        class="p-3.5 rounded-3xl border flex items-center gap-3.5 shrink-0 max-w-xs"
+                        class="p-3.5 sm:p-4 rounded-3xl border flex items-center gap-4 shrink-0 max-w-sm"
                     >
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center text-2xl shadow-inner shrink-0">
-                            🦖
-                        </div>
-                        <div class="text-xs space-y-0.5">
-                            <span class="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider block">
-                                META DEL PRODUCTO
+                        <div class="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center shrink-0 group overflow-hidden">
+                            <img 
+                                src="/images/digitoys/digifeliz.png" 
+                                alt="Art Toy 2.5D Autoportante" 
+                                class="w-full h-full object-contain group-hover:scale-105 transition duration-300"
+                            />
+                            <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-black text-[8px] font-mono shadow">
+                                10 mm
                             </span>
-                            <strong class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Art Toy 2.5D Autoportante</strong>
-                            <p class="text-[10px] text-slate-400 leading-tight">10 mm espesor en PLA · Se para solo en tu escritorio</p>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                <span class="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider block">
+                                    META DEL PRODUCTO FÍSICO
+                                </span>
+                            </div>
+                            <strong class="text-xs sm:text-sm font-black leading-tight block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                Art Toy 2.5D Autoportante
+                            </strong>
+                            <p class="text-[10px] text-slate-400 leading-snug">
+                                En PLA biodegradable. Base 100% plana que se para sola en tu mesa sin soportes.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1014,6 +1111,27 @@ const changeRole = (newRole) => {
                                 <span>{{ item.q }}</span>
                             </button>
                         </div>
+
+                        <!-- PREGUNTA LIBRE A LA IA (Escribir directamente a Gemini) -->
+                        <form @submit.prevent="sendCustomQuestion" class="flex items-center gap-2 pt-3">
+                            <input
+                                v-model="customQuestionText"
+                                type="text"
+                                placeholder="Escribe cualquier pregunta a tu Copiloto IA sobre tu diseño..."
+                                class="flex-1 rounded-2xl border px-3.5 py-2 text-xs transition"
+                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500'"
+                                :disabled="copilotAnswering"
+                            />
+                            <button
+                                type="submit"
+                                :disabled="!customQuestionText.trim() || copilotAnswering"
+                                class="px-4 py-2 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-sm disabled:opacity-40 cursor-pointer shrink-0"
+                            >
+                                <RefreshCw v-if="copilotAnswering" class="w-3.5 h-3.5 animate-spin" />
+                                <Send v-else class="w-3.5 h-3.5" />
+                                <span>Preguntar</span>
+                            </button>
+                        </form>
                     </div>
 
                     <!-- Botón para avanzar a la Fase 3 con auto-scroll suave -->
