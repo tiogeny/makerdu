@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\Squad;
 use App\Models\Classroom;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+Schema::disableForeignKeyConstraints();
 
 // 1. Limpiar bitácoras de evidencias
 BitacoraEntry::truncate();
@@ -18,6 +21,8 @@ User::where('role_type', 'student')->update(['xp_points' => 0]);
 // 3. Resetear agrupamientos en equipo y restaurar mesas individuales con 12 FC
 DB::table('squad_user')->truncate();
 Squad::truncate();
+
+Schema::enableForeignKeyConstraints();
 
 $classroom = Classroom::first();
 $classroomId = $classroom ? $classroom->id : 1;
