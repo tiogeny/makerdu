@@ -1,4 +1,4 @@
-// Makerdu 3D Slicer & Infill Simulator Engine v1.0
+// Makerdu 3D Slicer & Infill Simulator Engine v2.0
 let scene, camera, renderer, controls;
 let currentMesh = null;
 let clipPlane = null;
@@ -7,6 +7,7 @@ let currentLayer = 25;
 let totalLayers = 50;
 let layerHeight = 0.20; // mm
 let totalHeightMm = 10;
+let modelBaseVertices = [];
 
 const layerCanvas = document.getElementById('layerCanvas');
 const layerCanvasWrapper = document.getElementById('layerCanvasWrapper');
@@ -32,7 +33,7 @@ function initThree() {
     scene.background = new THREE.Color(0x020617);
 
     camera = new THREE.PerspectiveCamera(45, w / h, 1, 1000);
-    camera.position.set(0, -70, 85);
+    camera.position.set(0, -75, 75);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(w, h);
@@ -85,30 +86,67 @@ function onResize() {
     draw2DLayerSlice();
 }
 
+function setupMeshOnBed(geom) {
+    if (currentMesh) scene.remove(currentMesh);
+
+    geom.computeBoundingBox();
+    geom.center();
+    geom.computeBoundingBox();
+    const newBbox = geom.boundingBox;
+    geom.translate(0, 0, -newBbox.min.z);
+
+    geom.computeBoundingBox();
+    totalHeightMm = Math.max(2, geom.boundingBox.max.z);
+    totalLayers = Math.max(10, Math.round(totalHeightMm / layerHeight));
+    layerSlider.max = totalLayers;
+    layerSlider.value = Math.round(totalLayers / 2);
+    currentLayer = parseInt(layerSlider.value);
+
+    extractContourPoints(geom);
+
+    const mat = new THREE.MeshStandardMaterial({
+        color: 0x06b6d4,
+        roughness: 0.35,
+        metalness: 0.15,
+        clippingPlanes: [clipPlane],
+        clipShadows: true,
+        side: THREE.DoubleSide
+    });
+
+    currentMesh = new THREE.Mesh(geom, mat);
+    scene.add(currentMesh);
+
+    updateSlicerValues();
+}
+
+function extractContourPoints(geom) {
+    modelBaseVertices = [];
+    const pos = geom.attributes.position;
+    if (!pos) return;
+
+    const pts = [];
+    for (let i = 0; i < pos.count; i += 6) {
+        pts.push({ x: pos.getX(i), y: pos.getY(i) });
+    }
+    modelBaseVertices = pts;
+}
+
 function loadDefaultArtToy() {
     const shape = new THREE.Shape();
-    shape.moveTo(-20, -25);
-    shape.lineTo(-20, 20);
-    shape.quadraticCurveTo(-20, 25, -15, 25);
-    shape.lineTo(15, 25);
-    shape.quadraticCurveTo(20, 25, 20, 20);
-    shape.lineTo(20, -25);
-    shape.lineTo(10, -25);
-    shape.lineTo(5, -12);
-    shape.lineTo(-5, -12);
-    shape.lineTo(-10, -25);
+    shape.moveTo(-20, 0);
+    shape.lineTo(-20, 30);
+    shape.quadraticCurveTo(-20, 45, -5, 45);
+    shape.lineTo(15, 45);
+    shape.quadraticCurveTo(25, 45, 25, 30);
+    shape.lineTo(25, 0);
+    shape.lineTo(15, 0);
+    shape.lineTo(10, 15);
+    shape.lineTo(-10, 15);
+    shape.lineTo(-15, 0);
     shape.closePath();
 
     const hole = new THREE.Path();
-    hole.moveTo(-10, 0);
-    hole.lineTo(-10, 14);
-    hole.lineTo(-5, 14);
-    hole.lineTo(-5, 5);
-    hole.lineTo(5, 5);
-    hole.lineTo(5, 14);
-    hole.lineTo(10, 14);
-    hole.lineTo(10, 0);
-    hole.closePath();
+    hole.absarc(0, 28, 6, 0, Math.PI * 2, true);
     shape.holes.push(hole);
 
     const extrudeSettings = {
@@ -121,25 +159,7 @@ function loadDefaultArtToy() {
     };
 
     const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geom.center();
-    geom.computeBoundingBox();
-    totalHeightMm = 10;
-    totalLayers = Math.round(totalHeightMm / layerHeight);
-
-    const mat = new THREE.MeshStandardMaterial({
-        color: 0x06b6d4,
-        roughness: 0.4,
-        metalness: 0.15,
-        clippingPlanes: [clipPlane],
-        clipShadows: true,
-        side: THREE.DoubleSide
-    });
-
-    currentMesh = new THREE.Mesh(geom, mat);
-    currentMesh.position.z = 5;
-    scene.add(currentMesh);
-
-    updateSlicerValues();
+    setupMeshOnBed(geom);
 }
 
 function updateSlicerValues() {
@@ -182,8 +202,8 @@ btnInfillSolid.addEventListener('click', () => {
 });
 
 btnResetCamera.addEventListener('click', () => {
-    camera.position.set(0, -70, 85);
-    controls.target.set(0, 0, 0);
+    camera.position.set(0, -75, 75);
+    controls.target.set(0, 0, 5);
     controls.update();
 });
 
@@ -217,16 +237,16 @@ function draw2DLayerSlice() {
 
     // Perímetro exterior
     ctx.beginPath();
-    ctx.rect(-20 * scale, -22 * scale, 40 * scale, 44 * scale);
+    ctx.rect(-22 * scale, -24 * scale, 44 * scale, 48 * scale);
     ctx.strokeStyle = '#06b6d4';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3.5;
     ctx.stroke();
 
     // Hueco
     ctx.beginPath();
-    ctx.rect(-10 * scale, -10 * scale, 20 * scale, 18 * scale);
+    ctx.arc(0, 5 * scale, 7 * scale, 0, Math.PI * 2);
     ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     // Relleno Infill
@@ -269,51 +289,20 @@ stlFileInput.addEventListener('change', (e) => {
     reader.onload = (event) => {
         const loader = new THREE.STLLoader();
         const geometry = loader.parse(event.target.result);
-        geometry.center();
-        geometry.computeBoundingBox();
-
-        if (currentMesh) scene.remove(currentMesh);
-
-        const mat = new THREE.MeshStandardMaterial({
-            color: 0x06b6d4,
-            roughness: 0.4,
-            metalness: 0.15,
-            clippingPlanes: [clipPlane],
-            side: THREE.DoubleSide
-        });
-
-        currentMesh = new THREE.Mesh(geometry, mat);
-        const bbox = geometry.boundingBox;
-        totalHeightMm = Math.round(bbox.max.z - bbox.min.z) || 10;
-        totalLayers = Math.max(10, Math.round(totalHeightMm / layerHeight));
-        layerSlider.max = totalLayers;
-        layerSlider.value = Math.round(totalLayers / 2);
-        currentLayer = parseInt(layerSlider.value);
-        currentMesh.position.z = totalHeightMm / 2;
-        scene.add(currentMesh);
-
-        updateSlicerValues();
+        setupMeshOnBed(geometry);
     };
     reader.readAsArrayBuffer(file);
 });
 
-// Precarga por URL de STL
+// Carga automática por URL
 const urlParams = new URLSearchParams(window.location.search);
 const stlUrl = urlParams.get('stl_url') || urlParams.get('file_url');
 if (stlUrl) {
     const loader = new THREE.STLLoader();
     loader.load(stlUrl, (geometry) => {
-        geometry.center();
-        if (currentMesh) scene.remove(currentMesh);
-        const mat = new THREE.MeshStandardMaterial({
-            color: 0x06b6d4,
-            roughness: 0.4,
-            clippingPlanes: [clipPlane],
-            side: THREE.DoubleSide
-        });
-        currentMesh = new THREE.Mesh(geometry, mat);
-        scene.add(currentMesh);
-        updateSlicerValues();
+        setupMeshOnBed(geometry);
+    }, undefined, (err) => {
+        console.warn('Fallback a modelo de muestra:', err);
     });
 }
 

@@ -298,7 +298,7 @@ class AiQualityControlService
                             'contents' => [['parts' => $parts]],
                             'generationConfig' => [
                                 'response_mime_type' => 'application/json',
-                                'temperature' => 0.4,
+                                'temperature' => 0.1,
                             ]
                         ]);
 

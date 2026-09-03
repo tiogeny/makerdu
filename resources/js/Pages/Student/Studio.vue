@@ -859,10 +859,10 @@ const changeRole = (newRole) => {
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
                         <div>
                             <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 block">
-                                RUTA DEL PRODUCTO
+                                RUTA DEL RETO
                             </span>
                             <h2 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Misiones del Taller
+                                Misiones Maker
                             </h2>
                         </div>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold" :class="isDarkTheme ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'">
@@ -882,10 +882,10 @@ const changeRole = (newRole) => {
                                 selectedMissionIndex === idx
                                     ? (isDarkTheme 
                                         ? 'bg-cyan-950/40 border-cyan-500/50 shadow-md ring-1 ring-cyan-500/30' 
-                                        : 'bg-cyan-50/80 border-cyan-400 shadow-sm ring-2 ring-cyan-500/20')
+                                        : 'bg-cyan-50/70 border-cyan-400 shadow-sm ring-1 ring-cyan-400/40')
                                     : (isDarkTheme 
-                                        ? 'bg-slate-950/50 border-slate-800 hover:border-slate-700 text-slate-400' 
-                                        : 'bg-slate-50/70 border-slate-200 hover:border-slate-300 text-slate-600')
+                                        ? 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-400' 
+                                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600 shadow-xs')
                             ]"
                         >
                             <div class="flex items-center gap-3">
@@ -894,10 +894,10 @@ const changeRole = (newRole) => {
                                     :class="[
                                         'w-8 h-8 rounded-xl font-mono text-xs font-black flex items-center justify-center shrink-0 transition',
                                         selectedMissionIndex === idx
-                                            ? 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 font-black shadow-lg shadow-cyan-500/20'
+                                            ? 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
                                             : (mission.is_completed
-                                                ? 'bg-slate-900 border border-slate-700 text-emerald-400 font-bold'
-                                                : (isDarkTheme ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-600'))
+                                                ? (isDarkTheme ? 'bg-slate-900 border border-slate-700 text-emerald-400' : 'bg-emerald-50 border border-emerald-300 text-emerald-700')
+                                                : (isDarkTheme ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-600 border border-slate-200'))
                                     ]"
                                 >
                                     <Check v-if="mission.is_completed && selectedMissionIndex !== idx" class="w-4 h-4 stroke-[2.5]" />
@@ -908,11 +908,11 @@ const changeRole = (newRole) => {
                                     <div class="flex items-center gap-2">
                                         <h4 
                                             class="text-xs font-bold leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition"
-                                            :class="selectedMissionIndex === idx ? (isDarkTheme ? 'text-white font-black' : 'text-slate-900 font-black') : (mission.is_completed ? 'text-slate-400' : 'text-slate-500')"
+                                            :class="selectedMissionIndex === idx ? (isDarkTheme ? 'text-white font-black' : 'text-slate-900 font-black') : (mission.is_completed ? (isDarkTheme ? 'text-slate-400' : 'text-slate-600') : (isDarkTheme ? 'text-slate-400' : 'text-slate-700'))"
                                         >
                                             {{ mission.title }}
                                         </h4>
-                                        <span v-if="mission.is_completed && selectedMissionIndex !== idx" class="text-[9px] font-mono font-bold text-emerald-500 bg-emerald-950/40 border border-emerald-800/40 px-1.5 py-0.2 rounded-md">
+                                        <span v-if="mission.is_completed && selectedMissionIndex !== idx" class="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.2 rounded-md">
                                             Superada
                                         </span>
                                     </div>
@@ -934,18 +934,20 @@ const changeRole = (newRole) => {
                         :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'"
                         class="p-3 rounded-2xl border text-[11px] leading-relaxed flex items-start gap-2"
                     >
-                        <Compass class="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
-                        <span>Puedes regresar a cualquier misión para pulir tu silueta o probar ideas nuevas. Nada queda bloqueado.</span>
+                        <span class="text-sm">🧭</span>
+                        <p>
+                            Avanza a tu ritmo. Puedes explorar misiones anteriores o siguientes sin bloqueos para experimentar con tu personaje.
+                        </p>
                     </div>
                 </div>
             </aside>
 
             <!-- ============================================================= -->
-            <!-- COLUMNA DERECHA: EXPERIENCIA CONVERSACIONAL POR FASES         -->
+            <!-- COLUMNA DERECHA: INTERACCIÓN DE LA MISIÓN EN 3 FASES          -->
             <!-- ============================================================= -->
             <section class="lg:col-span-8 space-y-6">
                 
-                <!-- CABECERA DE LA MISIÓN ACTIVA (El verdadero título) -->
+                <!-- CABECERA DE LA MISIÓN ACTIVA -->
                 <div class="flex items-center justify-between pb-1">
                     <div>
                         <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
@@ -956,36 +958,44 @@ const changeRole = (newRole) => {
                         </h2>
                     </div>
 
-                    <!-- Stepper Interactivo de Fases Maker (Insumo ➔ Taller ➔ Validación) -->
-                    <div class="hidden sm:flex items-center gap-1 p-1 bg-slate-950/80 rounded-2xl border border-slate-800 text-xs">
+                    <!-- Stepper Minimalista y Elegante: Paso 1, 2, 3 -->
+                    <div class="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
                         <button 
                             type="button"
                             @click="unlockPhase(1, 'phase-1')"
-                            :class="currentPhase === 1 ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
+                            :class="currentPhase === 1 ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                         >
-                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">1</span>
-                            <span class="text-[11px] font-bold">Insumos & Guía</span>
+                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 1 ? 'bg-cyan-500 text-slate-950' : (currentPhase > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600')">
+                                <Check v-if="currentPhase > 1" class="w-2.5 h-2.5 stroke-[3]" />
+                                <span v-else>1</span>
+                            </span>
+                            <span class="text-[11px]">Guía</span>
                         </button>
-                        <span class="text-slate-600 text-xs font-mono">›</span>
+                        <span class="text-slate-300 dark:text-slate-700 text-[10px]">›</span>
                         <button 
                             type="button"
                             @click="unlockPhase(2, 'phase-2')"
-                            :class="currentPhase === 2 ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
+                            :class="currentPhase === 2 ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                         >
-                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">2</span>
-                            <span class="text-[11px] font-bold">Taller & Herramientas</span>
+                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 2 ? 'bg-amber-500 text-slate-950' : (currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600')">
+                                <Check v-if="currentPhase > 2" class="w-2.5 h-2.5 stroke-[3]" />
+                                <span v-else>2</span>
+                            </span>
+                            <span class="text-[11px]">Taller</span>
                         </button>
-                        <span class="text-slate-600 text-xs font-mono">›</span>
+                        <span class="text-slate-300 dark:text-slate-700 text-[10px]">›</span>
                         <button 
                             type="button"
                             @click="unlockPhase(3, 'phase-3')"
-                            :class="currentPhase === 3 ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
+                            :class="currentPhase === 3 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                         >
-                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">3</span>
-                            <span class="text-[11px] font-bold">Validación IA & Entrega</span>
+                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 3 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600'">
+                                3
+                            </span>
+                            <span class="text-[11px]">Entrega</span>
                         </button>
                     </div>
                 </div>
@@ -996,9 +1006,9 @@ const changeRole = (newRole) => {
                 <div 
                     id="phase-1"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 scroll-mt-28',
+                        'rounded-3xl border border-l-4 border-l-cyan-500 transition-all duration-300 p-6 space-y-4 scroll-mt-28',
                         currentPhase === 1
-                            ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-950/40' : 'bg-white border-cyan-400 shadow-md ring-2 ring-cyan-500/10')
+                            ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/20' : 'bg-white border-cyan-300 shadow-md ring-2 ring-cyan-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
                     ]"
                 >
@@ -1007,14 +1017,19 @@ const changeRole = (newRole) => {
                         <div class="flex items-center gap-2.5">
                             <span 
                                 :class="currentPhase > 1 ? 'bg-emerald-500 text-white' : 'bg-cyan-500 text-slate-950'"
-                                class="w-6 h-6 rounded-full font-mono text-xs font-black flex items-center justify-center"
+                                class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center shadow-xs"
                             >
-                                <Check v-if="currentPhase > 1" class="w-3.5 h-3.5 stroke-[3]" />
+                                <Check v-if="currentPhase > 1" class="w-4 h-4 stroke-[3]" />
                                 <span v-else>1</span>
                             </span>
-                            <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Paso 1: Recursos para tu Misión
-                            </span>
+                            <div>
+                                <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
+                                    INICIO & BRIEFING
+                                </span>
+                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                    📖 Paso 1: Guía y Requisitos de Fabricación
+                                </h3>
+                            </div>
                         </div>
 
                         <span 
@@ -1101,6 +1116,43 @@ const changeRole = (newRole) => {
                         </div>
                     </div>
 
+                    <!-- RECURSOS PEDAGÓGICOS DINÁMICOS DE CADA MISIÓN (PDFs, Videos, Guías) -->
+                    <div v-if="selectedMission.inputs?.resources && selectedMission.inputs.resources.length > 0" class="pt-2 space-y-2">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                            📚 Recursos & Guías Didácticas de esta Misión:
+                        </span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div 
+                                v-for="(res, rIdx) in selectedMission.inputs.resources" 
+                                :key="rIdx"
+                                class="p-3 rounded-2xl border flex flex-col justify-between gap-1.5"
+                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'"
+                            >
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-sm">{{ res.type === 'pdf' ? '📄' : (res.type === 'video' ? '🎬' : (res.type === 'tool' ? '⚡' : '📖')) }}</span>
+                                        <strong class="text-xs font-bold block truncate" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
+                                            {{ res.title }}
+                                        </strong>
+                                    </div>
+                                    <p v-if="res.desc" class="text-[11px] text-slate-400 leading-tight">{{ res.desc }}</p>
+                                    <ul v-if="res.items" class="text-[10px] text-slate-400 space-y-0.5 list-disc list-inside">
+                                        <li v-for="(it, itIdx) in res.items" :key="itIdx">{{ it }}</li>
+                                    </ul>
+                                </div>
+                                <a 
+                                    v-if="res.url" 
+                                    :href="res.url" 
+                                    target="_blank" 
+                                    class="text-[10px] font-mono font-bold text-cyan-500 hover:underline flex items-center gap-1 pt-1"
+                                >
+                                    <span>Abrir recurso</span>
+                                    <span>↗</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Botón para avanzar a la Fase 2 con auto-scroll -->
                     <div class="pt-2 flex justify-end">
                         <button
@@ -1108,7 +1160,7 @@ const changeRole = (newRole) => {
                             @click="unlockPhase(2, 'phase-2')"
                             class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-cyan-500/20 cursor-pointer"
                         >
-                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS A DIBUJAR!' }}</span>
+                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS AL TALLER!' }}</span>
                             <ArrowDown class="w-4 h-4" />
                         </button>
                     </div>
@@ -1121,29 +1173,34 @@ const changeRole = (newRole) => {
                     v-if="currentPhase >= 2"
                     id="phase-2"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
+                        'rounded-3xl border border-l-4 border-l-amber-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
                         currentPhase === 2
-                            ? (isDarkTheme ? 'bg-slate-900 border-purple-500/50 shadow-lg shadow-purple-950/40' : 'bg-white border-purple-400 shadow-md ring-2 ring-purple-500/10')
+                            ? (isDarkTheme ? 'bg-slate-900 border-amber-500/50 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/20' : 'bg-white border-amber-300 shadow-md ring-2 ring-amber-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
                     ]"
                 >
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
                         <div class="flex items-center gap-2.5">
                             <span 
-                                :class="currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-purple-500 text-white'"
-                                class="w-6 h-6 rounded-full font-mono text-xs font-black flex items-center justify-center"
+                                :class="currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-slate-950'"
+                                class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center shadow-xs"
                             >
-                                <Check v-if="currentPhase > 2" class="w-3.5 h-3.5 stroke-[3]" />
+                                <Check v-if="currentPhase > 2" class="w-4 h-4 stroke-[3]" />
                                 <span v-else>2</span>
                             </span>
-                            <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Paso 2: Mesa de Trabajo & Herramientas
-                            </span>
+                            <div>
+                                <span class="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
+                                    ACCIÓN & EXPERIMENTACIÓN
+                                </span>
+                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                    🛠️ Paso 2: Mesa de Trabajo & Herramientas
+                                </h3>
+                            </div>
                         </div>
 
                         <span 
                             v-if="currentPhase === 2" 
-                            class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/30 animate-pulse"
+                            class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30 animate-pulse"
                         >
                             ⚡ EN CURSO
                         </span>
@@ -1377,20 +1434,25 @@ const changeRole = (newRole) => {
                     v-if="currentPhase >= 3"
                     id="phase-3"
                     :class="[
-                        'rounded-3xl border transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
+                        'rounded-3xl border border-l-4 border-l-emerald-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
                         currentPhase === 3
-                            ? (isDarkTheme ? 'bg-slate-900 border-emerald-500/50 shadow-lg shadow-emerald-950/40' : 'bg-white border-emerald-400 shadow-md ring-2 ring-emerald-500/10')
+                            ? (isDarkTheme ? 'bg-slate-900 border-emerald-500/50 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/20' : 'bg-white border-emerald-300 shadow-md ring-2 ring-emerald-500/10')
                             : (isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50/90 border-slate-200')
                     ]"
                 >
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-6 h-6 rounded-full font-mono text-xs font-black flex items-center justify-center bg-emerald-500 text-white">
+                            <span class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center bg-emerald-500 text-slate-950 shadow-xs">
                                 3
                             </span>
-                            <span class="text-xs font-black uppercase tracking-wider" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                {{ selectedMissionIndex === 0 ? 'Paso 3: Entrega de Boceto & Control de Calidad IA' : 'Paso 3: Entrega de Evidencia & Control de Calidad IA' }}
-                            </span>
+                            <div>
+                                <span class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                                    CONTROL DE CALIDAD & BITÁCORA
+                                </span>
+                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                    🚀 Paso 3: {{ selectedMissionIndex === 0 ? 'Entrega de Boceto & Control de Calidad IA' : 'Entrega de Evidencia & Control de Calidad IA' }}
+                                </h3>
+                            </div>
                         </div>
 
                         <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 animate-pulse">

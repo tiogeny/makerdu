@@ -34,7 +34,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <!-- Selector de Vistas: Dividida vs Pantalla Completa 2D vs 3D -->
+            <!-- Selector de Vistas -->
             <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px]">
                 <button id="btnViewSplit" class="px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 bg-cyan-500 text-slate-950 shadow">
                     <span>Dividida</span>
@@ -73,6 +73,9 @@
                         Subir Foto
                         <input type="file" id="fileInput" accept="image/*" class="hidden" />
                     </label>
+                    <button id="btnResetZoom" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-bold transition">
+                        🔍 100%
+                    </button>
                 </div>
 
                 <div class="flex items-center gap-1.5">
@@ -87,9 +90,10 @@
 
             <!-- Ayuda Visual de Edicion de Nodos y Tiradores -->
             <div id="nodeEditHelp" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] font-mono px-2 py-1 rounded-lg flex items-center justify-between shrink-0 my-1">
-                <span><b>Clic en nodo:</b> Muestra tiradores de curvatura</span>
-                <span><b>Arrastra tirador:</b> Modifica la curva</span>
+                <span><b>Rueda raton:</b> Zoom</span>
+                <span><b>Clic en linea:</b> Agrega nodo</span>
                 <span><b>Doble clic:</b> Borra nodo</span>
+                <span><b>Alt + Arrastre:</b> Tirador independiente</span>
             </div>
 
             <!-- LIENZO DE TRABAJO 2D -->
@@ -223,6 +227,6 @@
 
     </main>
 
-    <script src="app.js?v=5.0"></script>
+    <script src="app.js?v=6.0"></script>
 </body>
 </html>
