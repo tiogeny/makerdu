@@ -17,6 +17,28 @@ class StudioController extends Controller
 {
     public function hud(Request $request)
     {
+        $data = $this->getStudioData();
+        if ($data instanceof \Illuminate\Http\RedirectResponse) {
+            return $data;
+        }
+
+        return Inertia::render('Student/Studio', $data);
+    }
+
+    public function missionStation(Request $request, $level_number = 1)
+    {
+        $data = $this->getStudioData();
+        if ($data instanceof \Illuminate\Http\RedirectResponse) {
+            return $data;
+        }
+
+        $data['selected_level_number'] = (int) $level_number;
+
+        return Inertia::render('Student/MissionStation', $data);
+    }
+
+    private function getStudioData()
+    {
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('student.login');
@@ -56,7 +78,7 @@ class StudioController extends Controller
         // Progreso por niveles
         $completedLevelIds = $bitacoras->where('status', 'approved')->pluck('level_id')->unique()->toArray();
 
-        return Inertia::render('Student/Studio', [
+        return [
             'squad' => [
                 'id' => $squad->id,
                 'name' => $squad->name,
@@ -140,7 +162,7 @@ class StudioController extends Controller
                 'quality_control_result' => session('quality_control_result') ?? session('preflight_result'),
                 'preflight_result' => session('preflight_result') ?? session('quality_control_result'),
             ],
-        ]);
+        ];
     }
 
     /**

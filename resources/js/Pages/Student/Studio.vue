@@ -905,1023 +905,164 @@ const changeRole = (newRole) => {
         </section>
 
         <!-- ================================================================= -->
-        <!-- 3. LIENZO PRINCIPAL: RUTA (Izq) + FEED CONVERSACIONAL (Der)        -->
+        <!-- 3. MAPA DE AVENTURA DEL RETO: TABLERO DE LAS 5 MISIONES           -->
         <!-- ================================================================= -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
             
-            <!-- ============================================================= -->
-            <!-- COLUMNA IZQUIERDA: RUTA DEL RETO (Timeline de Misiones)       -->
-            <!-- ============================================================= -->
-            <aside class="lg:col-span-4 space-y-4 lg:sticky lg:top-24">
-                <div 
-                    :class="isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'"
-                    class="rounded-3xl border p-5 space-y-4 transition-colors duration-300"
-                >
-                    <!-- Cabecera de la Ruta -->
-                    <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <div>
-                            <h2 class="text-sm font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                🗺️ Ruta de Misiones
-                            </h2>
-                            <span class="text-[10px] font-mono text-slate-400 block">
-                                5 etapas de creación
-                            </span>
-                        </div>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold" :class="isDarkTheme ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'">
-                            Misión {{ selectedMissionIndex + 1 }} de {{ project.levels.length }}
-                        </span>
-                    </div>
-
-                    <!-- LISTA VERTICAL DE MISIONES (Navegación No Restrictiva) -->
-                    <nav class="space-y-2.5">
-                        <button
-                            v-for="(mission, idx) in project.levels"
-                            :key="mission.id"
-                            type="button"
-                            @click="selectMission(idx)"
-                            :class="[
-                                'w-full p-3.5 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between cursor-pointer group',
-                                selectedMissionIndex === idx
-                                    ? (isDarkTheme 
-                                        ? 'bg-cyan-950/40 border-cyan-500/50 shadow-md ring-1 ring-cyan-500/30' 
-                                        : 'bg-cyan-50/70 border-cyan-400 shadow-sm ring-1 ring-cyan-400/40')
-                                    : (isDarkTheme 
-                                        ? 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-400' 
-                                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600 shadow-xs')
-                            ]"
-                        >
-                            <div class="flex items-center gap-3">
-                                <!-- Badge de Número / Check -->
-                                <span 
-                                    :class="[
-                                        'w-8 h-8 rounded-xl font-mono text-xs font-black flex items-center justify-center shrink-0 transition',
-                                        selectedMissionIndex === idx
-                                            ? 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
-                                            : (mission.is_completed
-                                                ? (isDarkTheme ? 'bg-slate-900 border border-slate-700 text-emerald-400' : 'bg-emerald-50 border border-emerald-300 text-emerald-700')
-                                                : (isDarkTheme ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-600 border border-slate-200'))
-                                    ]"
-                                >
-                                    <Check v-if="mission.is_completed && selectedMissionIndex !== idx" class="w-4 h-4 stroke-[2.5]" />
-                                    <span v-else>{{ idx + 1 }}</span>
-                                </span>
-
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h4 
-                                            class="text-xs font-bold leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition"
-                                            :class="selectedMissionIndex === idx ? (isDarkTheme ? 'text-white font-black' : 'text-slate-900 font-black') : (mission.is_completed ? (isDarkTheme ? 'text-slate-400' : 'text-slate-600') : (isDarkTheme ? 'text-slate-400' : 'text-slate-700'))"
-                                        >
-                                            {{ mission.title }}
-                                        </h4>
-                                        <span v-if="mission.is_completed && selectedMissionIndex !== idx" class="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.2 rounded-md">
-                                            Superada
-                                        </span>
-                                    </div>
-                                    <span class="text-[10px] font-mono text-slate-500 block mt-0.5">
-                                        ⚡ +{{ mission.xp_reward }} PM · 🪙 {{ mission.fabcoins_cost || 0 }} FC
-                                    </span>
-                                </div>
-                            </div>
-
-                            <ChevronRight 
-                                class="w-4 h-4 transition-transform group-hover:translate-x-0.5" 
-                                :class="selectedMissionIndex === idx ? 'text-cyan-500' : 'text-slate-300 dark:text-slate-600'" 
-                            />
-                        </button>
-                    </nav>
-
-                    <!-- Mensaje de Libertad de Aprendizaje -->
-                    <div 
-                        :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                        class="p-3 rounded-2xl border text-[11px] leading-relaxed flex items-start gap-2"
-                    >
-                        <span class="text-sm">🧭</span>
-                        <p>
-                            Avanza a tu ritmo. Puedes explorar misiones anteriores o siguientes sin bloqueos para experimentar con tu personaje.
-                        </p>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- ============================================================= -->
-            <!-- COLUMNA DERECHA: INTERACCIÓN DE LA MISIÓN EN 3 FASES          -->
-            <!-- ============================================================= -->
-            <section class="lg:col-span-8 space-y-6">
-                
-                <!-- 1. HERO BANNER DE LA MISIÓN ACTIVA (FICHA TÁCTICA) -->
-                <div 
-                    class="rounded-3xl border p-5 transition-all duration-300 relative overflow-hidden"
-                    :class="isDarkTheme ? 'bg-slate-900 border-slate-800 shadow-xl' : 'bg-white border-slate-200 shadow-sm'"
-                >
-                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                        <!-- Ilustración de la Criatura / Dino -->
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-transparent border border-cyan-500/20 p-2 shrink-0 flex items-center justify-center">
-                            <img 
-                                src="/images/digitoys/digifeliz.png" 
-                                alt="Criatura Maker" 
-                                class="w-full h-full object-contain drop-shadow-md"
-                            />
-                        </div>
-
-                        <div class="space-y-2 flex-1 text-center sm:text-left">
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-mono text-[10px] font-black uppercase tracking-wider border border-cyan-500/30">
-                                    MISIÓN {{ selectedMissionIndex + 1 }} DE 5
-                                </span>
-                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[10px] font-bold">
-                                    NIVEL INICIAL
-                                </span>
-                            </div>
-
-                            <div>
-                                <h1 class="text-lg sm:text-xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                    {{ selectedMissionIndex === 0 ? 'Misión 1: Concebir — Nace tu Personaje y tu Marca de Autor' : selectedMission.title }}
-                                </h1>
-                                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed pt-0.5">
-                                    {{ selectedMissionIndex === 0 
-                                        ? 'Darás vida a una criatura original sobre papel o pantalla, asegurando que su base sea ancha y plana para que pueda sostenerse sola en el mundo físico.' 
-                                        : (selectedMission.description || 'Supera cada paso con las herramientas del taller y la auditoría de tu Copiloto IA.') }}
-                                </p>
-                            </div>
-
-                            <!-- Píldoras informativas del reto -->
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                                <span class="px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-mono font-bold flex items-center gap-1.5" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-700'">
-                                    <span>📦</span>
-                                    <span>Entregable: <strong>{{ selectedMissionIndex === 0 ? 'Boceto B/N nítido' : 'Archivo digital' }}</strong></span>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-mono font-bold flex items-center gap-1.5" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-700'">
-                                    <span>🪙</span>
-                                    <span>Costo: <strong>{{ selectedMission.fabcoins_cost || 0 }} FabCoins</strong></span>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                                    <span>🏆</span>
-                                    <span>Recompensa: <strong>+{{ selectedMission.xp_reward || 50 }} Puntos Maker</strong></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. STEPPER ENFOCADO ESTILO TINKERCAD (PASO 1, 2, 3) -->
-                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <div class="flex items-center gap-1 sm:gap-2 w-full">
-                        <!-- Paso 1 -->
-                        <button 
-                            type="button"
-                            @click="activeStep = 1"
-                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
-                            :class="activeStep === 1 
-                                ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm ring-1 ring-cyan-500/30' 
-                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                        >
-                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 1 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
-                                1
-                            </span>
-                            <span class="truncate">💡 Inspírate & Reglas</span>
-                        </button>
-
-                        <!-- Paso 2 -->
-                        <button 
-                            type="button"
-                            @click="activeStep = 2"
-                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
-                            :class="activeStep === 2 
-                                ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/30' 
-                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                        >
-                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 2 ? 'bg-amber-500 text-slate-950' : (bitacoraForm.file || bitacoraForm.image_snapshot ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')">
-                                <Check v-if="bitacoraForm.file || bitacoraForm.image_snapshot" class="w-3 h-3 stroke-[3]" />
-                                <span v-else>2</span>
-                            </span>
-                            <span class="truncate">✍️ Dibuja tu Criatura</span>
-                        </button>
-
-                        <!-- Paso 3 -->
-                        <button 
-                            type="button"
-                            @click="activeStep = 3"
-                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
-                            :class="activeStep === 3 
-                                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-500/30' 
-                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-                        >
-                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 3 ? 'bg-emerald-500 text-white' : (qualityControlResult?.status === 'approved' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')">
-                                <Check v-if="qualityControlResult?.status === 'approved'" class="w-3 h-3 stroke-[3]" />
-                                <span v-else>3</span>
-                            </span>
-                            <span class="truncate">🔍 Visto Bueno IA</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ========================================================= -->
-                <!-- FASE 1: RECURSOS PARA TU MISIÓN (Input)                   -->
-                <!-- ========================================================= -->
-                <div 
-                    id="phase-1"
-                    v-show="activeStep === 1"
-                    :class="[
-                        'rounded-3xl border border-l-4 border-l-cyan-500 transition-all duration-300 p-6 space-y-4 scroll-mt-28',
-                        currentPhase === 1
-                            ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/20' : 'bg-white border-cyan-300 shadow-md ring-2 ring-cyan-500/10')
-                            : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
-                    ]"
-                >
-                    <!-- Header de Fase 1 -->
-                    <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
-                        <div class="flex items-center gap-2.5">
-                            <span 
-                                :class="currentPhase > 1 ? 'bg-emerald-500 text-white' : 'bg-cyan-500 text-slate-950'"
-                                class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center shadow-xs"
-                            >
-                                <Check v-if="currentPhase > 1" class="w-4 h-4 stroke-[3]" />
-                                <span v-else>1</span>
-                            </span>
-                            <div>
-                                <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
-                                    INICIO & BRIEFING
-                                </span>
-                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                    📖 Paso 1: Guía & Requisitos del Reto
-                                </h3>
-                            </div>
-                        </div>
-
-                        <span 
-                            v-if="currentPhase === 1" 
-                            class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/30 animate-pulse"
-                        >
-                            ⚡ EN CURSO
-                        </span>
-                        <span 
-                            v-else 
-                            class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
-                        >
-                            <Check class="w-3.5 h-3.5" />
-                            <span>Recursos listos</span>
-                        </span>
-                    </div>
-
-                    <!-- Diálogo vivo del Copiloto -->
-                    <div class="flex items-start gap-3 pt-1">
-                        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-white flex items-center justify-center text-base shadow-md shrink-0">
-                            🤖
-                        </div>
-                        <div class="space-y-1.5 flex-1 text-xs">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-cyan-600 dark:text-cyan-400 font-mono text-[11px]">Copiloto Maker</span>
-                                <span class="text-[10px] text-slate-400">· mentor en vivo</span>
-                            </div>
-
-                            <!-- 3 ESTADOS HUMANOS DE MENSAJE: -->
-                            <!-- Estado A: Misión completada -->
-                            <p v-if="selectedMission.is_completed" class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
-                                ¡Esta misión ya fue superada con éxito! 🎉 Tienen su evidencia aprobada. Si desean pulir algún detalle del trazo o experimentar con otra versión, pueden hacerlo con total libertad.
-                            </p>
-                            <!-- Estado B: Revisitando a medias -->
-                            <p v-else-if="currentPhase > 1" class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
-                                ¡De vuelta en acción! Ya tienen este tutorial revisado. Continuemos avanzando en la <strong class="font-bold">Fase {{ currentPhase }}</strong> para completar su diseño.
-                            </p>
-                            <!-- Estado C: Primera vez que llega a la misión -->
-                            <p v-else class="leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-700'">
-                                ¡Hola, {{ getFirstName(activeStudent.name) }}! Para esta misión de <strong class="font-black">{{ selectedMission.title }}</strong>, miren primero este micro-tutorial de 20 segundos para entender cómo debe ser la silueta antes de pasar a las herramientas.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- RENDER DE MICRO-ANIMACIÓN DIDÁCTICA EN VIVO -->
-                    <div v-if="getMissionAnimation(selectedMission)" class="rounded-2xl overflow-hidden border p-1" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'">
-                        <div v-html="getMissionAnimation(selectedMission)" class="w-full"></div>
-                    </div>
-
-                    <!-- 4 REGLAS DE ORO MAKER DEL BOCETO (Exclusivo Misión 1) -->
-                    <div v-if="selectedMissionIndex === 0" class="pt-2 space-y-2">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                            📋 4 Reglas de Oro para que tu Dibujo se Convierta en Juguete 3D:
-                        </span>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-cyan-500/30 shadow-xs' : 'bg-cyan-50/60 border-cyan-200/80 shadow-xs'">
-                                <span class="text-base p-1.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">✍️</span>
-                                <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Plumón Negro Grueso</strong>
-                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Trazo nítido y continuo sobre papel blanco. Evita sombras a lápiz.</p>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-emerald-500/30 shadow-xs' : 'bg-emerald-50/60 border-emerald-200/80 shadow-xs'">
-                                <span class="text-base p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">📐</span>
-                                <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Base Plana Autoportante</strong>
-                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">La base debe medir al menos 40% del ancho para no caerse.</p>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-amber-500/30 shadow-xs' : 'bg-amber-50/60 border-amber-200/80 shadow-xs'">
-                                <span class="text-base p-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">🔒</span>
-                                <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Silueta 100% Cerrada</strong>
-                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Cierra el contorno exterior sin huecos para poder extruir el sólido.</p>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-purple-500/30 shadow-xs' : 'bg-purple-50/60 border-purple-200/80 shadow-xs'">
-                                <span class="text-base p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">👁️</span>
-                                <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Regla del Estarcido</strong>
-                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Conecta pupilas o detalles interiores con puentes de unión.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RECURSOS PEDAGÓGICOS DINÁMICOS DE CADA MISIÓN (PDFs, Videos, Guías) -->
-                    <div v-if="selectedMission.inputs?.resources && selectedMission.inputs.resources.length > 0" class="pt-2 space-y-2">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                            📚 Recursos & Guías Didácticas de esta Misión:
-                        </span>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            <div 
-                                v-for="(res, rIdx) in selectedMission.inputs.resources" 
-                                :key="rIdx"
-                                class="p-3 rounded-2xl border flex flex-col justify-between gap-1.5"
-                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'"
-                            >
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-sm">{{ res.type === 'pdf' ? '📄' : (res.type === 'video' ? '🎬' : (res.type === 'tool' ? '⚡' : '📖')) }}</span>
-                                        <strong class="text-xs font-bold block truncate" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                                            {{ res.title }}
-                                        </strong>
-                                    </div>
-                                    <p v-if="res.desc" class="text-[11px] text-slate-400 leading-tight">{{ res.desc }}</p>
-                                    <ul v-if="res.items" class="text-[10px] text-slate-400 space-y-0.5 list-disc list-inside">
-                                        <li v-for="(it, itIdx) in res.items" :key="itIdx">{{ it }}</li>
-                                    </ul>
-                                </div>
-                                <a 
-                                    v-if="res.url" 
-                                    :href="res.url" 
-                                    target="_blank" 
-                                    class="text-[10px] font-mono font-bold text-cyan-500 hover:underline flex items-center gap-1 pt-1"
-                                >
-                                    <span>Abrir recurso</span>
-                                    <span>↗</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Botón para avanzar a la Fase 2 con auto-scroll -->
-                    <div class="pt-2 flex justify-end">
-                        <button
-                            type="button"
-                            @click="unlockPhase(2, 'phase-2')"
-                            class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-cyan-500/20 cursor-pointer"
-                        >
-                            <span>{{ currentPhase > 1 ? 'CONTINUAR A LA MESA DE TRABAJO' : '¡ENTENDIDO, VAMOS AL TALLER!' }}</span>
-                            <ArrowDown class="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ========================================================= -->
-                <!-- FASE 2: ACCIÓN MAKER & HERRAMIENTAS (Process)             -->
-                <!-- ========================================================= -->
-                <div 
-                    id="phase-2"
-                    v-show="activeStep === 2"
-                    :class="[
-                        'rounded-3xl border border-l-4 border-l-amber-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
-                        currentPhase === 2
-                            ? (isDarkTheme ? 'bg-slate-900 border-amber-500/50 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/20' : 'bg-white border-amber-300 shadow-md ring-2 ring-amber-500/10')
-                            : (isDarkTheme ? 'bg-slate-900/60 border-slate-800 opacity-90' : 'bg-slate-50/90 border-slate-200')
-                    ]"
-                >
-                    <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
-                        <div class="flex items-center gap-2.5">
-                            <span 
-                                :class="currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-slate-950'"
-                                class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center shadow-xs"
-                            >
-                                <Check v-if="currentPhase > 2" class="w-4 h-4 stroke-[3]" />
-                                <span v-else>2</span>
-                            </span>
-                            <div>
-                                <span class="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
-                                    ACCIÓN & EXPERIMENTACIÓN
-                                </span>
-                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                    🛠️ Paso 2: Mesa de Trabajo & Herramientas
-                                </h3>
-                            </div>
-                        </div>
-
-                        <span 
-                            v-if="currentPhase === 2" 
-                            class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30 animate-pulse"
-                        >
-                            ⚡ EN CURSO
-                        </span>
-                        <span 
-                            v-else 
-                            class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
-                        >
-                            <Check class="w-3.5 h-3.5" />
-                            <span>Herramienta lista</span>
-                        </span>
-                    </div>
-
-                    <p class="text-xs leading-relaxed" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
-                        {{ selectedMission.process?.instructions || 'Utiliza las herramientas para modelar tu diseño y prepararlo para la fabricación.' }}
+            <!-- CABECERA DEL MAPA DE AVENTURA -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200'">
+                <div>
+                    <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
+                        HOJA DE RUTA TÁCTICA
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                        🗺️ Mapa de Misiones del Reto
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                        Selecciona cualquier misión para entrar a su estación de creación a pantalla completa. Avanza a tu ritmo.
                     </p>
-
-                    
-                    <!-- SELECTOR DE LOS 2 CAMINOS EN MISIÓN 1 (Papel vs Lienzo Digital) -->
-                    <div v-if="selectedMissionIndex === 0" class="space-y-4 pt-1">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                            ELIGE CÓMO DESEAS CREAR TU BOCETO:
-                        </span>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- CAMINO A: PAPEL Y PLUMÓN -->
-                            <div 
-                                class="p-4 rounded-2xl border transition flex flex-col justify-between gap-3"
-                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'"
-                            >
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xl">📷</span>
-                                        <strong class="text-xs font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                            Camino A: Papel y Plumón Negro
-                                        </strong>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                        Dibuja en una hoja bond con plumón negro grueso. Luego tómale una foto con tu celular o usa tu cámara web.
-                                    </p>
-                                </div>
-
-                                <div class="flex items-center gap-2 pt-2">
-                                    <button
-                                        type="button"
-                                        @click="evidenceFileInput?.click()"
-                                        class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700"
-                                    >
-                                        <span>📁 Subir Foto</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="isCameraOpen ? capturePhoto() : startCamera()"
-                                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
-                                    >
-                                        <span>📸 Cámara</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- CAMINO B: LIENZO DIGITAL MAKER 2D -->
-                            <div 
-                                class="p-4 rounded-2xl border transition flex flex-col justify-between gap-3 relative overflow-hidden"
-                                :class="isDarkTheme ? 'bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-950 border-cyan-500/40 shadow-lg shadow-cyan-950/30' : 'bg-gradient-to-br from-cyan-50 via-white to-white border-cyan-300 shadow-sm'"
-                            >
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xl">🖌️</span>
-                                        <strong class="text-xs font-black text-cyan-600 dark:text-cyan-300">
-                                            Camino B: Lienzo Maker 2D
-                                        </strong>
-                                        <span class="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-500 font-mono text-[9px] font-black uppercase">
-                                            Digital
-                                        </span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                        Dibuja en pantalla con 3 modos: <strong>Plumón Libre</strong>, <strong>Armador Digitoys</strong> (dinos, robots, ojos) o <strong>Pixel Art</strong>.
-                                    </p>
-                                </div>
-
-                                <div class="pt-2">
-                                    <button
-                                        type="button"
-                                        @click="openMicroAppModal({ slug: 'sketch-pad', name: 'Lienzo Maker 2D', icon: '🖌️' })"
-                                        class="w-full px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-md shadow-cyan-500/25 cursor-pointer"
-                                    >
-                                        <span>🖌️ ABRIR LIENZO MAKER 2D</span>
-                                        <Sparkles class="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PREVISUALIZACIÓN DEL BOCETO CARGADO (DESDE CUALQUIERA DE LOS 2 CAMINOS) -->
-                        <div 
-                            v-if="bitacoraForm.image_snapshot || bitacoraForm.file" 
-                            class="p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in"
-                        >
-                            <div class="flex items-center gap-3">
-                                <img 
-                                    :src="bitacoraForm.image_snapshot || previewUrl" 
-                                    class="w-16 h-16 rounded-xl object-contain bg-white border border-emerald-400 shadow-sm p-1 shrink-0" 
-                                    alt="Boceto cargado"
-                                />
-                                <div>
-                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono text-[9px] font-bold">
-                                        ✔ BOCETO LISTO EN LA MESA
-                                    </span>
-                                    <strong class="text-xs text-slate-900 dark:text-white block pt-1">
-                                        {{ bitacoraForm.file?.name || 'boceto_maker_2d.png' }}
-                                    </strong>
-                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block">
-                                        Tu diseño está cargado. Pasemos al Paso 3 para auditar la base y silueta con el Copiloto IA.
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2 shrink-0">
-                                <button
-                                    type="button"
-                                    @click="openMicroAppModal({ slug: 'sketch-pad', name: 'Lienzo Maker 2D', icon: '🖌️' })"
-                                    class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
-                                >
-                                    <span>✏️ Editar</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="activeStep = 3"
-                                    class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/25 cursor-pointer"
-                                >
-                                    <span>Auditar con IA en Paso 3</span>
-                                    <ArrowRight class="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BOTÓN NAVEGACIÓN PASO 2: VOLVER A PASO 1 O AVANZAR A PASO 3 -->
-                    <div class="pt-4 border-t flex items-center justify-between" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <button
-                            type="button"
-                            @click="activeStep = 1"
-                            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-                        >
-                            <ArrowLeft class="w-3.5 h-3.5" />
-                            <span>Volver a Reglas de Diseño</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="activeStep = 3"
-                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 hover:from-amber-400 hover:to-orange-300 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-amber-500/20 cursor-pointer"
-                        >
-                            <span>Continuar a la Auditoría IA (Paso 3)</span>
-                            <ArrowRight class="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    <!-- TARJETA DE INSUMO: BOCETO APROBADO EN MISIÓN 1 (Para Misión 2) -->
-                    <div 
-                        v-if="selectedMissionIndex === 1 && mission1Evidence" 
-                        class="p-4 rounded-2xl border bg-gradient-to-r from-cyan-500/10 via-sky-500/5 to-transparent border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-4"
-                    >
-                        <div class="flex items-center gap-3.5">
-                            <div class="relative">
-                                <img :src="mission1Evidence.file_url" class="w-14 h-14 rounded-xl object-contain bg-white border border-cyan-300 shadow-sm p-0.5" alt="Boceto M1" />
-                                <span class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-black text-[8px] font-mono">
-                                    M1
-                                </span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-mono font-bold uppercase text-cyan-600 dark:text-cyan-400 block">
-                                    Insumo de Misión 1:
-                                </span>
-                                <strong class="text-xs text-slate-900 dark:text-white block">
-                                    Tu Boceto de Criatura Aprobado
-                                </strong>
-                                <span class="text-[10px] text-slate-400">
-                                    Pásalo directamente al Vectorizador para limpiarlo y extruirlo a 10 mm.
-                                </span>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            @click="openMicroAppModal(props.microApps.find(a => a.slug === 'vectorizer') || { slug: 'vectorizer', name: 'Vectorizador & Extrusor 2.5D' }, mission1Evidence.file_url)"
-                            class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20 cursor-pointer shrink-0"
-                        >
-                            <Sparkles class="w-3.5 h-3.5" />
-                            <span>Abrir en Vectorizador con este Boceto</span>
-                        </button>
-                    </div>
-
-                    <!-- TARJETA DE INSUMO: MODELO 3D EXTRUIDO EN MISIÓN 2 (Para Misión 3) -->
-                    <div 
-                        v-if="selectedMissionIndex === 2 && mission2Evidence" 
-                        class="p-4 rounded-2xl border bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4"
-                    >
-                        <div class="flex items-center gap-3.5">
-                            <div class="relative">
-                                <img 
-                                    :src="mission2Evidence.snapshot_url || mission2Evidence.file_url || '/images/digitoys/digifeliz.png'" 
-                                    class="w-14 h-14 rounded-xl object-contain bg-slate-950 border border-emerald-400 shadow-md p-1" 
-                                    alt="Modelo 3D M2" 
-                                />
-                                <span class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[8px] font-mono shadow">
-                                    M2
-                                </span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400 block">
-                                    Insumo Digital de Misión 2 Listo:
-                                </span>
-                                <strong class="text-xs text-slate-900 dark:text-white block">
-                                    {{ mission2Evidence.file_name || 'art_toy_2.5d.stl' }}
-                                </strong>
-                                <span class="text-[10px] text-slate-400">
-                                    Espesor: 10 mm · Costo: ~4 FabCoins · Imprimir plano sobre la cama magnética (sin soportes).
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button
-                                type="button"
-                                @click="openMicroAppModal(props.microApps.find(a => a.slug === 'slicer-3d') || { slug: 'slicer-3d', name: 'Simulador de Laminado 3D & Relleno' }, mission2Evidence.file_url)"
-                                class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer"
-                            >
-                                <span>🍰 Simular Laminado & Relleno</span>
-                            </button>
-                            <a 
-                                :href="mission2Evidence.file_url" 
-                                download 
-                                class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-cyan-300 font-bold text-xs transition flex items-center gap-1.5 shadow-sm"
-                            >
-                                <Download class="w-3.5 h-3.5" />
-                                <span>Descargar STL</span>
-                            </a>
-                            <button
-                                type="button"
-                                @click="unlockPhase(3, 'phase-3')"
-                                class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
-                            >
-                                <Check class="w-3.5 h-3.5" />
-                                <span>Auditar Costeo & Imprimir</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- BOTONES DE MICRO-APPS DIGITALES -->
-                    <div v-if="selectedMission.process?.mode === 'micro_app'" class="space-y-2.5">
-                        <span class="text-[11px] font-bold text-slate-400 block uppercase font-mono">
-                            Herramientas Digitales Activas:
-                        </span>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button
-                                v-for="app in getMissionMicroApps(selectedMission)"
-                                :key="app.slug"
-                                type="button"
-                                @click="openMicroAppModal(app)"
-                                :class="isDarkTheme ? 'bg-purple-950/20 hover:bg-purple-950/40 border-purple-500/30' : 'bg-purple-50 hover:bg-purple-100 border-purple-200'"
-                                class="p-4 rounded-2xl border text-left transition flex items-center justify-between group cursor-pointer shadow-sm"
-                            >
-                                <div class="flex items-center gap-3">
-                                    <span class="text-2xl group-hover:scale-110 transition">{{ app.icon }}</span>
-                                    <div>
-                                        <h4 class="text-xs font-black text-purple-600 dark:text-purple-300">{{ app.name }}</h4>
-                                        <span class="text-[10px] text-slate-400 font-mono">Salida: {{ app.output_type?.toUpperCase() || 'STL' }}</span>
-                                    </div>
-                                </div>
-                                <ArrowUpRight class="w-4 h-4 text-purple-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- MODO TRABAJO MANUAL DE TALLER -->
-                    <div v-else-if="selectedMission.process?.mode === 'manual_workshop'" class="p-4 rounded-2xl border" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'">
-                        <div class="flex items-center gap-2 mb-1">
-                            <Hammer class="w-4 h-4 text-amber-500" />
-                            <h4 class="text-xs font-bold text-amber-600 dark:text-amber-300">Trabajo en la Mesa del Taller</h4>
-                        </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Dibujen sobre papel bond con plumón indeleble negro grueso. Cierren completamente las líneas exteriores para que el escáner detecte el sólido.
-                        </p>
-                    </div>
-
-                    <!-- HILO CONVERSACIONAL DE PREGUNTAS (Aparece primero para el flujo visual) -->
-                    <div id="chat-messages-container" v-if="copilotChatMessages.length > 0" class="space-y-2.5 pt-2 max-h-60 overflow-y-auto">
-                        <div 
-                            v-for="(msg, mIdx) in copilotChatMessages" 
-                            :key="mIdx"
-                            :class="msg.sender === 'user' ? 'justify-end' : 'justify-start'"
-                            class="flex items-start gap-2 text-xs animate-fade-in"
-                        >
-                            <div v-if="msg.sender === 'copilot'" class="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                                🤖
-                            </div>
-                            <div 
-                                :class="[
-                                    'p-3 rounded-2xl max-w-[85%] leading-relaxed',
-                                    msg.sender === 'user'
-                                        ? 'bg-cyan-500 text-slate-950 font-bold rounded-tr-none ml-auto'
-                                        : (isDarkTheme ? 'bg-slate-950 border border-slate-800 text-slate-200 rounded-tl-none' : 'bg-slate-100 border border-slate-200 text-slate-800 rounded-tl-none')
-                                ]"
-                            >
-                                <div v-if="msg.isVerdict" class="font-black text-xs mb-1" :class="msg.isValid ? 'text-emerald-500' : 'text-amber-500'">
-                                    ● {{ msg.verdictTitle }}
-                                </div>
-                                <p>{{ msg.text }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PÍLDORAS SOCRÁTICAS AL FINAL DEL DIÁLOGO (Flujo natural hacia abajo) -->
-                    <div v-if="currentPills.length > 0" class="pt-2 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                            💡 Preguntas Frecuentes al Copiloto (Haz clic para despejar dudas):
-                        </span>
-                        <div class="flex flex-wrap gap-2">
-                            <button
-                                v-for="item in currentPills"
-                                :key="item.id"
-                                type="button"
-                                @click="askSocraticQuestion(item)"
-                                :class="isDarkTheme ? 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'"
-                                class="px-3 py-1.5 rounded-full border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-[1.02]"
-                            >
-                                <span>❓</span>
-                                <span>{{ item.q }}</span>
-                            </button>
-                        </div>
-
-                        <!-- PREGUNTA LIBRE A LA IA (Escribir directamente a Gemini) -->
-                        <form @submit.prevent="sendCustomQuestion" class="flex items-center gap-2 pt-3">
-                            <input
-                                id="customQuestionInput"
-                                v-model="customQuestionText"
-                                type="text"
-                                placeholder="Escribe cualquier pregunta a tu Copiloto IA (ej: ¿cómo evito que se caiga mi diseño?)..."
-                                class="flex-1 rounded-2xl border px-3.5 py-2 text-xs transition"
-                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500'"
-                                :disabled="copilotAnswering"
-                            />
-                            <button
-                                type="submit"
-                                :disabled="copilotAnswering"
-                                class="px-4 py-2 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 disabled:opacity-50"
-                            >
-                                <RefreshCw v-if="copilotAnswering" class="w-3.5 h-3.5 animate-spin" />
-                                <Send v-else class="w-3.5 h-3.5" />
-                                <span>Preguntar</span>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Botón para avanzar a la Fase 3 con auto-scroll suave -->
-                    <div class="pt-2 flex justify-end">
-                        <button
-                            type="button"
-                            @click="unlockPhase(3, 'phase-3')"
-                            class="px-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-black text-xs transition flex items-center gap-2 shadow-md shadow-purple-500/20 cursor-pointer"
-                        >
-                            <span>{{ currentPhase > 2 ? 'CONTINUAR A LA AUDITORÍA' : 'TENGO MI EVIDENCIA LISTA' }}</span>
-                            <ArrowDown class="w-4 h-4" />
-                        </button>
-                    </div>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- FASE 3: ENTREGA, AUDITORÍA GEMINI & CIERRE (Output)       -->
-                <!-- ========================================================= -->
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        @click="showMissionBriefingModal = true"
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-sm"
+                        :class="isDarkTheme ? 'bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30' : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'"
+                    >
+                        <span>🎬 Expediente del Reto</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABLERO / GRID DE LAS 5 MISIONES EN TARJETAS RICAS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div 
-                    id="phase-3"
-                    v-show="activeStep === 3"
+                    v-for="(mission, idx) in project.levels" 
+                    :key="mission.id"
+                    class="rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:scale-[1.01]"
                     :class="[
-                        'rounded-3xl border border-l-4 border-l-emerald-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
-                        currentPhase === 3
-                            ? (isDarkTheme ? 'bg-slate-900 border-emerald-500/50 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/20' : 'bg-white border-emerald-300 shadow-md ring-2 ring-emerald-500/10')
-                            : (isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50/90 border-slate-200')
+                        mission.is_completed 
+                            ? (isDarkTheme ? 'bg-slate-900/90 border-emerald-500/40 shadow-lg shadow-emerald-950/20' : 'bg-white border-emerald-300 shadow-md')
+                            : (idx === 0 || project.levels[idx - 1]?.is_completed 
+                                ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/30 shadow-lg shadow-cyan-950/20 hover:border-cyan-500/60' : 'bg-white border-cyan-300 shadow-md hover:border-cyan-400')
+                                : (isDarkTheme ? 'bg-slate-900/50 border-slate-800 opacity-85 hover:opacity-100' : 'bg-slate-50 border-slate-200 opacity-90 hover:opacity-100'))
                     ]"
                 >
-                    <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200/70'">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-xl font-mono text-xs font-black flex items-center justify-center bg-emerald-500 text-slate-950 shadow-xs">
-                                3
-                            </span>
-                            <div>
-                                <span class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
-                                    CONTROL DE CALIDAD & BITÁCORA
-                                </span>
-                                <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                    🚀 Paso 3: {{ selectedMissionIndex === 0 ? 'Entrega de Boceto & Control de Calidad IA' : 'Entrega de Evidencia & Control de Calidad IA' }}
-                                </h3>
-                            </div>
-                        </div>
-
-                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 animate-pulse">
-                            ⚡ VALIDACIÓN FINAL
-                        </span>
-                    </div>
-
-                    <!-- CAJA DE ARRASTRE O SUBIDA DE ARCHIVO -->
-                    <div class="border-2 border-dashed rounded-2xl p-6 text-center transition cursor-pointer relative" :class="isDarkTheme ? 'border-slate-800 hover:border-emerald-500/50 bg-slate-950' : 'border-slate-200 hover:border-emerald-400 bg-slate-50/50'">
-                        <input
-                            ref="evidenceFileInput"
-                            type="file"
-                            @change="handleFileUpload"
-                            accept=".stl,.svg,.jpg,.jpeg,.png,.webp"
-                            class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        />
-                        <!-- Estado A: Archivo recién seleccionado por el usuario o exportado desde el vectorizador -->
-                        <div v-if="bitacoraForm.file" class="space-y-2">
-                            <div v-if="bitacoraForm.image_snapshot" class="relative inline-block">
-                                <img :src="bitacoraForm.image_snapshot" alt="Render 3D de tu Art Toy" class="max-h-36 mx-auto rounded-xl border-2 border-cyan-500/50 shadow-lg object-contain bg-slate-950 p-1" />
-                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-mono text-[9px] font-black shadow">
-                                    🧊 MODELO 3D EXTRUIDO
-                                </span>
-                            </div>
-                            <div v-else>
-                                <CheckCircle2 class="w-7 h-7 text-emerald-500 mx-auto" />
-                            </div>
-                            <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
-                                {{ bitacoraForm.file.name }}
-                            </p>
-                            <p class="text-[10px] text-slate-400">
-                                {{ selectedMissionIndex === 0 ? 'Presiona el botón verde para validar tu silueta con Gemini IA' : 'Presiona el botón verde para auditar con Gemini IA' }}
-                            </p>
-                        </div>
-
-                        <!-- Estado B: Evidencia ya guardada en base de datos previamente -->
-                        <div v-else-if="existingEvidence" class="space-y-2 py-1">
-                            <div v-if="isImageFile(existingEvidence.file_url) || existingEvidence.snapshot_url" class="relative inline-block">
-                                <img :src="existingEvidence.snapshot_url || existingEvidence.file_url" alt="Evidencia Guardada" class="max-h-40 mx-auto rounded-2xl border shadow-md object-contain bg-white dark:bg-slate-900 p-1" />
-                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white font-mono text-[9px] font-black shadow">
-                                    {{ selectedMissionIndex === 1 ? '✓ MODELO 3D REGISTRADO' : '✓ GUARDADA' }}
-                                </span>
-                            </div>
-                            <div v-else class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-400">
-                                📦 Archivo digital entregado (STL 3D / SVG)
-                            </div>
-                            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                Tu evidencia ya está registrada para esta misión.
-                            </p>
-                            <div class="pt-2">
-                                <button
-                                    type="button"
-                                    @click.stop="resetEvidence()"
-                                    class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-cyan-400 hover:bg-slate-800 text-xs font-bold transition inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                    <!-- Portada Visual Superior de la Misión -->
+                    <div class="p-6 space-y-4 flex-1">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div 
+                                    class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-sm"
+                                    :class="mission.is_completed ? 'bg-emerald-500 text-white' : (idx === 0 ? 'bg-gradient-to-br from-cyan-400 to-teal-500 text-slate-950' : 'bg-slate-800 text-cyan-400 border border-slate-700')"
                                 >
-                                    <RefreshCw class="w-3.5 h-3.5" />
-                                    <span>{{ selectedMissionIndex === 0 ? '🔄 Cambiar por otro boceto' : '🔄 Subir otro archivo' }}</span>
-                                </button>
+                                    <Check v-if="mission.is_completed" class="w-6 h-6 stroke-[3]" />
+                                    <span v-else>{{ idx + 1 }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider block" :class="mission.is_completed ? 'text-emerald-500' : 'text-cyan-500'">
+                                        ETAPA {{ idx + 1 }} DE 5
+                                    </span>
+                                    <span 
+                                        class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full inline-block mt-0.5"
+                                        :class="mission.is_completed ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'"
+                                    >
+                                        {{ mission.is_completed ? '✔ COMPLETADA' : (idx === 0 ? '⚡ EN CURSO' : 'DISPONIBLE') }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Icono o Ilustración de la Misión -->
+                            <div class="w-12 h-12 rounded-xl bg-slate-800/40 p-1 flex items-center justify-center shrink-0">
+                                <img 
+                                    v-if="idx === 0"
+                                    src="/images/digitoys/digifeliz.png" 
+                                    alt="Misión 1" 
+                                    class="w-full h-full object-contain"
+                                />
+                                <span v-else-if="idx === 1" class="text-2xl">🧊</span>
+                                <span v-else-if="idx === 2" class="text-2xl">🍰</span>
+                                <span v-else-if="idx === 3" class="text-2xl">📦</span>
+                                <span v-else class="text-2xl">🚀</span>
                             </div>
                         </div>
 
-                        <!-- Estado C: Caja vacía inicial -->
-                        <div v-else class="space-y-2">
-                            <UploadCloud class="w-8 h-8 text-emerald-500 mx-auto" />
-                            <p class="text-xs font-bold" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                                <template v-if="selectedMissionIndex === 0">
-                                    Toma una foto de tu dibujo en papel y arrástrala aquí o haz clic para subir
-                                </template>
-                                <template v-else-if="selectedMissionIndex === 1">
-                                    Arrastra tu modelo digital extruido (STL 3D o SVG) o haz clic para subir
-                                </template>
-                                <template v-else>
-                                    Arrastra tu foto o archivo de evidencia aquí o haz clic para subir
-                                </template>
+                        <!-- Título y Descripción de la Misión -->
+                        <div class="space-y-1.5 pt-1">
+                            <h3 class="text-base font-black leading-snug group-hover:text-cyan-400 transition" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                {{ idx === 0 ? 'Misión 1: Concebir — Nace tu Personaje y Marca' : mission.title }}
+                            </h3>
+                            <p class="text-xs leading-relaxed line-clamp-2" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">
+                                {{ idx === 0 
+                                    ? 'Crea tu personaje original sobre papel o en el Lienzo Digital 2D, cuidando que su base plana sea autoportante.' 
+                                    : (mission.description || 'Prepara tu modelo con las herramientas especializadas y la validación de tu Copiloto IA.') }}
                             </p>
-                            <p class="text-[10px] text-slate-400 font-mono">
-                                {{ selectedMissionIndex === 0 ? 'Acepta fotos nítidas con celular o cámara (JPG, PNG o WEBP)' : 'Acepta fotos (JPG/PNG) o modelos digitales (STL / SVG)' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- BOTÓN PARA AUDITAR CON GEMINI IA -->
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                        <span class="text-xs font-mono text-slate-400">
-                            Costo en materiales: <strong class="text-amber-500 font-bold">🪙 {{ selectedMission.fabcoins_cost || 0 }} FC</strong>
-                        </span>
-
-                        <button
-                            type="button"
-                            @click="runPreflightCheck"
-                            :disabled="preflightLoading || !bitacoraForm.file"
-                            class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-40 cursor-pointer"
-                        >
-                            <RefreshCw v-if="preflightLoading" class="w-4 h-4 animate-spin" />
-                            <Sparkles v-else class="w-4 h-4" />
-                            <span>{{ preflightLoading ? 'AUDITANDO CON GEMINI IA...' : (selectedMissionIndex === 0 ? '✨ AUDITAR SILUETA CON GEMINI IA' : '🔍 AUDITAR CON COPILOTO IA') }}</span>
-                        </button>
-                    </div>
-
-                    <!-- TARJETA DE VEREDICTO DE GEMINI (En vivo o recuperado de bitácora si no hay nuevo archivo subido) -->
-                    <div 
-                        v-if="qualityControlResult || (!bitacoraForm.file && existingEvidence && existingEvidence.ai_feedback)" 
-                        class="p-5 rounded-2xl border space-y-3.5 animate-fade-in" 
-                        :class="isDarkTheme 
-                            ? ((qualityControlResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
-                            : ((qualityControlResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
-                    >
-                        <div class="flex items-center justify-between">
-                            <span 
-                                class="text-xs font-mono font-black flex items-center gap-1.5"
-                                :class="(preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
-                            >
-                                <span>{{ (preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? '●' : '⚠️' }}</span>
-                                <span>{{ preflightResult?.dashboard?.verdict_title || (existingEvidence?.status === 'approved' ? '¡SILUETA APROBADA!' : 'REQUIERE AJUSTES') }}</span>
-                            </span>
-                            <span class="text-[10px] font-mono text-slate-400">Control de Calidad IA</span>
                         </div>
 
-                        <p class="text-xs font-bold leading-relaxed" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                            {{ preflightResult?.dashboard?.headline || preflightResult?.ai_feedback || existingEvidence?.ai_feedback }}
-                        </p>
-
-                        <!-- Violaciones / Ajustes Detectados -->
-                        <div v-if="preflightResult?.violations?.length > 0" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 space-y-1">
-                            <span class="font-bold flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider">
-                                ⚠️ Detalle a Corregir:
-                            </span>
-                            <div v-for="(v, vIdx) in preflightResult.violations" :key="vIdx" class="flex items-start gap-1.5 leading-relaxed">
-                                <span class="font-bold">➔</span>
-                                <span>{{ v }}</span>
+                        <!-- Badges Informativos de la Misión -->
+                        <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] font-mono">
+                            <div class="p-2 rounded-xl border flex items-center gap-1.5" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'">
+                                <span>📦</span>
+                                <span class="truncate">{{ idx === 0 ? 'Boceto B/N' : (idx === 1 ? 'STL 3D' : (idx === 2 ? 'Laminado' : 'Físico')) }}</span>
                             </div>
-                        </div>
-
-                        <!-- Puntos Fuertes -->
-                        <div v-if="preflightResult?.dashboard?.strengths?.length > 0" class="space-y-1">
-                            <span class="text-[10px] font-mono font-bold text-emerald-600 uppercase">Puntos Fuertes Detectados:</span>
-                            <div v-for="(st, sIdx) in preflightResult.dashboard.strengths" :key="sIdx" class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                <span class="text-emerald-500 font-bold">✓</span>
-                                <span>{{ st }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Consejo del Mentor con las Soluciones Exactas -->
-                        <div 
-                            class="p-3.5 rounded-xl border text-xs flex items-start gap-2.5" 
-                            :class="(preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) 
-                                ? 'bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
-                                : 'bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'"
-                        >
-                            <Lightbulb class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                            <div class="space-y-1 flex-1">
-                                <strong class="font-mono text-[10px] uppercase tracking-wider block text-amber-600 dark:text-amber-400">
-                                    💡 Sugerencia del Mentor Maker:
-                                </strong>
-                                <p class="leading-relaxed whitespace-pre-line">
-                                    {{ qualityControlResult?.dashboard?.pedagogical_tip || preflightResult?.dashboard?.pedagogical_tip || (existingEvidence?.status === 'approved' ? '¡Tu silueta cumple las reglas maker y está lista para fabricar!' : 'Asegúrate de seguir las 4 reglas del boceto.') }}
-                                </p>
+                            <div class="p-2 rounded-xl border flex items-center gap-1.5" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'">
+                                <span>🪙</span>
+                                <span>{{ mission.fabcoins_cost || 0 }} FC</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- AVISO DE NUEVO ARCHIVO LISTO PARA AUDITAR (oculta el veredicto previo de la BD) -->
-                    <div 
-                        v-else-if="bitacoraForm.file && !qualityControlResult && !qualityControlLoading"
-                        class="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-950/20 text-center space-y-1 animate-fade-in"
-                    >
-                        <p class="text-xs font-bold text-cyan-300 flex items-center justify-center gap-1.5">
-                            <span>📄</span>
-                            <span>Nuevo archivo seleccionado: <strong class="font-mono text-white">{{ bitacoraForm.file.name }}</strong></span>
-                        </p>
-                        <p class="text-[11px] text-slate-400">
-                            Presiona el botón verde de arriba para auditarlo con Gemini IA y verificar las reglas de fabricación.
-                        </p>
-                    </div>
-
-                    <!-- PREGUNTA DE CIERRE REFLEXIVO (Únicamente al final del reto en Misión 5) -->
-                    <div v-if="selectedMissionIndex === 4" class="pt-3 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <label class="block text-xs font-bold mb-1" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">
-                            🎓 Cierre Reflexivo del Emprendedor Maker: ¿Qué fue lo más desafiante de todo el ciclo y qué mejorarías para tu próxima colección?
-                        </label>
-                        <textarea
-                            v-model="bitacoraForm.reflection_text"
-                            rows="2"
-                            placeholder="Escribe tu reflexión final para que quede registrada en tu Pasaporte Maker..."
-                            class="w-full rounded-2xl border p-3 text-xs leading-relaxed"
-                            :class="isDarkTheme ? 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'"
-                        ></textarea>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-4 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
-                        <button
-                            type="button"
-                            @click="activeStep = 2"
-                            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                    <!-- Botón de Entrada a la Estación de Trabajo Inmersiva -->
+                    <div class="p-4 border-t" :class="isDarkTheme ? 'border-slate-800/80 bg-slate-950/40' : 'border-slate-100 bg-slate-50/50'">
+                        <Link
+                            :href="route('student.studio.mission', { level_number: mission.level_number })"
+                            class="w-full py-3 px-4 rounded-2xl font-black text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                            :class="mission.is_completed 
+                                ? (isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200')
+                                : (idx === 0 
+                                    ? 'bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 shadow-cyan-500/20' 
+                                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700')"
                         >
-                            <ArrowLeft class="w-3.5 h-3.5" />
-                            <span>Volver a la Mesa de Trabajo</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="submitMissionEvidence"
-                            :disabled="bitacoraForm.processing || !bitacoraForm.file"
-                            class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-40 cursor-pointer"
-                        >
-                            <span>{{ selectedMissionIndex === 4 ? 'LANZAR PRODUCTO & GRADUARSE' : `COMPLETAR MISIÓN ${selectedMissionIndex + 1} & SUMAR PUNTOS` }}</span>
+                            <span>{{ mission.is_completed ? 'Ver / Reabrir Estación' : (idx === 0 ? '🚀 ENTRAR A LA ESTACIÓN DE CREACIÓN' : 'ENTRAR A ESTA MISIÓN') }}</span>
                             <ArrowRight class="w-4 h-4" />
-                        </button>
+                        </Link>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- RESUMEN DIDÁCTICO DEL CICLO ART TOYS -->
+            <div 
+                class="p-6 rounded-3xl border flex flex-col md:flex-row items-center justify-between gap-6"
+                :class="isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'"
+            >
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 flex items-center justify-center text-2xl shrink-0">
+                        🧭
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                            Metodología STEAM de Creación & Emprendimiento
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
+                            Cada misión representa una fase profesional de fabricación digital: desde el concepto de autor hasta la producción física y la ficha de venta. Puedes volver a cualquier misión para perfeccionar tu diseño.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                    <a
+                        href="/images/digitoys/DIGITOYS-construccion.pdf"
+                        target="_blank"
+                        class="px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                        :class="isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'"
+                    >
+                        <span>📄 Catálogo Digitoys (PDF)</span>
+                        <ExternalLink class="w-3.5 h-3.5" />
+                    </a>
+                </div>
+            </div>
+
         </main>
 
         <!-- ================================================================= -->

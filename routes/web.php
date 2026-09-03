@@ -84,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Estudio Maker y Operaciones del Taller
     Route::get('/studio', [StudioController::class, 'hud'])->name('student.studio');
+    Route::get('/studio/mision/{level_number}', [StudioController::class, 'missionStation'])->name('student.studio.mission');
     Route::get('/hud', function () { return redirect()->route('student.studio'); })->name('student.hud');
     Route::post('/squad/join-team', [StudioController::class, 'joinTeam'])->name('squad.join-team');
     Route::post('/squad/set-individual', [StudioController::class, 'setIndividualMode'])->name('squad.set-individual');
