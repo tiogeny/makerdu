@@ -136,7 +136,8 @@ class StudioController extends Controller
             'microApps' => \App\Models\MicroApp::where('is_active', true)->get(['id', 'slug', 'name', 'category', 'icon', 'output_type']),
             'bitacoras' => $bitacoras,
             'flash' => [
-                'preflight_result' => session('preflight_result'),
+                'quality_control_result' => session('quality_control_result') ?? session('preflight_result'),
+                'preflight_result' => session('preflight_result') ?? session('quality_control_result'),
             ],
         ]);
     }
@@ -220,21 +221,21 @@ class StudioController extends Controller
     }
 
     /**
-     * Engine de Pre-flight Check con IA Multimodal (POST /squad/{id}/pre-flight)
+     * Motor de Control de Calidad y Auditoría con IA Multimodal (POST /squad/{id}/quality-control)
      */
-    public function preflight(Request $request, Squad $squad, AiQualityControlService $preflightService)
+    public function qualityControl(Request $request, Squad $squad, AiQualityControlService $qcService)
     {
         $request->validate([
             'level_id' => ['required', 'exists:project_levels,id'],
-            'file' => ['required', 'file', 'max:25600'], // Max 25MB (.stl, .svg, .obj)
+            'file' => ['required', 'file', 'max:25600'], // Max 25MB (.stl, .svg, .obj, .png, .jpg)
             'image_snapshot' => ['nullable', 'string'], // Base64 snapshot del Three.js canvas
         ]);
 
         $level = ProjectLevel::findOrFail($request->level_id);
         $file = $request->file('file');
 
-        // Guardar archivo temporal de validación
-        $storedPath = $file->store('preflights', 'public');
+        // Guardar archivo en disco público
+        $storedPath = $file->store('calidad_ia', 'public');
         $fullPath = Storage::disk('public')->path($storedPath);
 
         $imageBase64 = $request->image_snapshot;
@@ -244,7 +245,7 @@ class StudioController extends Controller
         }
 
         // Ejecutar análisis y consulta a Gemini Vision
-        $result = $preflightService->analyzeFile(
+        $result = $qcService->analyzeFile(
             $fullPath,
             $file->getClientOriginalName(),
             $level->validation_rules_json,
@@ -274,7 +275,18 @@ class StudioController extends Controller
             ]);
         }
 
-        return back()->with('preflight_result', $result);
+        return back()->with([
+            'quality_control_result' => $result,
+            'preflight_result' => $result,
+        ]);
+    }
+
+    /**
+     * Alias retrocompatible
+     */
+    public function preflight(Request $request, Squad $squad, AiQualityControlService $qcService)
+    {
+        return $this->qualityControl($request, $squad, $qcService);
     }
 
     /**

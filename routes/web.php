@@ -88,7 +88,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/squad/join-team', [StudioController::class, 'joinTeam'])->name('squad.join-team');
     Route::post('/squad/set-individual', [StudioController::class, 'setIndividualMode'])->name('squad.set-individual');
     Route::post('/squad/{squad}/switch-role', [StudioController::class, 'switchRole'])->name('squad.switch-role');
-    Route::post('/squad/{squad}/pre-flight', [StudioController::class, 'preflight'])->name('squad.preflight');
+    Route::post('/squad/{squad}/quality-control', [StudioController::class, 'qualityControl'])->name('squad.quality-control');
+    Route::post('/squad/{squad}/pre-flight', [StudioController::class, 'qualityControl'])->name('squad.preflight');
     Route::post('/squad/{squad}/level/{level}/fabricate', [StudioController::class, 'confirmFabrication'])->name('squad.fabricate');
     Route::post('/squad/{squad}/level/{level}/bitacora', [StudioController::class, 'submitBitacora'])->name('squad.bitacora.submit');
     Route::post('/squad/{squad}/ai-chat', [AiTutorChatController::class, 'chat'])->name('squad.ai-chat');

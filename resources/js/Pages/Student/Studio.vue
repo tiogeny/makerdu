@@ -363,8 +363,12 @@ const bitacoraForm = useForm({
     allow_iteration: true,
 });
 
-const preflightLoading = ref(false);
-const preflightResult = ref(props.flash?.preflight_result || null);
+const qualityControlLoading = ref(false);
+const qualityControlResult = ref(props.flash?.quality_control_result || props.flash?.preflight_result || null);
+
+// Alias para compatibilidad interna
+const preflightLoading = qualityControlLoading;
+const preflightResult = qualityControlResult;
 
 // Evidencia previa ya guardada en base de datos para la misión activa
 const existingEvidence = computed(() => {
@@ -393,26 +397,26 @@ const handleFileUpload = (e) => {
     });
 };
 
-// Ejecutar Preflight con Gemini Vision
-const runPreflightCheck = () => {
+// Ejecutar Auditoría / Control de Calidad con Gemini Vision
+const runQualityControl = () => {
     if (!bitacoraForm.file) {
         alert('Por favor selecciona o arrastra una foto o archivo STL antes de auditar.');
         return;
     }
 
-    preflightLoading.value = true;
-    preflightResult.value = null;
+    qualityControlLoading.value = true;
+    qualityControlResult.value = null;
 
     const formData = new FormData();
     formData.append('file', bitacoraForm.file);
     formData.append('level_id', selectedMission.value.id);
 
-    router.post(route('squad.preflight', { squad: props.squad.id }), formData, {
+    router.post(route('squad.quality-control', { squad: props.squad.id }), formData, {
         preserveScroll: true,
         onSuccess: (pageResp) => {
-            preflightLoading.value = false;
-            const res = pageResp.props.flash?.preflight_result;
-            preflightResult.value = res;
+            qualityControlLoading.value = false;
+            const res = pageResp.props.flash?.quality_control_result || pageResp.props.flash?.preflight_result;
+            qualityControlResult.value = res;
 
             if (res) {
                 const verdictMsg = res.dashboard?.headline || res.ai_feedback || 'He analizado su evidencia.';
@@ -433,11 +437,12 @@ const runPreflightCheck = () => {
             }
         },
         onError: () => {
-            preflightLoading.value = false;
+            qualityControlLoading.value = false;
             alert('Error al conectar con el Copiloto IA. Inténtalo de nuevo.');
         },
     });
 };
+const runPreflightCheck = runQualityControl;
 
 // Enviar Bitácora y Avanzar a la siguiente misión
 const submitMissionEvidence = () => {
