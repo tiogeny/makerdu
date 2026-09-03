@@ -139,15 +139,12 @@ cd /home/discoper/makerdu_core
 # 2. Descargar los últimos cambios de GitHub
 git pull origin main
 
-# 3. Instalar dependencias backend si hubo cambios
-composer install --no-dev --optimize-autoloader
+# 3. Limpiar y resetear la base de datos a 0 (con 12 FC por alumno)
+ea-php84 reset_progress.php
 
-# 4. Compilar assets frontend (si node/npm están en el servidor)
-npm run build
-
-# 5. Limpiar y recalcular cachés de Laravel
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# 4. Limpiar y recalcular cachés de Laravel con PHP 8.4
+ea-php84 artisan optimize:clear
+ea-php84 artisan config:cache
+ea-php84 artisan route:cache
+ea-php84 artisan view:cache
 ```
