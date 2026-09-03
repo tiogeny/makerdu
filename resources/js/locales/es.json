@@ -181,11 +181,11 @@
   },
   "briefing": {
     "badge_alert": "ALERTA DE RETO CLASIFICADO // CUARTEL GENERAL MAKERDU",
-    "btn_view_briefing": "Dossier del Reto",
-    "btn_skip": "Saltar Briefing",
+    "btn_view_briefing": "Expediente del Reto",
+    "btn_skip": "Saltar Expediente",
     "btn_prev": "Anterior",
     "btn_next": "Siguiente",
-    "btn_start": "ACEPTAR MISIÓN & ENTRAR AL TALLER",
+    "btn_start": "ACEPTAR RETO & ENTRAR AL TALLER",
     "step_indicator": "Diapositiva {current} de {total}",
     "access_level": "NIVEL DE SEGURIDAD: MAKER LEVEL 1"
   }

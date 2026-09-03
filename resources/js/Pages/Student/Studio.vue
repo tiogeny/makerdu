@@ -792,14 +792,14 @@ const changeRole = (newRole) => {
                                 </span>
                             </div>
 
-                            <!-- BOTÓN TÁCTICO PARA VER EL DOSSIER DEL RETO EN CUALQUIER MOMENTO -->
+                            <!-- BOTÓN TÁCTICO PARA VER EL EXPEDIENTE DEL RETO EN CUALQUIER MOMENTO -->
                             <button
                                 type="button"
                                 @click="openBriefingModal"
                                 class="px-3 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-mono font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer hover:border-cyan-400"
-                                title="Ver Dossier Táctico de Misión"
+                                title="Ver Expediente Oficial del Reto"
                             >
-                                <span>🎬 Dossier del Reto</span>
+                                <span>🎬 Expediente del Reto</span>
                             </button>
                         </div>
 
@@ -1813,12 +1813,14 @@ const changeRole = (newRole) => {
         />
 
         <!-- ================================================================= -->
-        <!-- DOSSIER TÁCTICO DE MISIÓN (AVENGERS BRIEFING EN ESPAÑOL)           -->
+        <!-- EXPEDIENTE TÁCTICO DEL RETO (AVENGERS BRIEFING EN ESPAÑOL)         -->
         <!-- ================================================================= -->
         <MissionBriefingModal
             :show="showBriefingModal"
             :project="project"
             :active-student="activeStudent"
+            :is-solo-mode="isSoloMode"
+            :is-dark-theme="isDarkTheme"
             @close="onCloseBriefing"
             @start="onStartBriefing"
         />

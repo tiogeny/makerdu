@@ -5,16 +5,16 @@ import {
     ArrowRight, 
     ArrowLeft, 
     Rocket, 
-    ShieldAlert, 
     Zap, 
     Coins, 
     Bot, 
     Layers, 
     Printer, 
-    CheckCircle2, 
     Sparkles, 
     Target,
-    Compass
+    Compass,
+    Award,
+    Check
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -30,87 +30,50 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    isSoloMode: {
+        type: Boolean,
+        default: false,
+    },
+    isDarkTheme: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['close', 'start']);
 
 const currentSlide = ref(0);
 
-// Extraer el briefing en español del proyecto o usar fallback inteligente
+// Extraer el briefing en español del proyecto
 const briefingData = computed(() => {
     const raw = props.project?.briefing_json;
     if (raw && raw.es) return raw.es;
     if (raw && Array.isArray(raw.slides)) return raw;
 
-    // Fallback dinámico si aún no tuviera briefing_json personalizado
     return {
-        codename: 'OPERACIÓN: ' + (props.project?.title_json?.es || props.project?.type || 'CREACIÓN MAKER').toUpperCase(),
+        codename: 'EXPEDIENTE: COLECCIÓN ART TOYS 2.5D',
         access_level: 'NIVEL DE SEGURIDAD: MAKER LEVEL 1',
-        slides: [
-            {
-                id: 'goal',
-                phase_number: '01',
-                tag: 'OBJETIVO TÁCTICO',
-                title: props.project?.title_json?.es || 'Lanza tu Colección de Art Toys 2.5D',
-                headline: 'De la hoja de papel a un producto real autoportante en tu escritorio.',
-                description: props.project?.description_json?.es || 'Tu misión es concebir un personaje original, transferir su geometría al laboratorio digital y materializarlo en una pieza física autoportante con base plana.',
-                specs: [
-                    { label: 'Espesor Z', value: '10 mm' },
-                    { label: 'Estructura', value: 'Base Autoportante' },
-                    { label: 'Material', value: 'PLA Ecológico' }
-                ],
-                badge: 'MISIÓN OFICIAL MAKERDU'
-            },
-            {
-                id: 'arsenal',
-                phase_number: '02',
-                tag: 'EQUIPAMIENTO ASIGNADO',
-                title: 'Tu Arsenal Tecnológico de Grado Maker',
-                headline: 'Todo el poder del laboratorio a disposición de tu escuadra.',
-                description: 'Para superar este desafío, el comando te equipa con herramientas industriales y presupuesto:',
-                items: [
-                    { icon: '🪙', name: 'Bolsa de 400 FabCoins', desc: 'Presupuesto de producción e iteración.' },
-                    { icon: '🤖', name: 'Copiloto Maker IA', desc: 'Mentor que audita física y reglas de estarcido.' },
-                    { icon: '⚡', name: 'Vectorizador 2.5D', desc: 'Digitalización con curvas Bézier e infill.' },
-                    { icon: '🖨️', name: 'Bandeja de Impresión 3D', desc: 'Boquilla de 0.4mm lista a 205°C.' }
-                ]
-            },
-            {
-                id: 'roadmap',
-                phase_number: '03',
-                tag: 'DESPLIEGUE EN 5 HITOS',
-                title: 'La Ruta de los Entregables Clave',
-                headline: 'Cada misión superada desbloqueará una fase crítica de tu producto.',
-                description: 'El camino hacia tu pieza tangible producida en el taller:',
-                deliverables: [
-                    { mission: 'M1', title: 'Concebir', deliverable: 'Boceto de Autor con Plumón Negro', icon: '✍️', format: 'Foto / Papel' },
-                    { mission: 'M2', title: 'Ingeniería', deliverable: 'Modelo 3D Extruido (10 mm)', icon: '🧊', format: 'Archivo STL Malla' },
-                    { mission: 'M3', title: 'Producción', deliverable: 'Simulación de Laminado & Costeo', icon: '🍰', format: 'G-Code / FabCoins' },
-                    { mission: 'M4', title: 'Post-Proceso', deliverable: 'Pieza Física Lijada & Packaging Maker', icon: '📦', format: 'Objeto Real' },
-                    { mission: 'M5', title: 'Lanzamiento', deliverable: 'Catálogo Comercial & Pitch de 30s', icon: '🚀', format: 'Video / Afiche' }
-                ]
-            },
-            {
-                id: 'launch',
-                phase_number: '04',
-                tag: 'AUTORIZACIÓN OPERATIVA',
-                title: '¿Lista tu Escuadra para el Despegue?',
-                headline: 'Las máquinas están calibradas y la bitácora lista para registrar su avance.',
-                description: 'Supera las 5 misiones para obtener tu acreditación y tu Art Toy tangible.',
-                rewards: [
-                    { icon: '🏆', title: '+300 Puntos Maker', desc: 'Escala a Maker Master Legend' },
-                    { icon: '📜', title: 'Certificado de Diseñador 3D', desc: 'Acreditación oficial' },
-                    { icon: '🧸', title: 'Tu Art Toy Físico', desc: 'El producto en tus manos' }
-                ],
-                cta_text: 'ACEPTAR MISIÓN & COMENZAR PASO 1'
-            }
-        ]
+        slides: []
     };
 });
 
 const slides = computed(() => briefingData.value.slides || []);
 const totalSlides = computed(() => slides.value.length);
 const activeSlideData = computed(() => slides.value[currentSlide.value] || {});
+
+// Nombre personalizado para el saludo
+const studentFirstName = computed(() => {
+    if (!props.activeStudent?.name) return 'Creador';
+    return props.activeStudent.name.trim().split(' ')[0];
+});
+
+// Titular de despegue individual vs en equipo (sin la palabra escuadra)
+const launchTitle = computed(() => {
+    if (props.isSoloMode) {
+        return '¿Todo listo para el despegue, ' + studentFirstName.value + '?';
+    }
+    return '¿Todo listo en tu equipo para el despegue?';
+});
 
 const nextSlide = () => {
     if (currentSlide.value < totalSlides.value - 1) {
@@ -172,36 +135,39 @@ onUnmounted(() => {
     >
         <div 
             v-if="show"
-            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-xl selection:bg-cyan-500 selection:text-slate-950 select-none overflow-hidden"
+            :class="[
+                'fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 select-none overflow-hidden transition-colors duration-300',
+                isDarkTheme ? 'bg-slate-950/85 backdrop-blur-xl' : 'bg-slate-900/35 backdrop-blur-md'
+            ]"
             role="dialog"
             aria-modal="true"
         >
-            <!-- CONTENEDOR TÁCTICO HUD (PANTALLA DE COMANDO) -->
+            <!-- CONTENEDOR EXPEDIENTE: MISMO ADN CROMÁTICO DEL HERO CARD -->
             <div 
-                class="relative w-full max-w-5xl h-[92vh] max-h-[720px] bg-slate-900 border-2 border-cyan-500/40 rounded-3xl shadow-2xl shadow-cyan-950/60 flex flex-col overflow-hidden text-slate-100"
+                class="relative w-full max-w-5xl h-[92vh] max-h-[720px] bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl shadow-cyan-950/40 ring-1 ring-cyan-500/20 flex flex-col overflow-hidden text-slate-100"
             >
-                <!-- LÍNEA DE DETECCIÓN SUPERIOR ANIMADA -->
+                <!-- LÍNEA SUTIL SUPERIOR -->
                 <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse"></div>
 
-                <!-- CABECERA TÁCTICA HUD (AVENGERS COMMAND CENTER) -->
-                <header class="px-5 py-3.5 bg-slate-950/90 border-b border-cyan-500/20 flex items-center justify-between shrink-0">
+                <!-- CABECERA DEL EXPEDIENTE -->
+                <header class="px-5 py-3.5 bg-slate-950/95 border-b border-slate-800 flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="relative flex items-center justify-center">
-                            <span class="w-3 h-3 rounded-full bg-red-500 animate-ping absolute"></span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 relative"></span>
+                            <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping absolute"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 relative"></span>
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="font-mono text-[10px] tracking-widest text-red-400 font-bold uppercase">
-                                    ALERTA DE RETO CLASIFICADO // CUARTEL GENERAL
+                                <span class="font-mono text-[10px] tracking-widest text-cyan-400 font-bold uppercase">
+                                    EXPEDIENTE OFICIAL DEL RETO
                                 </span>
                                 <span class="text-slate-600">·</span>
-                                <span class="font-mono text-[10px] text-cyan-400 tracking-wider font-bold">
+                                <span class="font-mono text-[10px] text-slate-400 tracking-wider">
                                     {{ briefingData.access_level }}
                                 </span>
                             </div>
                             <h2 class="font-mono font-black text-xs sm:text-sm text-white tracking-tight flex items-center gap-2">
-                                <span>🛰️ {{ briefingData.codename }}</span>
+                                <span>📁 {{ briefingData.codename }}</span>
                             </h2>
                         </div>
                     </div>
@@ -224,23 +190,25 @@ onUnmounted(() => {
                         </button>
                     </div>
 
-                    <!-- BOTÓN SALTAR / CERRAR -->
+                    <!-- BOTÓN SALTAR EXPEDIENTE -->
                     <button
                         type="button"
                         @click="handleClose"
-                        class="px-2.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-mono font-bold transition flex items-center gap-1.5 border border-slate-700/60 cursor-pointer"
-                        title="Saltar briefing"
+                        class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-mono font-bold transition flex items-center gap-1.5 border border-slate-800 cursor-pointer"
+                        title="Saltar expediente"
                     >
-                        <span>Saltar Intro</span>
+                        <span>Saltar Expediente</span>
                         <X class="w-3.5 h-3.5" />
                     </button>
                 </header>
 
-                <!-- CUERPO DE LA DIAPOSITIVA TÁCTICA -->
+                <!-- CUERPO DE LA DIAPOSITIVA -->
                 <div class="flex-1 min-h-0 relative overflow-y-auto p-5 sm:p-8 flex flex-col justify-between">
                     
-                    <!-- SLIDE 1: OBJETIVO TÁCTICO & META DEL PRODUCTO -->
-                    <div v-if="currentSlide === 0" class="space-y-6 my-auto animate-fade-in">
+                    <!-- ========================================================= -->
+                    <!-- LÁMINA 1: PROPÓSITO DEL RETO & VITRINA DEL ART TOY         -->
+                    <!-- ========================================================= -->
+                    <div v-if="currentSlide === 0" class="space-y-5 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                                 <Target class="w-3.5 h-3.5 text-cyan-400" />
@@ -249,37 +217,58 @@ onUnmounted(() => {
                             <span class="text-xs font-mono text-slate-500 font-bold">FASE 01 DE 04</span>
                         </div>
 
-                        <div class="space-y-2 max-w-3xl">
-                            <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                                {{ activeSlideData.title }}
-                            </h1>
-                            <p class="text-sm sm:text-base text-cyan-300 font-mono font-bold">
-                                {{ activeSlideData.headline }}
-                            </p>
-                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                            <!-- Columna Texto Emprendedor -->
+                            <div class="lg:col-span-7 space-y-3">
+                                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+                                    {{ activeSlideData.title }}
+                                </h1>
+                                <p class="text-sm sm:text-base text-cyan-300 font-mono font-bold">
+                                    {{ activeSlideData.headline }}
+                                </p>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed pt-1">
+                                    {{ activeSlideData.description }}
+                                </p>
 
-                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-                            {{ activeSlideData.description }}
-                        </p>
+                                <!-- Especificaciones Técnicas del Producto -->
+                                <div class="grid grid-cols-3 gap-2.5 pt-2">
+                                    <div 
+                                        v-for="(spec, sIdx) in activeSlideData.specs" 
+                                        :key="sIdx"
+                                        class="p-2.5 rounded-2xl bg-slate-900 border border-slate-800"
+                                    >
+                                        <span class="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">
+                                            {{ spec.label }}
+                                        </span>
+                                        <strong class="text-xs font-black text-cyan-300 font-mono block pt-0.5">
+                                            {{ spec.value }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <!-- ESPECIFICACIONES TÁCTICAS DEL PRODUCTO -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 max-w-2xl">
-                            <div 
-                                v-for="(spec, sIdx) in activeSlideData.specs" 
-                                :key="sIdx"
-                                class="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between"
-                            >
-                                <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
-                                    {{ spec.label }}
-                                </span>
-                                <strong class="text-sm font-black text-cyan-300 font-mono block pt-1">
-                                    {{ spec.value }}
-                                </strong>
+                            <!-- Columna Vitrina Visual del Producto -->
+                            <div class="lg:col-span-5 flex justify-center">
+                                <div class="relative w-60 h-60 sm:w-64 sm:h-64 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-cyan-500/30 p-4 flex flex-col items-center justify-center shadow-2xl shadow-cyan-950/50 group">
+                                    <div class="absolute inset-0 bg-radial from-cyan-500/10 via-transparent to-transparent rounded-3xl pointer-events-none"></div>
+                                    <img 
+                                        :src="activeSlideData.product_image || '/images/digitoys/digifeliz.png'" 
+                                        alt="Art Toy Coleccionable" 
+                                        class="w-40 h-40 object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_15px_15px_rgba(6,182,212,0.25)]"
+                                    />
+                                    <div class="pt-2 text-center">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-mono font-bold">
+                                            ✔ Producto Físico Coleccionable
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SLIDE 2: ARSENAL TECNOLÓGICO ASIGNADO -->
+                    <!-- ========================================================= -->
+                    <!-- LÁMINA 2: ARSENAL TECNOLÓGICO ASIGNADO                    -->
+                    <!-- ========================================================= -->
                     <div v-else-if="currentSlide === 1" class="space-y-6 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -303,9 +292,9 @@ onUnmounted(() => {
                             <div 
                                 v-for="(item, aIdx) in activeSlideData.items" 
                                 :key="aIdx"
-                                class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 hover:border-amber-500/40 transition flex items-start gap-3.5"
+                                class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/90 hover:border-amber-500/40 transition flex items-start gap-3.5"
                             >
-                                <span class="text-2xl shrink-0 p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                <span class="text-2xl shrink-0 p-2 rounded-xl bg-slate-950 border border-slate-800">
                                     {{ item.icon }}
                                 </span>
                                 <div class="space-y-0.5 text-xs">
@@ -320,7 +309,9 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- SLIDE 3: LA RUTA DE LOS 5 ENTREGABLES -->
+                    <!-- ========================================================= -->
+                    <!-- LÁMINA 3: LAS 5 MISIONES (RUTA DE ENTREGABLES)            -->
+                    <!-- ========================================================= -->
                     <div v-else-if="currentSlide === 2" class="space-y-6 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -339,12 +330,12 @@ onUnmounted(() => {
                             </p>
                         </div>
 
-                        <!-- TIMELINE DE LOS 5 ENTREGABLES -->
+                        <!-- TIMELINE DE LAS 5 MISIONES -->
                         <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
                             <div 
                                 v-for="(step, sIdx) in activeSlideData.deliverables" 
                                 :key="sIdx"
-                                class="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-col justify-between gap-2"
+                                class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between gap-2.5 hover:border-cyan-500/40 transition"
                             >
                                 <div>
                                     <div class="flex items-center justify-between mb-1.5">
@@ -360,14 +351,16 @@ onUnmounted(() => {
                                         {{ step.deliverable }}
                                     </p>
                                 </div>
-                                <span class="text-[9px] font-mono text-cyan-400 block pt-1 border-t border-slate-900 uppercase">
+                                <span class="text-[9px] font-mono text-cyan-400 block pt-1.5 border-t border-slate-800 uppercase font-bold">
                                     {{ step.format }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SLIDE 4: AUTORIZACIÓN FINAL & DESPEGUE -->
+                    <!-- ========================================================= -->
+                    <!-- LÁMINA 4: AUTORIZACIÓN OPERATIVA & DESPEGUE               -->
+                    <!-- ========================================================= -->
                     <div v-else-if="currentSlide === 3" class="space-y-6 my-auto animate-fade-in text-center max-w-2xl mx-auto">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-black uppercase tracking-wider">
                             <Sparkles class="w-3.5 h-3.5 text-cyan-400" />
@@ -375,10 +368,11 @@ onUnmounted(() => {
                         </div>
 
                         <div class="space-y-2">
+                            <!-- Titular adaptado a individual vs equipo -->
                             <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                                {{ activeSlideData.title }}
+                                {{ launchTitle }}
                             </h1>
-                            <p class="text-xs sm:text-sm text-slate-300">
+                            <p class="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
                                 {{ activeSlideData.description }}
                             </p>
                         </div>
@@ -388,7 +382,7 @@ onUnmounted(() => {
                             <div 
                                 v-for="(rew, rIdx) in activeSlideData.rewards" 
                                 :key="rIdx"
-                                class="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-1"
+                                class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1"
                             >
                                 <span class="text-2xl block">{{ rew.icon }}</span>
                                 <strong class="text-xs font-black text-white block font-mono">{{ rew.title }}</strong>
@@ -404,7 +398,7 @@ onUnmounted(() => {
                                 class="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 hover:from-cyan-400 hover:to-emerald-300 text-slate-950 font-black text-sm tracking-wide transition flex items-center gap-3 shadow-xl shadow-cyan-500/25 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 <Rocket class="w-5 h-5 text-slate-950" />
-                                <span>{{ activeSlideData.cta_text || 'ACEPTAR MISIÓN & ENTRAR AL TALLER' }}</span>
+                                <span>{{ activeSlideData.cta_text || 'ACEPTAR RETO & COMENZAR PASO 1' }}</span>
                             </button>
                         </div>
                     </div>
@@ -412,12 +406,11 @@ onUnmounted(() => {
                 </div>
 
                 <!-- PIE DE PÁGINA: NAVEGADOR DE SLIDES -->
-                <footer class="px-6 py-3.5 bg-slate-950/90 border-t border-slate-800/80 flex items-center justify-between shrink-0">
+                <footer class="px-6 py-3.5 bg-slate-950/95 border-t border-slate-800 flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
                         <span class="font-mono text-xs text-slate-400 font-bold">
                             Diapositiva {{ currentSlide + 1 }} de {{ totalSlides }}
                         </span>
-                        <!-- Puntos de progreso -->
                         <div class="flex items-center gap-1.5">
                             <span 
                                 v-for="i in totalSlides" 
@@ -436,7 +429,7 @@ onUnmounted(() => {
                             v-if="currentSlide > 0"
                             type="button"
                             @click="prevSlide"
-                            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer"
+                            class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-mono font-bold transition flex items-center gap-1.5 border border-slate-800 cursor-pointer"
                         >
                             <ArrowLeft class="w-3.5 h-3.5" />
                             <span>Anterior</span>
