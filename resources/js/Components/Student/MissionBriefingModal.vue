@@ -46,14 +46,77 @@ const currentSlide = ref(0);
 
 // Extraer el briefing en español del proyecto
 const briefingData = computed(() => {
-    const raw = props.project?.briefing_json;
-    if (raw && raw.es) return raw.es;
-    if (raw && Array.isArray(raw.slides)) return raw;
+    let raw = props.project?.briefing_json;
+    if (typeof raw === 'string') {
+        try { raw = JSON.parse(raw); } catch (e) {}
+    }
+    if (raw && raw.es && Array.isArray(raw.es.slides) && raw.es.slides.length > 0) return raw.es;
+    if (raw && Array.isArray(raw.slides) && raw.slides.length > 0) return raw;
 
+    // Fallback completo y garantizado de 4 láminas
     return {
         codename: 'EXPEDIENTE: COLECCIÓN ART TOYS 2.5D',
         access_level: 'NIVEL DE SEGURIDAD: MAKER LEVEL 1',
-        slides: []
+        slides: [
+            {
+                id: 'goal',
+                phase_number: '01',
+                tag: 'PROPÓSITO DEL RETO',
+                title: 'Funda tu Marca y Lanza tu Colección de Art Toys',
+                headline: 'Crea una criatura original, aprende a costearla y llévala al mercado.',
+                description: 'Llegó el momento de convertirte en creador y emprendedor: diseñarás una figura coleccionable con identidad propia, dominarás la fabricación digital en el taller y presentarás tu producto terminado ante la comunidad.',
+                product_image: '/images/digitoys/digifeliz.png',
+                specs: [
+                    { label: 'Espesor Z', value: '10 mm' },
+                    { label: 'Estructura', value: 'Base Autoportante' },
+                    { label: 'Material', value: 'PLA Ecológico' }
+                ],
+                badge: 'RETO DE EMPRENDIMIENTO & FABRICACIÓN'
+            },
+            {
+                id: 'arsenal',
+                phase_number: '02',
+                tag: 'EQUIPAMIENTO ASIGNADO',
+                title: 'Tu Arsenal Tecnológico de Grado Maker',
+                headline: 'Todo el poder del laboratorio a tu entera disposición.',
+                description: 'Para este reto cuentas con equipamiento industrial, presupuesto real y asistencia inteligente en cada paso:',
+                items: [
+                    { icon: '🪙', name: 'Bolsa de 400 FabCoins', desc: 'Presupuesto de producción para insumos, energía y tiempo de máquina.' },
+                    { icon: '🤖', name: 'Copiloto Maker IA (Gemini)', desc: 'Tutor socrático en vivo que audita tus bocetos, estarcido y reglas físicas.' },
+                    { icon: '⚡', name: 'Vectorizador 2.5D & Curvas Bézier', desc: 'Digitalización milimétrica con tiradores tipo Inkscape y extrusor 3D.' },
+                    { icon: '🖨️', name: 'Simulador de Laminado & Impresoras', desc: 'Inspección de capas, relleno giroide/rejilla y boquilla a 205°C.' }
+                ]
+            },
+            {
+                id: 'roadmap',
+                phase_number: '03',
+                tag: 'LAS 5 MISIONES',
+                title: 'La Ruta de los Entregables Clave',
+                headline: 'Cada misión superada desbloquea una etapa clave de tu producto comercial.',
+                description: 'Avanzarás por el ciclo completo de creación de producto, desde el papel hasta el lanzamiento:',
+                deliverables: [
+                    { mission: 'Misión 1', title: 'Concebir', deliverable: 'Boceto de Autor con Plumón Negro', icon: '✍️', format: 'Papel & Tinta' },
+                    { mission: 'Misión 2', title: 'Ingeniería', deliverable: 'Modelo 3D Extruido (10 mm)', icon: '🧊', format: 'Archivo STL Malla' },
+                    { mission: 'Misión 3', title: 'Producción', deliverable: 'Simulación de Laminado & Costeo', icon: '🍰', format: 'G-Code / FabCoins' },
+                    { mission: 'Misión 4', title: 'Post-Proceso', deliverable: 'Pieza Física Lijada & Packaging Maker', icon: '📦', format: 'Objeto Tangible' },
+                    { mission: 'Misión 5', title: 'Lanzamiento', deliverable: 'Catálogo Comercial & Pitch de 30s', icon: '🚀', format: 'Video & Afiche' }
+                ]
+            },
+            {
+                id: 'launch',
+                phase_number: '04',
+                tag: 'AUTORIZACIÓN OPERATIVA',
+                title: 'Todo Listo para el Despegue',
+                headline: 'Las máquinas están calibradas y la bitácora lista para registrar tu avance.',
+                description: 'Al superar las 5 misiones obtendrás tu certificación oficial, puntos de experiencia para subir de rango y tu Art Toy tangible en el escritorio.',
+                rewards: [
+                    { icon: '🏆', title: '+300 Puntos Maker', desc: 'Escala al rango Maker Master Legend' },
+                    { icon: '📜', title: 'Certificado de Diseñador 3D', desc: 'Acreditación de competencias STEAM' },
+                    { icon: '🧸', title: 'Tu Art Toy Físico', desc: 'El producto real en tus manos' }
+                ],
+                cta_text: 'ACEPTAR RETO & COMENZAR PASO 1'
+            }
+        ]
     };
 });
 

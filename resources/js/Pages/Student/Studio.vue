@@ -136,7 +136,8 @@ const onCloseBriefing = () => {
 onMounted(() => {
     window.addEventListener('click', onWindowClick);
     const seenKey = 'makerdu_briefing_seen_' + (props.project?.id || 1);
-    if (!localStorage.getItem(seenKey)) {
+    const hasProgress = (props.bitacoras || []).some(b => b.status === 'approved');
+    if (!hasProgress || !localStorage.getItem(seenKey)) {
         showBriefingModal.value = true;
     }
 });
@@ -897,12 +898,12 @@ const changeRole = (newRole) => {
                     <!-- Cabecera de la Ruta -->
                     <div class="flex items-center justify-between border-b pb-3" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
                         <div>
-                            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 block">
-                                RUTA DEL RETO
-                            </span>
-                            <h2 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Misiones del Reto
+                            <h2 class="text-sm font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                🗺️ Ruta de Misiones
                             </h2>
+                            <span class="text-[10px] font-mono text-slate-400 block">
+                                5 etapas de creación
+                            </span>
                         </div>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold" :class="isDarkTheme ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'">
                             Misión {{ selectedMissionIndex + 1 }} de {{ project.levels.length }}
@@ -1124,32 +1125,32 @@ const changeRole = (newRole) => {
                             📋 4 Reglas de Oro para que tu Dibujo se Convierta en Juguete 3D:
                         </span>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
-                                <span class="text-base">✍️</span>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-cyan-500/30 shadow-xs' : 'bg-cyan-50/60 border-cyan-200/80 shadow-xs'">
+                                <span class="text-base p-1.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">✍️</span>
                                 <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Plumón Negro Grueso</strong>
-                                    <p class="text-[11px] text-slate-400 leading-tight">Trazo nítido y continuo sobre papel blanco. Evita sombras a lápiz.</p>
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Plumón Negro Grueso</strong>
+                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Trazo nítido y continuo sobre papel blanco. Evita sombras a lápiz.</p>
                                 </div>
                             </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
-                                <span class="text-base">📐</span>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-emerald-500/30 shadow-xs' : 'bg-emerald-50/60 border-emerald-200/80 shadow-xs'">
+                                <span class="text-base p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">📐</span>
                                 <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Base Plana Autoportante</strong>
-                                    <p class="text-[11px] text-slate-400 leading-tight">La base debe medir al menos 40% del ancho para no caerse.</p>
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Base Plana Autoportante</strong>
+                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">La base debe medir al menos 40% del ancho para no caerse.</p>
                                 </div>
                             </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
-                                <span class="text-base">🔒</span>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-amber-500/30 shadow-xs' : 'bg-amber-50/60 border-amber-200/80 shadow-xs'">
+                                <span class="text-base p-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">🔒</span>
                                 <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Silueta 100% Cerrada</strong>
-                                    <p class="text-[11px] text-slate-400 leading-tight">Cierra el contorno exterior sin huecos para poder extruir el sólido.</p>
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Silueta 100% Cerrada</strong>
+                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Cierra el contorno exterior sin huecos para poder extruir el sólido.</p>
                                 </div>
                             </div>
-                            <div class="p-3 rounded-2xl border flex items-start gap-2.5" :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200/80'">
-                                <span class="text-base">👁️</span>
+                            <div class="p-3 rounded-2xl border flex items-start gap-2.5 transition" :class="isDarkTheme ? 'bg-slate-900/90 border-purple-500/30 shadow-xs' : 'bg-purple-50/60 border-purple-200/80 shadow-xs'">
+                                <span class="text-base p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">👁️</span>
                                 <div class="text-xs space-y-0.5">
-                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-slate-200' : 'text-slate-800'">Regla del Estarcido</strong>
-                                    <p class="text-[11px] text-slate-400 leading-tight">Conecta pupilas o detalles interiores con puentes de unión.</p>
+                                    <strong class="font-bold block" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">Regla del Estarcido</strong>
+                                    <p class="text-[11px] leading-tight" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">Conecta pupilas o detalles interiores con puentes de unión.</p>
                                 </div>
                             </div>
                         </div>

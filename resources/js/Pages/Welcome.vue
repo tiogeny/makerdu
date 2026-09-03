@@ -64,7 +64,7 @@ const toggleTheme = () => {
                     :href="route('student.login')"
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition shadow-md shadow-cyan-500/20"
                 >
-                    {{ currentLang === 'en' ? 'ENTER WORKSHOP' : 'ENTRAR AL TALLER' }}
+                    {{ currentLang === 'en' ? 'ENTER STUDIO' : 'ENTRAR AL ESTUDIO' }}
                 </Link>
             </nav>
         </header>
@@ -102,7 +102,7 @@ const toggleTheme = () => {
                             🎨
                         </div>
                         <h2 class="text-lg font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                            {{ currentLang === 'en' ? 'Creator / Student Access' : 'Acceso para Creadores Maker' }}
+                            {{ currentLang === 'en' ? 'Student Maker Access' : 'Acceso para Estudiantes Maker' }}
                         </h2>
                         <p class="text-xs text-slate-500 mt-1 leading-relaxed">
                             {{ currentLang === 'en' ? 'Enter with your 4-digit PIN to access your workbench, micro-apps, and missions.' : 'Ingresa con tu PIN de 4 dígitos para acceder a tu mesa de trabajo, herramientas y misiones.' }}

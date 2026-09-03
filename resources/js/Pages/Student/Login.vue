@@ -197,7 +197,7 @@ const submitAdult = () => {
                         ]"
                     >
                         <KeyRound class="w-3.5 h-3.5" />
-                        <span>{{ currentLang === 'en' ? 'Workshop Creator' : 'Creador Maker' }}</span>
+                        <span>{{ currentLang === 'en' ? 'Student Maker' : 'Estudiante Maker' }}</span>
                     </button>
 
                     <button

@@ -98,6 +98,7 @@ class StudioController extends Controller
                 'description' => $project->description_json['es'] ?? '',
                 'type' => $project->type,
                 'total_levels' => $project->total_levels,
+                'briefing_json' => $project->briefing_json,
                 'levels' => $project->levels->map(function ($lvl) use ($completedLevelIds) {
                     return [
                         'id' => $lvl->id,
