@@ -433,23 +433,23 @@ const getFirstName = (name) => {
                         class="w-full p-2.5 rounded-2xl text-left transition flex items-center gap-3 cursor-pointer group"
                         :class="[
                             m.level_number === currentLevelNumber
-                                ? (isDarkTheme ? 'bg-cyan-500/15 border border-cyan-500/40 text-white' : 'bg-cyan-50 border border-cyan-300 text-slate-900')
-                                : (isDarkTheme ? 'hover:bg-slate-800/80 text-slate-400 border border-transparent' : 'hover:bg-slate-100 text-slate-600 border border-transparent')
+                                ? (isDarkTheme ? 'bg-cyan-500/15 border border-cyan-500/40 text-white' : 'bg-cyan-100/70 border border-cyan-400 text-cyan-950 shadow-xs')
+                                : (isDarkTheme ? 'hover:bg-slate-800/80 text-slate-400 border border-transparent' : 'hover:bg-slate-100 text-slate-700 border border-transparent')
                         ]"
                     >
                         <div 
                             class="w-7 h-7 rounded-xl flex items-center justify-center font-mono text-[10px] font-black shrink-0"
-                            :class="m.is_completed ? 'bg-emerald-500 text-white' : (m.level_number === currentLevelNumber ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400')"
+                            :class="m.is_completed ? 'bg-emerald-500 text-white' : (m.level_number === currentLevelNumber ? 'bg-cyan-500 text-slate-950 shadow-xs' : (isDarkTheme ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-700'))"
                         >
                             <Check v-if="m.is_completed" class="w-3.5 h-3.5 stroke-[3]" />
                             <span v-else>{{ m.level_number }}</span>
                         </div>
 
                         <div class="flex-1 min-w-0">
-                            <span class="text-[9px] font-mono font-bold block" :class="m.level_number === currentLevelNumber ? 'text-cyan-400' : 'text-slate-500'">
+                            <span class="text-[9px] font-mono font-bold block" :class="m.level_number === currentLevelNumber ? (isDarkTheme ? 'text-cyan-400' : 'text-cyan-700 font-black') : (isDarkTheme ? 'text-slate-500' : 'text-slate-500')">
                                 Etapa {{ m.level_number }}
                             </span>
-                            <strong class="text-xs block truncate" :class="m.level_number === currentLevelNumber ? 'text-white' : (isDarkTheme ? 'text-slate-300' : 'text-slate-800')">
+                            <strong class="text-xs block truncate" :class="m.level_number === currentLevelNumber ? (isDarkTheme ? 'text-white' : 'text-cyan-950 font-black') : (isDarkTheme ? 'text-slate-300' : 'text-slate-700')">
                                 {{ m.title }}
                             </strong>
                         </div>
@@ -458,7 +458,7 @@ const getFirstName = (name) => {
 
                 <!-- Footer del Sidebar -->
                 <div class="p-2.5 rounded-2xl border text-[10px] space-y-1" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'">
-                    <span class="font-bold flex items-center gap-1.5 text-cyan-400">
+                    <span class="font-bold flex items-center gap-1.5" :class="isDarkTheme ? 'text-cyan-400' : 'text-cyan-700'">
                         <span>💡</span>
                         <span>Nivel Inicial</span>
                     </span>
@@ -480,7 +480,7 @@ const getFirstName = (name) => {
                         <!-- Cabecera de Paso 1 -->
                         <div class="flex items-center justify-between border-b pb-2.5" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200'">
                             <div>
-                                <span class="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider block">
+                                <span class="text-[10px] font-mono font-bold font-mono uppercase tracking-wider block" :class="isDarkTheme ? 'text-cyan-400' : 'text-cyan-700'">
                                     PASO 1 DE 3 · BRIEFING DE LA ETAPA
                                 </span>
                                 <h2 class="text-base sm:text-lg font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
@@ -488,7 +488,7 @@ const getFirstName = (name) => {
                                 </h2>
                             </div>
 
-                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full" :class="isDarkTheme ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-cyan-100 text-cyan-800 border border-cyan-300'">
                                 0 FabCoins
                             </span>
                         </div>
@@ -799,7 +799,7 @@ const getFirstName = (name) => {
 
                     <!-- Botones de Navegación Paso 2 -->
                     <div class="pt-3 border-t flex items-center justify-between shrink-0" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200'">
-                        <button type="button" @click="activeStep = 1" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5 border border-slate-700 cursor-pointer">
+                        <button type="button" @click="activeStep = 1" class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer border transition" :class="isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-200 hover:bg-slate-300 text-slate-800 border-slate-300'">
                             <ArrowLeft class="w-3.5 h-3.5" />
                             <span>Volver al Paso 1</span>
                         </button>
@@ -874,7 +874,7 @@ const getFirstName = (name) => {
 
                     <!-- Botones de Navegación y Finalización -->
                     <div class="pt-3 border-t flex items-center justify-between shrink-0" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-200'">
-                        <button type="button" @click="activeStep = 2" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5 border border-slate-700 cursor-pointer">
+                        <button type="button" @click="activeStep = 2" class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer border transition" :class="isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-200 hover:bg-slate-300 text-slate-800 border-slate-300'">
                             <ArrowLeft class="w-3.5 h-3.5" />
                             <span>Volver al Paso 2</span>
                         </button>
