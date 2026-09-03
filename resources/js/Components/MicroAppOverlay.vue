@@ -59,7 +59,8 @@ const computedAppUrl = computed(() => {
 });
 
 const handleMessage = (event) => {
-    if (!event.data || event.data.type !== 'MAKERDU_MICROAPP_ASSET') return;
+    if (!event.data) return;
+    if (event.data.type !== 'MAKERDU_MICROAPP_ASSET' && event.data.type !== 'MAKERDU_ASSET_READY') return;
 
     lastReceivedAsset.value = event.data;
     showSuccessNotification.value = true;

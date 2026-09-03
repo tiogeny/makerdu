@@ -208,6 +208,7 @@ const openMicroAppModal = (app, imageUrl = null) => {
 
 // Misión activa seleccionada (Navegación no restrictiva)
 const selectedMissionIndex = ref(0);
+const activeStep = ref(1);
 
 // Nivel / Misión seleccionada
 const selectedMission = computed(() => {
@@ -215,6 +216,7 @@ const selectedMission = computed(() => {
 });
 
 watch(selectedMissionIndex, () => {
+    activeStep.value = 1;
     qualityControlResult.value = null;
     bitacoraForm.file = null;
     bitacoraForm.image_snapshot = null;
@@ -244,15 +246,7 @@ const unlockPhase = (phaseNumber, targetElementId = null) => {
     if (phaseNumber > (missionUnlockedPhases.value[selectedMissionIndex.value] || 1)) {
         missionUnlockedPhases.value[selectedMissionIndex.value] = phaseNumber;
     }
-
-    if (targetElementId) {
-        nextTick(() => {
-            const targetEl = document.getElementById(targetElementId);
-            if (targetEl) {
-                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    }
+    activeStep.value = phaseNumber;
 };
 
 // Mensajes interactivos del hilo conversacional del Copiloto (por cada misión)
@@ -585,6 +579,41 @@ const handleMicroAppAsset = (asset) => {
     showMicroAppModal.value = false;
     if (!asset) return;
 
+    // Caso A: Boceto 2D desde Lienzo Maker (dataUrl)
+    if (asset.assetType === 'image' || (asset.dataUrl && !asset.stlContent)) {
+        const dataUrl = asset.dataUrl || asset.image_snapshot;
+        bitacoraForm.image_snapshot = dataUrl;
+
+        // Convertir dataURL a File
+        const arr = dataUrl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        const file = new File([u8arr], 'boceto_maker_2d.png', { type: mime });
+        bitacoraForm.file = file;
+
+        // Limpiar auditorías anteriores para evitar feedback desactualizado
+        qualityControlResult.value = null;
+
+        // Desbloquear Paso 2
+        unlockPhase(2);
+
+        if (!missionChatMessages.value[selectedMissionIndex.value]) {
+            missionChatMessages.value[selectedMissionIndex.value] = [];
+        }
+        missionChatMessages.value[selectedMissionIndex.value].push({
+            sender: 'copilot',
+            text: '🎨 ¡Boceto recibido con éxito desde el Lienzo Maker 2D! Tu dibujo está listo en la mesa de trabajo. Cuando quieras, pulsa en el Paso 3 para auditar que cumpla las 4 reglas físicas.',
+            time: 'Ahora'
+        });
+        return;
+    }
+
+    // Caso B: Archivo 3D (STL) o Vectorial (SVG)
     const fileContent = asset.stlContent || asset.content;
     if (!fileContent) return;
 
@@ -600,7 +629,7 @@ const handleMicroAppAsset = (asset) => {
     }
 
     // Desbloquear Fase 3 de entrega
-    unlockPhase(3, 'phase-3');
+    unlockPhase(3);
 
     // Registrar en el chat del Copiloto
     if (!missionChatMessages.value[selectedMissionIndex.value]) {
@@ -611,13 +640,6 @@ const handleMicroAppAsset = (asset) => {
         sender: 'copilot',
         text: `📐 ¡He recibido tu archivo 3D extruido ('${fileName}', espesor ${asset.depth_mm || 10} mm) desde el Vectorizador! Lo he colocado en tu entrega de Fase 3. Presiona el botón verde de auditoría para verificar los parámetros de impresión y FabCoins.`,
         time: 'Ahora'
-    });
-
-    nextTick(() => {
-        const phase3El = document.getElementById('phase-3');
-        if (phase3El) {
-            phase3El.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
     });
 };
 
@@ -987,55 +1009,109 @@ const changeRole = (newRole) => {
             <!-- ============================================================= -->
             <section class="lg:col-span-8 space-y-6">
                 
-                <!-- CABECERA DE LA MISIÓN ACTIVA -->
-                <div class="flex items-center justify-between pb-1">
-                    <div>
-                        <span class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
-                            MISIÓN {{ selectedMissionIndex + 1 }} DE 5
-                        </span>
-                        <h2 class="text-xl sm:text-2xl font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                            {{ selectedMission.title }}
-                        </h2>
-                    </div>
+                <!-- 1. HERO BANNER DE LA MISIÓN ACTIVA (FICHA TÁCTICA) -->
+                <div 
+                    class="rounded-3xl border p-5 transition-all duration-300 relative overflow-hidden"
+                    :class="isDarkTheme ? 'bg-slate-900 border-slate-800 shadow-xl' : 'bg-white border-slate-200 shadow-sm'"
+                >
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <!-- Ilustración de la Criatura / Dino -->
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-transparent border border-cyan-500/20 p-2 shrink-0 flex items-center justify-center">
+                            <img 
+                                src="/images/digitoys/digifeliz.png" 
+                                alt="Criatura Maker" 
+                                class="w-full h-full object-contain drop-shadow-md"
+                            />
+                        </div>
 
-                    <!-- Stepper Minimalista y Elegante: Paso 1, 2, 3 -->
-                    <div class="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+                        <div class="space-y-2 flex-1 text-center sm:text-left">
+                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-mono text-[10px] font-black uppercase tracking-wider border border-cyan-500/30">
+                                    MISIÓN {{ selectedMissionIndex + 1 }} DE 5
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[10px] font-bold">
+                                    NIVEL INICIAL
+                                </span>
+                            </div>
+
+                            <div>
+                                <h1 class="text-lg sm:text-xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                    {{ selectedMissionIndex === 0 ? 'Misión 1: Concebir — Nace tu Personaje y tu Marca de Autor' : selectedMission.title }}
+                                </h1>
+                                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed pt-0.5">
+                                    {{ selectedMissionIndex === 0 
+                                        ? 'Darás vida a una criatura original sobre papel o pantalla, asegurando que su base sea ancha y plana para que pueda sostenerse sola en el mundo físico.' 
+                                        : (selectedMission.description || 'Supera cada paso con las herramientas del taller y la auditoría de tu Copiloto IA.') }}
+                                </p>
+                            </div>
+
+                            <!-- Píldoras informativas del reto -->
+                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                                <span class="px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-mono font-bold flex items-center gap-1.5" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-700'">
+                                    <span>📦</span>
+                                    <span>Entregable: <strong>{{ selectedMissionIndex === 0 ? 'Boceto B/N nítido' : 'Archivo digital' }}</strong></span>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-mono font-bold flex items-center gap-1.5" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-700'">
+                                    <span>🪙</span>
+                                    <span>Costo: <strong>{{ selectedMission.fabcoins_cost || 0 }} FabCoins</strong></span>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <span>🏆</span>
+                                    <span>Recompensa: <strong>+{{ selectedMission.xp_reward || 50 }} Puntos Maker</strong></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. STEPPER ENFOCADO ESTILO TINKERCAD (PASO 1, 2, 3) -->
+                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-1 sm:gap-2 w-full">
+                        <!-- Paso 1 -->
                         <button 
                             type="button"
-                            @click="unlockPhase(1, 'phase-1')"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
-                            :class="currentPhase === 1 ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+                            @click="activeStep = 1"
+                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
+                            :class="activeStep === 1 
+                                ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm ring-1 ring-cyan-500/30' 
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                         >
-                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 1 ? 'bg-cyan-500 text-slate-950' : (currentPhase > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600')">
-                                <Check v-if="currentPhase > 1" class="w-2.5 h-2.5 stroke-[3]" />
-                                <span v-else>1</span>
+                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 1 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
+                                1
                             </span>
-                            <span class="text-[11px]">Guía</span>
+                            <span class="truncate">💡 Inspírate & Reglas</span>
                         </button>
-                        <span class="text-slate-300 dark:text-slate-700 text-[10px]">›</span>
+
+                        <!-- Paso 2 -->
                         <button 
                             type="button"
-                            @click="unlockPhase(2, 'phase-2')"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
-                            :class="currentPhase === 2 ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+                            @click="activeStep = 2"
+                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
+                            :class="activeStep === 2 
+                                ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/30' 
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                         >
-                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 2 ? 'bg-amber-500 text-slate-950' : (currentPhase > 2 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600')">
-                                <Check v-if="currentPhase > 2" class="w-2.5 h-2.5 stroke-[3]" />
+                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 2 ? 'bg-amber-500 text-slate-950' : (bitacoraForm.file || bitacoraForm.image_snapshot ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')">
+                                <Check v-if="bitacoraForm.file || bitacoraForm.image_snapshot" class="w-3 h-3 stroke-[3]" />
                                 <span v-else>2</span>
                             </span>
-                            <span class="text-[11px]">Taller</span>
+                            <span class="truncate">✍️ Dibuja tu Criatura</span>
                         </button>
-                        <span class="text-slate-300 dark:text-slate-700 text-[10px]">›</span>
+
+                        <!-- Paso 3 -->
                         <button 
                             type="button"
-                            @click="unlockPhase(3, 'phase-3')"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition cursor-pointer"
-                            :class="currentPhase === 3 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+                            @click="activeStep = 3"
+                            class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold transition cursor-pointer text-xs"
+                            :class="activeStep === 3 
+                                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-500/30' 
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                         >
-                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center" :class="currentPhase === 3 ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-600'">
-                                3
+                            <span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0" :class="activeStep === 3 ? 'bg-emerald-500 text-white' : (qualityControlResult?.status === 'approved' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')">
+                                <Check v-if="qualityControlResult?.status === 'approved'" class="w-3 h-3 stroke-[3]" />
+                                <span v-else>3</span>
                             </span>
-                            <span class="text-[11px]">Entrega</span>
+                            <span class="truncate">🔍 Visto Bueno IA</span>
                         </button>
                     </div>
                 </div>
@@ -1045,6 +1121,7 @@ const changeRole = (newRole) => {
                 <!-- ========================================================= -->
                 <div 
                     id="phase-1"
+                    v-show="activeStep === 1"
                     :class="[
                         'rounded-3xl border border-l-4 border-l-cyan-500 transition-all duration-300 p-6 space-y-4 scroll-mt-28',
                         currentPhase === 1
@@ -1210,8 +1287,8 @@ const changeRole = (newRole) => {
                 <!-- FASE 2: ACCIÓN MAKER & HERRAMIENTAS (Process)             -->
                 <!-- ========================================================= -->
                 <div 
-                    v-if="currentPhase >= 2"
                     id="phase-2"
+                    v-show="activeStep === 2"
                     :class="[
                         'rounded-3xl border border-l-4 border-l-amber-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
                         currentPhase === 2
@@ -1256,6 +1333,147 @@ const changeRole = (newRole) => {
                     <p class="text-xs leading-relaxed" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
                         {{ selectedMission.process?.instructions || 'Utiliza las herramientas para modelar tu diseño y prepararlo para la fabricación.' }}
                     </p>
+
+                    
+                    <!-- SELECTOR DE LOS 2 CAMINOS EN MISIÓN 1 (Papel vs Lienzo Digital) -->
+                    <div v-if="selectedMissionIndex === 0" class="space-y-4 pt-1">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                            ELIGE CÓMO DESEAS CREAR TU BOCETO:
+                        </span>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- CAMINO A: PAPEL Y PLUMÓN -->
+                            <div 
+                                class="p-4 rounded-2xl border transition flex flex-col justify-between gap-3"
+                                :class="isDarkTheme ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'"
+                            >
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl">📷</span>
+                                        <strong class="text-xs font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                            Camino A: Papel y Plumón Negro
+                                        </strong>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        Dibuja en una hoja bond con plumón negro grueso. Luego tómale una foto con tu celular o usa tu cámara web.
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        @click="evidenceFileInput?.click()"
+                                        class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700"
+                                    >
+                                        <span>📁 Subir Foto</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="isCameraOpen ? capturePhoto() : startCamera()"
+                                        class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                                    >
+                                        <span>📸 Cámara</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CAMINO B: LIENZO DIGITAL MAKER 2D -->
+                            <div 
+                                class="p-4 rounded-2xl border transition flex flex-col justify-between gap-3 relative overflow-hidden"
+                                :class="isDarkTheme ? 'bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-950 border-cyan-500/40 shadow-lg shadow-cyan-950/30' : 'bg-gradient-to-br from-cyan-50 via-white to-white border-cyan-300 shadow-sm'"
+                            >
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl">🖌️</span>
+                                        <strong class="text-xs font-black text-cyan-600 dark:text-cyan-300">
+                                            Camino B: Lienzo Maker 2D
+                                        </strong>
+                                        <span class="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-500 font-mono text-[9px] font-black uppercase">
+                                            Digital
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        Dibuja en pantalla con 3 modos: <strong>Plumón Libre</strong>, <strong>Armador Digitoys</strong> (dinos, robots, ojos) o <strong>Pixel Art</strong>.
+                                    </p>
+                                </div>
+
+                                <div class="pt-2">
+                                    <button
+                                        type="button"
+                                        @click="openMicroAppModal({ slug: 'sketch-pad', name: 'Lienzo Maker 2D', icon: '🖌️' })"
+                                        class="w-full px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-md shadow-cyan-500/25 cursor-pointer"
+                                    >
+                                        <span>🖌️ ABRIR LIENZO MAKER 2D</span>
+                                        <Sparkles class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PREVISUALIZACIÓN DEL BOCETO CARGADO (DESDE CUALQUIERA DE LOS 2 CAMINOS) -->
+                        <div 
+                            v-if="bitacoraForm.image_snapshot || bitacoraForm.file" 
+                            class="p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in"
+                        >
+                            <div class="flex items-center gap-3">
+                                <img 
+                                    :src="bitacoraForm.image_snapshot || previewUrl" 
+                                    class="w-16 h-16 rounded-xl object-contain bg-white border border-emerald-400 shadow-sm p-1 shrink-0" 
+                                    alt="Boceto cargado"
+                                />
+                                <div>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono text-[9px] font-bold">
+                                        ✔ BOCETO LISTO EN LA MESA
+                                    </span>
+                                    <strong class="text-xs text-slate-900 dark:text-white block pt-1">
+                                        {{ bitacoraForm.file?.name || 'boceto_maker_2d.png' }}
+                                    </strong>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block">
+                                        Tu diseño está cargado. Pasemos al Paso 3 para auditar la base y silueta con el Copiloto IA.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    @click="openMicroAppModal({ slug: 'sketch-pad', name: 'Lienzo Maker 2D', icon: '🖌️' })"
+                                    class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
+                                >
+                                    <span>✏️ Editar</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="activeStep = 3"
+                                    class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/25 cursor-pointer"
+                                >
+                                    <span>Auditar con IA en Paso 3</span>
+                                    <ArrowRight class="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN NAVEGACIÓN PASO 2: VOLVER A PASO 1 O AVANZAR A PASO 3 -->
+                    <div class="pt-4 border-t flex items-center justify-between" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
+                        <button
+                            type="button"
+                            @click="activeStep = 1"
+                            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                        >
+                            <ArrowLeft class="w-3.5 h-3.5" />
+                            <span>Volver a Reglas de Diseño</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="activeStep = 3"
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 hover:from-amber-400 hover:to-orange-300 text-slate-950 font-black text-xs transition flex items-center gap-2 shadow-md shadow-amber-500/20 cursor-pointer"
+                        >
+                            <span>Continuar a la Auditoría IA (Paso 3)</span>
+                            <ArrowRight class="w-4 h-4" />
+                        </button>
+                    </div>
 
                     <!-- TARJETA DE INSUMO: BOCETO APROBADO EN MISIÓN 1 (Para Misión 2) -->
                     <div 
@@ -1471,8 +1689,8 @@ const changeRole = (newRole) => {
                 <!-- FASE 3: ENTREGA, AUDITORÍA GEMINI & CIERRE (Output)       -->
                 <!-- ========================================================= -->
                 <div 
-                    v-if="currentPhase >= 3"
                     id="phase-3"
+                    v-show="activeStep === 3"
                     :class="[
                         'rounded-3xl border border-l-4 border-l-emerald-500 transition-all duration-300 p-6 space-y-4 animate-fade-in scroll-mt-28',
                         currentPhase === 3
@@ -1682,10 +1900,15 @@ const changeRole = (newRole) => {
                         ></textarea>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2">
-                        <span class="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">
-                            Recompensa: +{{ selectedMission.xp_reward }} Puntos Maker
-                        </span>
+                    <div class="flex items-center justify-between pt-4 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
+                        <button
+                            type="button"
+                            @click="activeStep = 2"
+                            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                        >
+                            <ArrowLeft class="w-3.5 h-3.5" />
+                            <span>Volver a la Mesa de Trabajo</span>
+                        </button>
 
                         <button
                             type="button"
