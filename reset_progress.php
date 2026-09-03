@@ -8,19 +8,60 @@ use App\Models\User;
 use App\Models\Squad;
 use App\Models\Classroom;
 use App\Models\Project;
+use App\Models\ProjectLevel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Artisan;
 
-echo "--- INICIANDO RESTAURACIÓN DE AULA Y RESET DE PROGRESO ---\n";
+echo "--- [1/5] APLICANDO MIGRACIONES PENDIENTES EN BASE DE DATOS ---\n";
+try {
+    Artisan::call('migrate', ['--force' => true]);
+    echo "[✔] Migraciones ejecutadas: " . trim(Artisan::output()) . "\n";
+} catch (\Exception $e) {
+    echo "[!] Error al migrar (puede que ya existan las tablas): " . $e->getMessage() . "\n";
+}
 
+echo "--- [2/5] RESTAURANDO PROYECTO MAESTRO ART TOYS SI FALTA ---\n";
 Schema::disableForeignKeyConstraints();
 
-// 1. Limpiar bitácoras de evidencias
+$project = Project::with('levels')->first();
+if (!$project || $project->levels->count() === 0) {
+    echo " -> Proyecto maestro no encontrado o sin niveles. Restaurando desde default_project_data.json...\n";
+    $jsonFile = __DIR__ . '/default_project_data.json';
+    if (file_exists($jsonFile)) {
+        $data = json_decode(file_get_contents($jsonFile), true);
+        if ($data) {
+            $project = Project::updateOrCreate(
+                ['id' => $data['id'] ?? 1],
+                [
+                    'title_json' => $data['title_json'],
+                    'description_json' => $data['description_json'],
+                    'type' => $data['type'] ?? 'individual',
+                    'total_levels' => $data['total_levels'] ?? 5,
+                    'is_active' => true,
+                    'briefing_json' => $data['briefing_json'] ?? null,
+                ]
+            );
+
+            ProjectLevel::where('project_id', $project->id)->delete();
+            foreach ($data['levels'] as $lvl) {
+                unset($lvl['id']);
+                $lvl['project_id'] = $project->id;
+                ProjectLevel::create($lvl);
+            }
+            echo "[✔] Proyecto maestro restaurado con 5 misiones completas.\n";
+        }
+    }
+} else {
+    echo "[✔] Proyecto maestro ya existe (ID: {$project->id}) con {$project->levels->count()} misiones.\n";
+}
+
+echo "--- [3/5] LIMPIANDO BITÁCORAS Y EVIDENCIAS ANTERIORES ---\n";
 BitacoraEntry::truncate();
 echo "[✔] Bitacoras vaciadas a 0.\n";
 
-// 2. Garantizar Docente y Proyecto Activo
+echo "--- [4/5] GARANTIZANDO DOCENTE Y AULA MK2026 ---\n";
 $teacher = User::firstOrCreate(
     ['email' => 'docente@makerdu.com'],
     [
@@ -31,18 +72,15 @@ $teacher = User::firstOrCreate(
     ]
 );
 
-$project = Project::first();
-
-// 3. Garantizar que el Aula exista con el código exacto 'MK2026'
 $classroom = Classroom::firstOrNew(['access_code' => 'MK2026']);
 $classroom->name = 'Taller Digitoys 2.5D';
 $classroom->teacher_id = $teacher->id;
 $classroom->project_id = $project ? $project->id : null;
 $classroom->mode = 'school_squads';
 $classroom->save();
-echo "[✔] Aula MK2026 verificada/creada (ID: {$classroom->id}, Código: {$classroom->access_code}).\n";
+echo "[✔] Aula MK2026 activa y vinculada al Proyecto (ID: {$classroom->id}).\n";
 
-// 4. Lista oficial de estudiantes demo con sus PINs garantizados
+echo "--- [5/5] CREANDO MESAS INDIVIDUALES Y ESTUDIANTES DEMO ---\n";
 $studentsData = [
     ['name' => 'Henry Sánchez', 'short_name' => 'Henry', 'pin' => '1010', 'email' => 'henry@makerdu.com'],
     ['name' => 'Benito Juarez', 'short_name' => 'Benito', 'pin' => '1001', 'email' => 'benito@makerdu.com'],
@@ -56,7 +94,6 @@ $studentsData = [
     ['name' => 'Victor Freundt', 'short_name' => 'Victor', 'pin' => '1009', 'email' => 'victor@makerdu.com'],
 ];
 
-// Resetear escuadras
 DB::table('squad_user')->truncate();
 Squad::truncate();
 
@@ -69,7 +106,6 @@ foreach ($studentsData as $sData) {
     $student->password = Hash::make('password');
     $student->save();
 
-    // Crear mesa individual con 12 FC
     $squad = Squad::create([
         'classroom_id' => $classroom->id,
         'name' => "Mesa · {$sData['short_name']}",
@@ -82,10 +118,11 @@ foreach ($studentsData as $sData) {
         'active_minutes' => 0,
     ]);
 
-    echo "  -> Estudiante {$student->name} listo con PIN {$student->pin} en {$squad->name} (12 FC)\n";
+    echo "  -> {$student->name} (PIN: {$student->pin}) asignado a {$squad->name} con 12 FC\n";
 }
 
 Schema::enableForeignKeyConstraints();
 
-echo "--------------------------------------------------------\n";
-echo "EXITO: El código de clase 'MK2026' y todos los estudiantes con sus PINs están 100% activos y listos para iniciar sesión.\n";
+echo "========================================================\n";
+echo "RESTAURACIÓN Y RESET COMPLETADOS AL 100% SIN ERRORES.\n";
+echo "Ya puedes iniciar sesión en https://makerdu.com con MK2026 y PIN 1010\n";

@@ -64,6 +64,31 @@ class StudioController extends Controller
 
         // Obtener proyecto activo
         $project = $squad->classroom->project ?? Project::with('levels')->first();
+        if (!$project || $project->levels->count() === 0) {
+            $jsonFile = base_path('default_project_data.json');
+            if (file_exists($jsonFile)) {
+                $data = json_decode(file_get_contents($jsonFile), true);
+                if ($data) {
+                    $project = Project::updateOrCreate(
+                        ['id' => $data['id'] ?? 1],
+                        [
+                            'title_json' => $data['title_json'],
+                            'description_json' => $data['description_json'],
+                            'type' => $data['type'] ?? 'individual',
+                            'total_levels' => $data['total_levels'] ?? 5,
+                            'is_active' => true,
+                            'briefing_json' => $data['briefing_json'] ?? null,
+                        ]
+                    );
+                    foreach ($data['levels'] as $lvl) {
+                        unset($lvl['id']);
+                        $lvl['project_id'] = $project->id;
+                        AppModelsProjectLevel::create($lvl);
+                    }
+                    $project->load('levels');
+                }
+            }
+        }
 
         // Obtener bitácoras de la escuadra
         $bitacoras = BitacoraEntry::with(['activeRoleUser', 'level'])

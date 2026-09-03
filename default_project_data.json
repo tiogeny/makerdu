@@ -1,0 +1,479 @@
+{
+    "id": 1,
+    "title_json": {
+        "es": "Crea tu Primer Producto Físico: Lanza tu Colección de Art Toys 2.5D",
+        "en": "Create your First Physical Product: Launch your 2.5D Art Toys Collection"
+    },
+    "description_json": {
+        "es": "Ciclo completo de emprendimiento maker: diseña tu personaje de autor, transfórmalo en un modelo digital 2.5D con herramientas interactivas, fabrica tu prototipo autoportante en PLA y lánzalo al mercado.",
+        "en": "Complete maker entrepreneurship cycle: design your designer character, transform it into a 2.5D digital model, fabricate your self-standing PLA prototype and launch it."
+    },
+    "type": "2.5D",
+    "total_levels": 5,
+    "created_at": "2026-08-28T15:56:17.000000Z",
+    "updated_at": "2026-09-03T14:59:05.000000Z",
+    "slug": "fabricacion-25d-del-dibujo-al-objeto-3d-409",
+    "competencies_json": [
+        "Pensamiento Geométrico y Espacial",
+        "Prototipado Rápido & Cultura Maker"
+    ],
+    "animation_preset": "del-dibujo-2d-a-la-extrusion-25d-407",
+    "recommended_age": "9 - 12 años",
+    "gemini_prompt_context": "Eres el Copiloto Makerdu especialista en Fabricación 2.5D y Digitoys.\nTus criterios de auditoría son:\n1. En bocetos (Misión 1): Validar que el contorno exterior esté 100% cerrado y que no haya sombras que confundan la vectorización.\n2. En modelos 3D (Misión 2 y 3): Verificar que la base sea totalmente plana para imprimirse sin soportes (impresión echada) y que el espesor mínimo sea de al menos 2.5 mm para resistir esfuerzos mecánicos.\n3. Tono: Alentador, constructivo y formativo, fomentando la iteración rápida (\"falla rápido, aprende rápido\").",
+    "is_active": true,
+    "age_range": "juniors_9_12",
+    "difficulty_level": "Nivel Inicial",
+    "technologies_json": [
+        "3d_printing"
+    ],
+    "curriculum_framework": "after_school_steam",
+    "competencies_custom_json": [],
+    "skills_json": [],
+    "custom_animation_html": "<div style=\"background:#090d16; border-radius:14px; overflow:hidden; border:2px solid #1e293b; box-shadow:0 15px 30px rgba(0,0,0,0.6); aspect-ratio:16\/9; width:100%; display:flex; flex-direction:column; font-family:system-ui, sans-serif; container-type:inline-size;\">\n  <!-- Barra Superior -->\n  <div style=\"height:14%; background:#0f172a; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center; padding:0 4cqw;\">\n    <span style=\"color:#38bdf8; font-weight:800; font-size:1.8cqw; letter-spacing:0.5px;\">TRAILER: FABRICACIÓN 2.5D<\/span>\n    <span style=\"background:rgba(52,211,153,0.15); color:#34d399; font-weight:bold; font-family:monospace; font-size:1.5cqw; padding:0.4cqw 1.2cqw; border-radius:6px; border:1px solid rgba(52,211,153,0.3);\">\n      ESPESOR: 10 mm (Auto-portante)\n    <\/span>\n  <\/div>\n\n  <!-- Escenario 3D -->\n  <div style=\"flex:1; display:flex; align-items:center; justify-content:center; perspective:1000px; background:radial-gradient(circle, #0f172a 0%, #020617 100%); position:relative;\">\n    <!-- Hoja de Papel con Boceto -->\n    <div style=\"width:48cqw; height:48cqw; background:#ffffff; border-radius:10px; position:absolute; transform:rotateX(60deg) rotateZ(-20deg); box-shadow:0 20px 40px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;\">\n      <div style=\"font-size:1.5cqw; color:#94a3b8; font-weight:bold; position:absolute; bottom:2cqw;\">1. BOCETO EN PAPEL BOND<\/div>\n    <\/div>\n\n    <!-- Personaje 3D Extruido -->\n    <div style=\"width:24cqw; height:28cqw; position:absolute; transform-style:preserve-3d; animation:extrudeDigitoys 8s infinite ease-in-out;\">\n      <div style=\"width:100%; height:100%; background:#0284c7; border-radius:35% 35% 20% 20%; border:0.8cqw solid #ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;\">\n        <div style=\"display:flex; gap:4cqw; margin-bottom:2cqw;\">\n          <div style=\"width:2.5cqw; height:2.5cqw; background:#0f172a; border-radius:50%;\"><\/div>\n          <div style=\"width:2.5cqw; height:2.5cqw; background:#0f172a; border-radius:50%;\"><\/div>\n        <\/div>\n        <div style=\"width:5cqw; height:2.5cqw; border-bottom:0.6cqw solid #0f172a; border-radius:0 0 50% 50%;\"><\/div>\n      <\/div>\n    <\/div>\n\n    <!-- Rayo de Escaneo Láser -->\n    <div style=\"position:absolute; width:100%; height:0.6cqw; background:#38bdf8; box-shadow:0 0 15px #38bdf8, 0 0 30px #38bdf8; animation:scanDigitoys 8s infinite ease-in-out; z-index:20;\"><\/div>\n  <\/div>\n<\/div>\n\n<style>\n  @keyframes scanDigitoys {\n    0%, 15% { top: 10%; opacity: 0; }\n    20% { opacity: 1; }\n    35% { top: 85%; opacity: 1; }\n    40%, 100% { top: 85%; opacity: 0; }\n  }\n  @keyframes extrudeDigitoys {\n    0%, 25% {\n      transform: rotateX(60deg) rotateZ(-20deg) translateZ(0);\n      box-shadow: none;\n      filter: grayscale(100%) brightness(0.2);\n    }\n    30% {\n      filter: grayscale(0%) brightness(1);\n    }\n    45%, 65% {\n      transform: rotateX(60deg) rotateZ(-20deg) translateZ(5cqw);\n      box-shadow: -1cqw 1cqw 0px #0369a1, -2cqw 2cqw 0px #075985, -3cqw 3cqw 0px #0c4a6e, -4cqw 6cqw 20px rgba(0,0,0,0.6);\n    }\n    75%, 90% {\n      transform: rotateX(0deg) rotateZ(0deg) translateY(-2cqw);\n      box-shadow: 0 15px 30px rgba(0,0,0,0.6);\n    }\n    100% {\n      transform: rotateX(60deg) rotateZ(-20deg) translateZ(0);\n      filter: grayscale(100%) brightness(0.2);\n    }\n  }\n<\/style>",
+    "status": "published",
+    "age_ranges_json": [
+        "juniors_9_12",
+        "kids_6_8",
+        "teens_13_16",
+        "advanced_17_plus"
+    ],
+    "briefing_json": {
+        "es": {
+            "codename": "EXPEDIENTE: COLECCIÓN ART TOYS 2.5D",
+            "access_level": "NIVEL INICIAL · SIN EXPERIENCIA PREVIA",
+            "slides": [
+                {
+                    "id": "goal",
+                    "tag": "PROPÓSITO DEL RETO",
+                    "title": "Funda tu Marca y Lanza tu Colección de Art Toys",
+                    "headline": "Crea una criatura original, aprende a costearla y llévala al mercado.",
+                    "description": "Aprenderás los fundamentos de la fabricación digital en este taller de nivel inicial: diseñarás una figura coleccionable con identidad propia, aprenderás a presupuestar su producción y presentarás tu primer producto terminado ante la comunidad.",
+                    "product_image": "\/images\/digitoys\/digifeliz.png",
+                    "specs": [
+                        {
+                            "label": "Espesor Z",
+                            "value": "10 mm"
+                        },
+                        {
+                            "label": "Estructura",
+                            "value": "Base Autoportante"
+                        },
+                        {
+                            "label": "Material",
+                            "value": "PLA Ecológico"
+                        }
+                    ],
+                    "badge": "TALLER NIVEL INICIAL · EXPLORADOR"
+                },
+                {
+                    "id": "arsenal",
+                    "tag": "EQUIPAMIENTO ASIGNADO",
+                    "title": "Tu Arsenal Tecnológico en el Taller",
+                    "headline": "Herramientas y presupuesto asignado para tu aprendizaje.",
+                    "description": "Para este reto cuentas con herramientas guiadas paso a paso, presupuesto real y asistencia de inteligencia artificial:",
+                    "items": [
+                        {
+                            "icon": "🪙",
+                            "name": "Bolsa de 12 FabCoins (FC)",
+                            "desc": "Tu presupuesto de fabricación. Te alcanza para producir 4 personajes de 5 cm de alto o 2 de 10 cm."
+                        },
+                        {
+                            "icon": "🤖",
+                            "name": "Copiloto Maker IA (Gemini)",
+                            "desc": "Tutor socrático en vivo que audita tus bocetos, estarcido y reglas físicas."
+                        },
+                        {
+                            "icon": "⚡",
+                            "name": "Vectorizador 2.5D & Curvas Bézier",
+                            "desc": "Digitalización sencilla e intuitiva con tiradores y extrusor 3D."
+                        },
+                        {
+                            "icon": "🖨️",
+                            "name": "Simulador de Laminado & Impresoras",
+                            "desc": "Inspección de capas, relleno interno y boquilla a 205°C."
+                        }
+                    ]
+                },
+                {
+                    "id": "roadmap",
+                    "tag": "LAS 5 MISIONES",
+                    "title": "La Ruta de los Entregables Clave",
+                    "headline": "Cada misión superada desbloquea una etapa de tu producto comercial.",
+                    "description": "Avanzarás paso a paso por el ciclo de diseño y producción, desde el papel hasta la pieza física:",
+                    "deliverables": [
+                        {
+                            "mission": "Misión 1",
+                            "title": "Concebir",
+                            "deliverable": "Boceto de Autor con Plumón Negro",
+                            "icon": "✍️",
+                            "format": "Papel & Tinta"
+                        },
+                        {
+                            "mission": "Misión 2",
+                            "title": "Ingeniería",
+                            "deliverable": "Modelo 3D Extruido (10 mm)",
+                            "icon": "🧊",
+                            "format": "Archivo STL Malla"
+                        },
+                        {
+                            "mission": "Misión 3",
+                            "title": "Producción",
+                            "deliverable": "Simulación de Laminado & Costeo",
+                            "icon": "🍰",
+                            "format": "G-Code \/ FabCoins"
+                        },
+                        {
+                            "mission": "Misión 4",
+                            "title": "Post-Proceso",
+                            "deliverable": "Pieza Física Lijada & Packaging Maker",
+                            "icon": "📦",
+                            "format": "Objeto Tangible"
+                        },
+                        {
+                            "mission": "Misión 5",
+                            "title": "Lanzamiento",
+                            "deliverable": "Catálogo Comercial & Pitch de 30s",
+                            "icon": "🚀",
+                            "format": "Video & Afiche"
+                        }
+                    ]
+                },
+                {
+                    "id": "launch",
+                    "tag": "AUTORIZACIÓN OPERATIVA",
+                    "title": "Todo Listo para el Despegue",
+                    "headline": "Las herramientas están listas y la bitácora preparada para registrar tu avance.",
+                    "description": "Al superar las 5 misiones obtendrás tu certificación de nivel inicial, puntos de experiencia para subir de rango y tu Art Toy tangible en el escritorio.",
+                    "rewards": [
+                        {
+                            "icon": "🏆",
+                            "title": "+300 Puntos Maker",
+                            "desc": "Escala al rango Maker Master Legend"
+                        },
+                        {
+                            "icon": "📜",
+                            "title": "Certificado Nivel Inicial",
+                            "desc": "Acreditación de competencias STEAM"
+                        },
+                        {
+                            "icon": "🧸",
+                            "title": "Tu Art Toy Físico",
+                            "desc": "El producto real en tus manos"
+                        }
+                    ],
+                    "cta_text": "ACEPTAR RETO & COMENZAR PASO 1"
+                }
+            ]
+        }
+    },
+    "levels": [
+        {
+            "id": 32,
+            "project_id": 1,
+            "level_number": 1,
+            "title_json": {
+                "es": "Misión 1: Concebir — La Marca & el Personaje",
+                "en": "Misión 1: Concebir — La Marca & el Personaje"
+            },
+            "toolbox_json": [
+                "paper",
+                "marker"
+            ],
+            "validation_rules_json": {
+                "min_contrast": 0.7
+            },
+            "fabcoins_cost": 0,
+            "created_at": "2026-08-28T17:52:20.000000Z",
+            "updated_at": "2026-09-03T03:36:19.000000Z",
+            "inputs_json": {
+                "action_prompt": "Dibuja la silueta de tu personaje con plumón negro grueso asegurando una base plana y ancha para que se pare solo.",
+                "resources": [
+                    {
+                        "type": "guide",
+                        "title": "Reglas de Oro del Art Toy Autoportante",
+                        "desc": "Base plana >= 30% del ancho, trazo negro cerrado sin sombras de lápiz."
+                    },
+                    {
+                        "type": "video",
+                        "title": "Tutorial: Del Boceto a la Silueta Maker",
+                        "url": "https:\/\/www.youtube.com\/embed\/dQw4w9WgXcQ"
+                    },
+                    {
+                        "type": "checklist",
+                        "title": "Criterios de Éxito",
+                        "items": [
+                            "Papel blanco puro",
+                            "Plumón negro nítido",
+                            "Base horizontal plana"
+                        ]
+                    }
+                ]
+            },
+            "process_json": {
+                "mode": "paper",
+                "tools": [
+                    "paper",
+                    "marker"
+                ],
+                "instructions": "Dibuja con plumón negro sobre papel blanco. Si cometes un error, puedes corregirlo en el papel o afinar los nodos con el Vectorizador en la Misión 2."
+            },
+            "outputs_json": {
+                "file_type": "IMAGE",
+                "label": "Boceto Foto \/ Escaneo en Plumón Negro"
+            },
+            "xp_reward": 30,
+            "skills_reward_json": [
+                "sketching",
+                "branding"
+            ],
+            "allows_iteration": true
+        },
+        {
+            "id": 33,
+            "project_id": 1,
+            "level_number": 2,
+            "title_json": {
+                "es": "Misión 2: Ingeniería — Digitalización & Extrusión 2.5D",
+                "en": "Misión 2: Ingeniería — Digitalización & Extrusión 2.5D"
+            },
+            "toolbox_json": [
+                "vectorizer",
+                "shape-combiner"
+            ],
+            "validation_rules_json": {
+                "min_z_mm": 10,
+                "max_z_mm": 15
+            },
+            "fabcoins_cost": 0,
+            "created_at": "2026-08-28T17:52:20.000000Z",
+            "updated_at": "2026-09-03T03:36:19.000000Z",
+            "inputs_json": {
+                "action_prompt": "Transforma tu boceto en un modelo 3D usando el Vectorizador 2.5D con 10 mm de espesor Z.",
+                "resources": [
+                    {
+                        "type": "guide",
+                        "title": "Guía de Nodos y Tiradores Bézier",
+                        "desc": "Usa los tiradores para dar tensión suave o esquinas angulares con Alt."
+                    },
+                    {
+                        "type": "tool",
+                        "title": "Vectorizador 2.5D Integrado",
+                        "desc": "Extrusión automática con huecos interiores y descarga STL."
+                    },
+                    {
+                        "type": "specs",
+                        "title": "Especificaciones",
+                        "items": [
+                            "Ancho: ~50mm",
+                            "Espesor Z: 10mm",
+                            "Formato: STL Malla"
+                        ]
+                    }
+                ]
+            },
+            "process_json": {
+                "mode": "micro_app",
+                "tools": [
+                    "vectorizer",
+                    "shape-combiner"
+                ],
+                "instructions": "Abre el Vectorizador con tu foto, afina los tiradores de dirección para curvas limpias y guarda tu archivo STL 3D en la Bitácora."
+            },
+            "outputs_json": {
+                "file_type": "STL",
+                "label": "Archivo Modelo 3D (art_toy_2.5d.stl)"
+            },
+            "xp_reward": 50,
+            "skills_reward_json": [
+                "2.5d_modeling",
+                "vectorization"
+            ],
+            "allows_iteration": true
+        },
+        {
+            "id": 34,
+            "project_id": 1,
+            "level_number": 3,
+            "title_json": {
+                "es": "Misión 3: Producción — Simulación de Laminado & Impresión 3D",
+                "en": "Misión 3: Producción — Simulación de Laminado & Impresión 3D"
+            },
+            "toolbox_json": [
+                "3d_printer",
+                "cura",
+                "slicer-3d"
+            ],
+            "validation_rules_json": {
+                "adhesion": "flat_base"
+            },
+            "fabcoins_cost": 7,
+            "created_at": "2026-08-28T17:52:20.000000Z",
+            "updated_at": "2026-09-03T03:36:19.000000Z",
+            "inputs_json": {
+                "action_prompt": "Inspecciona las capas en el Simulador de Laminado 3D, verifica la adherencia a la cama caliente y autoriza el gasto de 4 FabCoins.",
+                "resources": [
+                    {
+                        "type": "guide",
+                        "title": "Parámetros de Laminado PLA",
+                        "desc": "Boquilla 0.4mm, capa 0.20mm, cama 60°C, infill rejilla 20%."
+                    },
+                    {
+                        "type": "tool",
+                        "title": "Simulador de Laminado & Infill",
+                        "desc": "Corte horizontal en Z y patrones de estructura interna."
+                    },
+                    {
+                        "type": "cost",
+                        "title": "Presupuesto de Fabricación",
+                        "items": [
+                            "4 FabCoins",
+                            "~14g PLA",
+                            "~42 min máquina"
+                        ]
+                    }
+                ]
+            },
+            "process_json": {
+                "mode": "micro_app",
+                "tools": [
+                    "slicer-3d",
+                    "3d_printer",
+                    "cura"
+                ],
+                "instructions": "Simula el laminado capa por capa con tu modelo extruido de la Misión 2. Verifica que las paredes y el relleno queden bien cerrados antes de mandar a fabricar."
+            },
+            "outputs_json": {
+                "file_type": "GCODE \/ STL",
+                "label": "Ficha Técnica de Laminado & Parámetros 3D"
+            },
+            "xp_reward": 70,
+            "skills_reward_json": [
+                "3d_printing",
+                "cost_calculation"
+            ],
+            "allows_iteration": true
+        },
+        {
+            "id": 35,
+            "project_id": 1,
+            "level_number": 4,
+            "title_json": {
+                "es": "Misión 4: Post-Proceso — Acabado Físico & Packaging Coleccionable",
+                "en": "Misión 4: Post-Proceso — Acabado Físico & Packaging Coleccionable"
+            },
+            "toolbox_json": [
+                "sandpaper",
+                "packaging"
+            ],
+            "validation_rules_json": {
+                "stability": "self_standing"
+            },
+            "fabcoins_cost": 0,
+            "created_at": "2026-08-28T17:52:20.000000Z",
+            "updated_at": "2026-09-03T03:36:19.000000Z",
+            "inputs_json": {
+                "action_prompt": "Retira rebabas con lija al agua, verifica el centro de gravedad en tu escritorio y diseña la etiqueta de empaque coleccionable.",
+                "resources": [
+                    {
+                        "type": "guide",
+                        "title": "Manual de Post-Procesado Maker",
+                        "desc": "Técnicas de lijado al agua grano 400\/800 y aplicación de barniz protector."
+                    },
+                    {
+                        "type": "pdf",
+                        "title": "Plantilla de Caja \/ Packaging Maker (PDF)",
+                        "url": "\/templates\/packaging_art_toy_maker.pdf"
+                    },
+                    {
+                        "type": "checklist",
+                        "title": "Control de Calidad Físico",
+                        "items": [
+                            "Se mantiene de pie solo",
+                            "Bordes sin rebabas cortantes",
+                            "Tag de edición limitada colocado"
+                        ]
+                    }
+                ]
+            },
+            "process_json": {
+                "mode": "physical",
+                "tools": [
+                    "sandpaper",
+                    "packaging"
+                ],
+                "instructions": "Una vez retirada la pieza de la impresora 3D, líjala suavemente, comprueba su estabilidad y monta el empaque o etiqueta de tu personaje."
+            },
+            "outputs_json": {
+                "file_type": "IMAGE",
+                "label": "Fotografía del Producto Físico Lijado y con Empaque"
+            },
+            "xp_reward": 50,
+            "skills_reward_json": [
+                "post_processing",
+                "packaging"
+            ],
+            "allows_iteration": false
+        },
+        {
+            "id": 36,
+            "project_id": 1,
+            "level_number": 5,
+            "title_json": {
+                "es": "Misión 5: Lanzamiento — Exhibición, Fotos de Producto & Pitch",
+                "en": "Misión 5: Lanzamiento — Exhibición, Fotos de Producto & Pitch"
+            },
+            "toolbox_json": [
+                "camera",
+                "canva"
+            ],
+            "validation_rules_json": {
+                "pitch": "30_seconds"
+            },
+            "fabcoins_cost": 0,
+            "created_at": "2026-09-02T21:50:47.000000Z",
+            "updated_at": "2026-09-03T03:36:19.000000Z",
+            "inputs_json": {
+                "action_prompt": "Crea el afiche promocional de tu personaje para redes sociales y graba tu pitch de 30 segundos explicando su historia de diseño.",
+                "resources": [
+                    {
+                        "type": "guide",
+                        "title": "Estructura del Pitch Maker de 30s",
+                        "desc": "1. El Personaje, 2. El Reto de Fabricación, 3. Por qué es coleccionable."
+                    },
+                    {
+                        "type": "guide",
+                        "title": "Consejos de Fotografía de Producto con Celular",
+                        "desc": "Fondo neutro, luz natural difusa a 45 grados y ángulo frontal."
+                    },
+                    {
+                        "type": "checklist",
+                        "title": "Entregable Final",
+                        "items": [
+                            "Foto de catálogo",
+                            "Pitch de 30 segundos",
+                            "Ficha de creador"
+                        ]
+                    }
+                ]
+            },
+            "process_json": {
+                "mode": "media",
+                "tools": [
+                    "camera",
+                    "canva"
+                ],
+                "instructions": "Toma la foto final de tu Art Toy coleccionable en su escenario y sube tu evidencia para obtener la certificación de Diseñador de Juguetes 3D."
+            },
+            "outputs_json": {
+                "file_type": "IMAGE \/ VIDEO",
+                "label": "Afiche de Lanzamiento y Pitch de la Colección"
+            },
+            "xp_reward": 100,
+            "skills_reward_json": [
+                "storytelling",
+                "commercial_pitch"
+            ],
+            "allows_iteration": true
+        }
+    ]
+}
