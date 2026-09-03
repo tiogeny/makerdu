@@ -1,35 +1,30 @@
-﻿// Makerdu Vectorizer & 3D Extruder Engine v4.8 (Tinkercad Edition)
+// Makerdu Vectorizer & 3D Extruder Engine v5.0 (Bézier Handles & STLExporter)
 
-// -------------------------------------------------------------
-// STATE & CONFIGURATION
-// -------------------------------------------------------------
-let extrusionMode = 'calado'; // 'calado' or 'solido'
+let extrusionMode = 'calado';
 let showVectorOverlay = true;
 let isEditNodesMode = false;
-let curveLevel = 2; // 0=Recto, 1=Leve, 2=Medio, 3=OrgÃ¡nico, 4=Ultra Curvo
-let currentViewMode = 'split'; // 'split', '2d', '3d'
-let currentSvgString = '';
+let curveLevel = 2;
+let currentViewMode = 'split';
 let currentMesh = null;
 let videoStream = null;
 let originalImg = null;
 let baseAspectRatio = 1.0;
 
-// GeometrÃ­a Vectorial 2D (coordenadas canvas relativas exactas)
-let currentPoints = []; // [{canvasX, canvasY, x, y}]
-let innerHoles = [];    // [[{canvasX, canvasY, x, y}], ...]
+// Geometria 2D con Tiradores Bezier (Estilo Inkscape)
+// Cada nodo: { canvasX, canvasY, h1x, h1y, h2x, h2y, x, y }
+let currentPoints = [];
+let innerHoles = [];
 
-// InteracciÃ³n de Nodos
-let draggedNode = null; // { type: 'outer'|'hole', holeIdx: number, pointIdx: number }
-let hoveredNode = null;
+// Interaccion de Nodos y Tiradores
+let selectedNode = null; // { type: 'outer'|'hole', holeIdx: number, pointIdx: number }
+let draggedElement = null; // { type: 'point'|'h1'|'h2', node: object }
 
-// ParÃ¡metros de FabricaciÃ³n
+// Dimensiones objetivo (mm)
 let targetDimX = 50;
 let targetDimY = 50;
 let targetDimZ = 10;
 
-// -------------------------------------------------------------
-// DOM ELEMENTS
-// -------------------------------------------------------------
+// DOM Elements
 const col2D = document.getElementById('col2D');
 const col3D = document.getElementById('col3D');
 const canvasWrapper = document.getElementById('canvasWrapper');
@@ -69,15 +64,11 @@ const volInfo = document.getElementById('volInfo');
 const costInfo = document.getElementById('costInfo');
 
 const btnSendToLms = document.getElementById('btnSendToLms');
-const btnDownloadSvg = document.getElementById('btnDownloadSvg');
 const btnDownloadStl = document.getElementById('btnDownloadStl');
 
-// -------------------------------------------------------------
-// CONTROL DE VISTAS (PANTALLA COMPLETA 2D / 3D / DIVIDIDA)
-// -------------------------------------------------------------
+// VISTAS
 function setViewMode(mode) {
     currentViewMode = mode;
-
     if (btnViewSplit) btnViewSplit.className = 'px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ' + (mode === 'split' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
     if (btnView2D) btnView2D.className = 'px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ' + (mode === '2d' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
     if (btnView3D) btnView3D.className = 'px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ' + (mode === '3d' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
@@ -103,51 +94,45 @@ function setViewMode(mode) {
     }, 50);
 }
 
-if (btnViewSplit) btnViewSplit.addEventListener('click', () => setViewMode('split'));
-if (btnView2D) btnView2D.addEventListener('click', () => setViewMode('2d'));
-if (btnView3D) btnView3D.addEventListener('click', () => setViewMode('3d'));
+btnViewSplit.addEventListener('click', () => setViewMode('split'));
+btnView2D.addEventListener('click', () => setViewMode('2d'));
+btnView3D.addEventListener('click', () => setViewMode('3d'));
 
-// -------------------------------------------------------------
-// THREE.JS SETUP (ROTACIÃ“N 100% MANUAL CON RATÃ“N)
-// -------------------------------------------------------------
+// THREE.JS SETUP
 let scene, camera, renderer, controls;
 function initThree() {
-    const width = threeContainer.clientWidth || 400;
-    const height = threeContainer.clientHeight || 340;
+    const w = threeContainer.clientWidth || 400;
+    const h = threeContainer.clientHeight || 340;
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
 
-    camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+    camera = new THREE.PerspectiveCamera(45, w / h, 1, 1000);
     camera.position.set(0, -65, 95);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
+    renderer.setSize(w, h);
     threeContainer.appendChild(renderer.domElement);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
 
-    // IluminaciÃ³n
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.2);
-    dirLight1.position.set(50, 50, 100);
-    scene.add(dirLight1);
+    const dir1 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    dir1.position.set(50, 50, 100);
+    scene.add(dir1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xf59e0b, 0.8);
-    dirLight2.position.set(-50, -50, 60);
-    scene.add(dirLight2);
+    const dir2 = new THREE.DirectionalLight(0xf59e0b, 0.8);
+    dir2.position.set(-50, -50, 60);
+    scene.add(dir2);
 
-    // Suelo de Rejilla Maker
     const grid = new THREE.GridHelper(100, 20, 0x1e293b, 0x0f172a);
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
 
-    // AnimaciÃ³n SIN rotaciÃ³n automÃ¡tica (100% manual con ratÃ³n)
     function animate() {
         requestAnimationFrame(animate);
         controls.update();
@@ -172,14 +157,9 @@ btnResetCamera.addEventListener('click', () => {
     camera.position.set(0, -65, 95);
     controls.target.set(0, 0, 0);
     controls.update();
-    if (currentMesh) {
-        currentMesh.rotation.set(0, 0, 0);
-    }
 });
 
-// -------------------------------------------------------------
-// SINCRONIZACIÃ“N DE RESOLUCIÃ“N DEL CANVAS 2D
-// -------------------------------------------------------------
+// SYNC CANVAS RESOLUTION
 function syncCanvasResolution() {
     if (!canvasWrapper || !processCanvas) return;
     const rect = canvasWrapper.getBoundingClientRect();
@@ -189,33 +169,26 @@ function syncCanvasResolution() {
     if (w > 50 && h > 50 && (processCanvas.width !== w || processCanvas.height !== h)) {
         const oldW = processCanvas.width || w;
         const oldH = processCanvas.height || h;
-
         processCanvas.width = w;
         processCanvas.height = h;
 
-        // Escalar puntos proporcionalmente si ya existÃ­an
         if (oldW && oldH && oldW !== w && currentPoints.length > 0) {
             const rx = w / oldW;
             const ry = h / oldH;
-            currentPoints.forEach(p => {
-                p.canvasX *= rx;
-                p.canvasY *= ry;
-            });
-            innerHoles.forEach(hArr => {
-                hArr.forEach(p => {
-                    p.canvasX *= rx;
-                    p.canvasY *= ry;
-                });
-            });
+            const updateNode = (p) => {
+                p.canvasX *= rx; p.canvasY *= ry;
+                if (p.h1x) { p.h1x *= rx; p.h1y *= ry; }
+                if (p.h2x) { p.h2x *= rx; p.h2y *= ry; }
+            };
+            currentPoints.forEach(updateNode);
+            innerHoles.forEach(hArr => hArr.forEach(updateNode));
             recompute3DCoordinates();
         }
     }
 }
 window.addEventListener('resize', syncCanvasResolution);
 
-// -------------------------------------------------------------
-// CONTROLES DE HERRAMIENTAS Y SLIDERS
-// -------------------------------------------------------------
+// CONTROLES UI
 btnModeHoles.addEventListener('click', () => {
     extrusionMode = 'calado';
     btnModeHoles.className = 'flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition bg-cyan-500 text-slate-950 shadow text-center truncate';
@@ -245,10 +218,8 @@ btnEditNodes.addEventListener('click', () => {
     btnEditNodes.className = isEditNodesMode
         ? 'px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[10px] transition shadow-md'
         : 'px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-[10px] font-bold transition';
-    
-    if (nodeEditHelp) {
-        nodeEditHelp.classList.toggle('hidden', !isEditNodesMode);
-    }
+    if (nodeEditHelp) nodeEditHelp.classList.toggle('hidden', !isEditNodesMode);
+    if (!isEditNodesMode) selectedNode = null;
     drawVectorCanvas();
 });
 
@@ -257,10 +228,11 @@ thresholdSlider.addEventListener('input', () => {
     applyThresholdAndVectorize();
 });
 
-const curveLabels = ['Recto', 'Suave', 'Medio', 'OrgÃ¡nico', 'Ultra Curvo'];
+const curveLabels = ['Recto', 'Suave', 'Medio', 'Organico', 'Ultra Curvo'];
 curveSlider.addEventListener('input', () => {
     curveLevel = parseInt(curveSlider.value);
     curveVal.innerText = curveLabels[curveLevel] || 'Medio';
+    updateAllBezierHandles();
     drawVectorCanvas();
     extrude3D();
 });
@@ -288,17 +260,12 @@ dimZInput.addEventListener('input', () => {
     extrude3D();
 });
 
-checkHole.addEventListener('change', () => {
-    extrude3D();
-});
+checkHole.addEventListener('change', () => extrude3D());
 
-// -------------------------------------------------------------
-// CARGA DE IMÃGENES & CÃMARA
-// -------------------------------------------------------------
+// IMAGEN / CAMARA
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const img = new Image();
     img.onload = () => {
         originalImg = img;
@@ -312,9 +279,7 @@ fileInput.addEventListener('change', (e) => {
 
 btnStartCamera.addEventListener('click', async () => {
     try {
-        if (videoStream) {
-            videoStream.getTracks().forEach(track => track.stop());
-        }
+        if (videoStream) videoStream.getTracks().forEach(t => t.stop());
         videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         videoFeed.srcObject = videoStream;
         videoFeed.classList.remove('hidden');
@@ -322,7 +287,7 @@ btnStartCamera.addEventListener('click', async () => {
         if (cameraPrompt) cameraPrompt.classList.add('hidden');
         btnSnap.classList.remove('hidden');
     } catch (err) {
-        alert('No se pudo acceder a la cÃ¡mara. Por favor permite los permisos o sube una foto.');
+        alert('No se pudo acceder a la camara.');
     }
 });
 
@@ -330,7 +295,6 @@ btnSnap.addEventListener('click', () => {
     syncCanvasResolution();
     const ctx = processCanvas.getContext('2d');
     ctx.drawImage(videoFeed, 0, 0, processCanvas.width, processCanvas.height);
-
     const img = new Image();
     img.onload = () => {
         originalImg = img;
@@ -343,7 +307,6 @@ btnSnap.addEventListener('click', () => {
     img.src = processCanvas.toDataURL('image/png');
 });
 
-// Soporte de precarga automÃ¡tica desde Makerdu Studio (MisiÃ³n 1 -> MisiÃ³n 2)
 const urlParams = new URLSearchParams(window.location.search);
 const initialImageUrl = urlParams.get('image_url');
 if (initialImageUrl) {
@@ -359,9 +322,33 @@ if (initialImageUrl) {
     img.src = initialImageUrl;
 }
 
-// -------------------------------------------------------------
-// RECOMPUTACIÃ“N BIDIRECCIONAL CONGRUENTE 2D <-> 3D
-// -------------------------------------------------------------
+// CALCULO DE TIRADORES BEZIER (ESTILO INKSCAPE)
+function updateAllBezierHandles() {
+    updateLoopHandles(currentPoints);
+    innerHoles.forEach(updateLoopHandles);
+}
+
+function updateLoopHandles(pts) {
+    const n = pts.length;
+    if (n < 3) return;
+    const tension = [0, 0.15, 0.3, 0.45, 0.6][curveLevel] || 0.3;
+
+    for (let i = 0; i < n; i++) {
+        const prev = pts[(i - 1 + n) % n];
+        const cur = pts[i];
+        const next = pts[(i + 1) % n];
+
+        const tanX = (next.canvasX - prev.canvasX) * tension;
+        const tanY = (next.canvasY - prev.canvasY) * tension;
+
+        cur.h1x = cur.canvasX - tanX;
+        cur.h1y = cur.canvasY - tanY;
+        cur.h2x = cur.canvasX + tanX;
+        cur.h2y = cur.canvasY + tanY;
+    }
+}
+
+// COORDENADAS 3D
 function recompute3DCoordinates() {
     if (currentPoints.length < 3) return;
 
@@ -385,7 +372,6 @@ function recompute3DCoordinates() {
         p.x = (p.canvasX - midCanvasX) * scaleFactor;
         p.y = -(p.canvasY - midCanvasY) * scaleFactor;
     }
-
     for (const hole of innerHoles) {
         for (const p of hole) {
             p.x = (p.canvasX - midCanvasX) * scaleFactor;
@@ -394,9 +380,7 @@ function recompute3DCoordinates() {
     }
 }
 
-// -------------------------------------------------------------
-// ALGORITMO DE VECTORIZACIÃ“N CON BÃšSQUEDA DEL COMPONENTE PRINCIPAL
-// -------------------------------------------------------------
+// VECTORIZACION
 function applyThresholdAndVectorize() {
     if (!originalImg) return;
     syncCanvasResolution();
@@ -416,17 +400,14 @@ function applyThresholdAndVectorize() {
     const data = imgData.data;
     const threshold = parseInt(thresholdSlider.value);
 
-    // Grid binario: 1 = tinta negra, 0 = fondo blanco
     const grid = new Uint8Array(w * h);
     for (let i = 0; i < data.length; i += 4) {
         const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
         grid[i / 4] = brightness < threshold ? 1 : 0;
     }
 
-    // 1. DetecciÃ³n de fondo blanco exterior con Flood Fill desde los 4 bordes
     const visited = new Uint8Array(w * h);
     const queue = [];
-
     for (let x = 0; x < w; x++) {
         if (grid[x] === 0) { queue.push(x); visited[x] = 2; }
         const bIdx = (h - 1) * w + x;
@@ -442,9 +423,7 @@ function applyThresholdAndVectorize() {
     let head = 0;
     while (head < queue.length) {
         const idx = queue[head++];
-        const cx = idx % w;
-        const cy = Math.floor(idx / w);
-
+        const cx = idx % w, cy = Math.floor(idx / w);
         const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
         for (const [nx, ny] of neighbors) {
             if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
@@ -457,7 +436,6 @@ function applyThresholdAndVectorize() {
         }
     }
 
-    // 2. BUSCAR EL COMPONENTE NEGRO DE MAYOR TAMAÃ‘O (Para evitar motas de polvo o sombras)
     const darkVisited = new Uint8Array(w * h);
     let bestComponent = [];
     let bestStartX = -1, bestStartY = -1;
@@ -470,13 +448,10 @@ function applyThresholdAndVectorize() {
                 const cQueue = [idx];
                 darkVisited[idx] = 1;
                 let cHead = 0;
-
                 while (cHead < cQueue.length) {
                     const cIdx = cQueue[cHead++];
                     comp.push(cIdx);
-                    const kx = cIdx % w;
-                    const ky = Math.floor(cIdx / w);
-
+                    const kx = cIdx % w, ky = Math.floor(cIdx / w);
                     const kNeigh = [[kx + 1, ky], [kx - 1, ky], [kx, ky + 1], [kx, ky - 1]];
                     for (const [nx, ny] of kNeigh) {
                         if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
@@ -488,7 +463,6 @@ function applyThresholdAndVectorize() {
                         }
                     }
                 }
-
                 if (comp.length > bestComponent.length) {
                     bestComponent = comp;
                     bestStartX = x;
@@ -500,11 +474,9 @@ function applyThresholdAndVectorize() {
 
     if (bestComponent.length < 25 || bestStartX === -1) return;
 
-    // Trazar contorno exterior principal
     const rawOuterContour = tracePerimeter(grid, w, h, bestStartX, bestStartY, 1);
     if (rawOuterContour.length < 6) return;
 
-    // 3. DetecciÃ³n de Huecos Interiores (Islas blancas que no tocan el exterior)
     const detectedHoles = [];
     const holeVisited = new Uint8Array(w * h);
 
@@ -516,15 +488,12 @@ function applyThresholdAndVectorize() {
                 const hQueue = [idx];
                 holeVisited[idx] = 1;
                 let hHead = 0;
-
                 let borderX = -1, borderY = -1;
 
                 while (hHead < hQueue.length) {
                     const cur = hQueue[hHead++];
                     holePixels.push(cur);
-                    const hx = cur % w;
-                    const hy = Math.floor(cur / w);
-
+                    const hx = cur % w, hy = Math.floor(cur / w);
                     const hNeigh = [[hx + 1, hy], [hx - 1, hy], [hx, hy + 1], [hx, hy - 1]];
                     for (const [hnx, hny] of hNeigh) {
                         if (hnx >= 0 && hnx < w && hny >= 0 && hny < h) {
@@ -533,30 +502,24 @@ function applyThresholdAndVectorize() {
                                 holeVisited[hnIdx] = 1;
                                 hQueue.push(hnIdx);
                             } else if (grid[hnIdx] === 1 && borderX === -1) {
-                                borderX = hx;
-                                borderY = hy;
+                                borderX = hx; borderY = hy;
                             }
                         }
                     }
                 }
 
-                // Filtrar huecos muy pequeÃ±os
                 if (holePixels.length > 35 && borderX !== -1) {
                     const rawHole = tracePerimeter(grid, w, h, borderX, borderY, 0);
-                    if (rawHole.length >= 6) {
-                        detectedHoles.push(rawHole);
-                    }
+                    if (rawHole.length >= 6) detectedHoles.push(rawHole);
                 }
             }
         }
     }
 
-    // 4. SimplificaciÃ³n Ramer-Douglas-Peucker
-    const epsilon = 1.2;
+    const epsilon = 1.3;
     const simplifiedOuter = simplifyDouglasPeucker(rawOuterContour, epsilon);
-    const simplifiedHoles = detectedHoles.map(hContour => simplifyDouglasPeucker(hContour, epsilon));
+    const simplifiedHoles = detectedHoles.map(h => simplifyDouglasPeucker(h, epsilon));
 
-    // Ajustar a las dimensiones del canvas visible
     const fitScale = Math.min((processCanvas.width * 0.85) / w, (processCanvas.height * 0.85) / h);
     const offsetX = (processCanvas.width - (w * fitScale)) / 2;
     const offsetY = (processCanvas.height - (h * fitScale)) / 2;
@@ -564,17 +527,18 @@ function applyThresholdAndVectorize() {
     currentPoints = simplifiedOuter.map(p => ({
         canvasX: p.x * fitScale + offsetX,
         canvasY: p.y * fitScale + offsetY,
-        x: 0,
-        y: 0
+        h1x: 0, h1y: 0, h2x: 0, h2y: 0,
+        x: 0, y: 0
     }));
 
     innerHoles = simplifiedHoles.map(hole => hole.map(p => ({
         canvasX: p.x * fitScale + offsetX,
         canvasY: p.y * fitScale + offsetY,
-        x: 0,
-        y: 0
+        h1x: 0, h1y: 0, h2x: 0, h2y: 0,
+        x: 0, y: 0
     })));
 
+    updateAllBezierHandles();
     recompute3DCoordinates();
 
     if (!dimXInput.dataset.modified) {
@@ -595,21 +559,14 @@ function applyThresholdAndVectorize() {
 }
 
 function tracePerimeter(grid, w, h, startX, startY, targetVal) {
-    const neighbors = [
-        [-1, 0], [-1, -1], [0, -1], [1, -1],
-        [1, 0], [1, 1], [0, 1], [-1, 1]
-    ];
-
+    const neighbors = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]];
     const contour = [];
     let curX = startX, curY = startY;
     let backtrackDir = 0;
     const maxSteps = 4000;
     let steps = 0;
 
-    const isMatch = (x, y) => {
-        if (x < 0 || x >= w || y < 0 || y >= h) return false;
-        return grid[y * w + x] === targetVal;
-    };
+    const isMatch = (x, y) => (x >= 0 && x < w && y >= 0 && y < h && grid[y * w + x] === targetVal);
 
     do {
         contour.push({ x: curX, y: curY });
@@ -620,20 +577,13 @@ function tracePerimeter(grid, w, h, startX, startY, targetVal) {
             const checkDir = (backtrackDir + i) % 8;
             const nx = curX + neighbors[checkDir][0];
             const ny = curY + neighbors[checkDir][1];
-
             if (isMatch(nx, ny)) {
-                nextX = nx;
-                nextY = ny;
-                foundDir = checkDir;
-                break;
+                nextX = nx; nextY = ny; foundDir = checkDir; break;
             }
         }
-
         if (foundDir === -1) break;
-
         backtrackDir = (foundDir + 5) % 8;
-        curX = nextX;
-        curY = nextY;
+        curX = nextX; curY = nextY;
         steps++;
     } while ((curX !== startX || curY !== startY) && steps < maxSteps);
 
@@ -642,31 +592,23 @@ function tracePerimeter(grid, w, h, startX, startY, targetVal) {
 
 function simplifyDouglasPeucker(points, epsilon) {
     if (points.length <= 2) return points;
-    let dmax = 0;
-    let index = 0;
-    const p1 = points[0];
-    const p2 = points[points.length - 1];
+    let dmax = 0, index = 0;
+    const p1 = points[0], p2 = points[points.length - 1];
 
     for (let i = 1; i < points.length - 1; i++) {
         const d = perpendicularDist(points[i], p1, p2);
-        if (d > dmax) {
-            index = i;
-            dmax = d;
-        }
+        if (d > dmax) { index = i; dmax = d; }
     }
-
     if (dmax > epsilon) {
         const rec1 = simplifyDouglasPeucker(points.slice(0, index + 1), epsilon);
         const rec2 = simplifyDouglasPeucker(points.slice(index), epsilon);
         return rec1.slice(0, rec1.length - 1).concat(rec2);
-    } else {
-        return [p1, p2];
     }
+    return [p1, p2];
 }
 
 function perpendicularDist(p, p1, p2) {
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
     if (dx === 0 && dy === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
     return Math.abs(dy * p.x - dx * p.y + p2.x * p1.y - p2.y * p1.x) / Math.hypot(dx, dy);
 }
@@ -680,16 +622,13 @@ function getSignedArea(pts) {
     return area / 2;
 }
 
-// -------------------------------------------------------------
-// RENDERIZADO DEL CANVAS 2D CON CURVAS BÃ‰ZIER / SPLINES
-// -------------------------------------------------------------
+// DIBUJO DE CANVAS 2D CON TIRADORES BEZIER ESTILO INKSCAPE
 function drawVectorCanvas() {
     const ctx = processCanvas.getContext('2d');
     if (!ctx || !processCanvas.width) return;
 
     ctx.clearRect(0, 0, processCanvas.width, processCanvas.height);
 
-    // 1. Dibujar Foto original al fondo
     if (originalImg) {
         ctx.save();
         ctx.globalAlpha = isEditNodesMode ? 0.35 : 0.85;
@@ -702,9 +641,9 @@ function drawVectorCanvas() {
 
     if (!showVectorOverlay || currentPoints.length < 3) return;
 
-    // 2. Dibujar Contorno Exterior (Curva suave o lÃ­nea recta segÃºn curveLevel)
+    // Contorno Exterior
     ctx.beginPath();
-    drawSmoothOrPolyPath(ctx, currentPoints, curveLevel);
+    drawBezierPath(ctx, currentPoints);
     ctx.closePath();
     ctx.strokeStyle = '#06b6d4';
     ctx.lineWidth = 3;
@@ -712,12 +651,12 @@ function drawVectorCanvas() {
     ctx.fillStyle = 'rgba(6, 182, 212, 0.20)';
     ctx.fill();
 
-    // 3. Dibujar Huecos Interiores
-    if (extrusionMode === 'calado' && innerHoles.length > 0) {
+    // Huecos
+    if (extrusionMode === 'calado') {
         innerHoles.forEach((hole) => {
             if (hole.length < 3) return;
             ctx.beginPath();
-            drawSmoothOrPolyPath(ctx, hole, curveLevel);
+            drawBezierPath(ctx, hole);
             ctx.closePath();
             ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 2.5;
@@ -727,152 +666,160 @@ function drawVectorCanvas() {
         });
     }
 
-    // 4. Dibujar Nodos Editables & Tangentes si Modo EdiciÃ³n estÃ¡ activo
+    // MODO EDICION: NODOS Y TIRADORES DE DIRECCION
     if (isEditNodesMode) {
-        // Dibujar manecillas y lÃ­neas de control
         currentPoints.forEach((p, idx) => {
-            const isHovered = (hoveredNode && hoveredNode.type === 'outer' && hoveredNode.pointIdx === idx);
-            ctx.beginPath();
-            ctx.arc(p.canvasX, p.canvasY, isHovered ? 7 : 5, 0, Math.PI * 2);
-            ctx.fillStyle = isHovered ? '#38bdf8' : '#06b6d4';
-            ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            const isSel = (selectedNode && selectedNode.type === 'outer' && selectedNode.pointIdx === idx);
+            drawNodePoint(ctx, p.canvasX, p.canvasY, isSel ? '#38bdf8' : '#06b6d4', isSel ? 7 : 5);
         });
 
         if (extrusionMode === 'calado') {
             innerHoles.forEach((hole, hIdx) => {
                 hole.forEach((p, pIdx) => {
-                    const isHovered = (hoveredNode && hoveredNode.type === 'hole' && hoveredNode.holeIdx === hIdx && hoveredNode.pointIdx === pIdx);
-                    ctx.beginPath();
-                    ctx.arc(p.canvasX, p.canvasY, isHovered ? 6 : 4.5, 0, Math.PI * 2);
-                    ctx.fillStyle = isHovered ? '#fde047' : '#f59e0b';
-                    ctx.fill();
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
+                    const isSel = (selectedNode && selectedNode.type === 'hole' && selectedNode.holeIdx === hIdx && selectedNode.pointIdx === pIdx);
+                    drawNodePoint(ctx, p.canvasX, p.canvasY, isSel ? '#fde047' : '#f59e0b', isSel ? 6 : 4.5);
                 });
             });
         }
+
+        // Tiradores Bezier del nodo seleccionado
+        if (selectedNode) {
+            let pNode = null;
+            if (selectedNode.type === 'outer' && currentPoints[selectedNode.pointIdx]) {
+                pNode = currentPoints[selectedNode.pointIdx];
+            } else if (selectedNode.type === 'hole' && innerHoles[selectedNode.holeIdx]?.[selectedNode.pointIdx]) {
+                pNode = innerHoles[selectedNode.holeIdx][selectedNode.pointIdx];
+            }
+
+            if (pNode && curveLevel > 0) {
+                // Tirador 1 (Rosa)
+                ctx.beginPath();
+                ctx.moveTo(pNode.canvasX, pNode.canvasY);
+                ctx.lineTo(pNode.h1x, pNode.h1y);
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(pNode.h1x, pNode.h1y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Tirador 2 (Verde Esmeralda)
+                ctx.beginPath();
+                ctx.moveTo(pNode.canvasX, pNode.canvasY);
+                ctx.lineTo(pNode.h2x, pNode.h2y);
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(pNode.h2x, pNode.h2y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#10b981';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
     }
 }
 
-// Dibuja un trazo suave con curvas Catmull-Rom/BÃ©zier o lÃ­neas poligonales
-function drawSmoothOrPolyPath(ctx, pts, tensionLevel) {
-    if (pts.length < 3) return;
+function drawNodePoint(ctx, x, y, color, radius) {
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+}
 
-    if (tensionLevel === 0) {
-        // PolÃ­gono directo recto
+function drawBezierPath(ctx, pts) {
+    if (pts.length < 3) return;
+    if (curveLevel === 0) {
         ctx.moveTo(pts[0].canvasX, pts[0].canvasY);
-        for (let i = 1; i < pts.length; i++) {
-            ctx.lineTo(pts[i].canvasX, pts[i].canvasY);
-        }
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].canvasX, pts[i].canvasY);
         return;
     }
 
-    // Curvas BÃ©zier Catmull-Rom suaves
-    const tension = [0, 0.15, 0.3, 0.45, 0.6][tensionLevel] || 0.3;
     ctx.moveTo(pts[0].canvasX, pts[0].canvasY);
-
     const n = pts.length;
     for (let i = 0; i < n; i++) {
-        const p0 = pts[(i - 1 + n) % n];
-        const p1 = pts[i];
-        const p2 = pts[(i + 1) % n];
-        const p3 = pts[(i + 2) % n];
-
-        const cp1x = p1.canvasX + (p2.canvasX - p0.canvasX) * tension;
-        const cp1y = p1.canvasY + (p2.canvasY - p0.canvasY) * tension;
-        const cp2x = p2.canvasX - (p3.canvasX - p1.canvasX) * tension;
-        const cp2y = p2.canvasY - (p3.canvasY - p1.canvasY) * tension;
-
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.canvasX, p2.canvasY);
+        const cur = pts[i];
+        const next = pts[(i + 1) % n];
+        ctx.bezierCurveTo(cur.h2x, cur.h2y, next.h1x, next.h1y, next.canvasX, next.canvasY);
     }
 }
 
-// -------------------------------------------------------------
-// INTERACCIÃ“N DE RATÃ“N: EXACTITUD 1:1 DE COORDENADAS
-// -------------------------------------------------------------
+// INTERACCION RATON (1:1 PIXEL MATCHING)
 function getCanvasCoords(e) {
     const rect = processCanvas.getBoundingClientRect();
-    return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
 }
 
 processCanvas.addEventListener('mousedown', (e) => {
     if (!isEditNodesMode) return;
     const { x, y } = getCanvasCoords(e);
-    const hitRadius = 16; // 16 pÃ­xeles reales de detecciÃ³n tÃ¡ctil/ratÃ³n
+    const hitRadius = 14;
 
-    // 1. Detectar clic sobre nodo exterior existente
-    for (let i = 0; i < currentPoints.length; i++) {
-        if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
-            draggedNode = { type: 'outer', pointIdx: i };
-            return;
-        }
-    }
+    // 1. Verificar clic en tiradores del nodo seleccionado
+    if (selectedNode && curveLevel > 0) {
+        let pNode = (selectedNode.type === 'outer') 
+            ? currentPoints[selectedNode.pointIdx] 
+            : innerHoles[selectedNode.holeIdx]?.[selectedNode.pointIdx];
 
-    // 2. Detectar clic sobre nodo de hueco
-    for (let h = 0; h < innerHoles.length; h++) {
-        for (let p = 0; p < innerHoles[h].length; p++) {
-            if (Math.hypot(innerHoles[h][p].canvasX - x, innerHoles[h][p].canvasY - y) < hitRadius) {
-                draggedNode = { type: 'hole', holeIdx: h, pointIdx: p };
+        if (pNode) {
+            if (Math.hypot(pNode.h1x - x, pNode.h1y - y) < hitRadius) {
+                draggedElement = { type: 'h1', node: pNode };
+                return;
+            }
+            if (Math.hypot(pNode.h2x - x, pNode.h2y - y) < hitRadius) {
+                draggedElement = { type: 'h2', node: pNode };
                 return;
             }
         }
     }
 
-    // 3. Clic sobre arista o segmento de lÃ­nea para AÃ‘ADIR un nuevo nodo
+    // 2. Clic en nodo exterior
+    for (let i = 0; i < currentPoints.length; i++) {
+        if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
+            selectedNode = { type: 'outer', pointIdx: i };
+            draggedElement = { type: 'point', node: currentPoints[i] };
+            drawVectorCanvas();
+            return;
+        }
+    }
+
+    // 3. Clic en nodo de hueco
+    for (let h = 0; h < innerHoles.length; h++) {
+        for (let p = 0; p < innerHoles[h].length; p++) {
+            if (Math.hypot(innerHoles[h][p].canvasX - x, innerHoles[h][p].canvasY - y) < hitRadius) {
+                selectedNode = { type: 'hole', holeIdx: h, pointIdx: p };
+                draggedElement = { type: 'point', node: innerHoles[h][p] };
+                drawVectorCanvas();
+                return;
+            }
+        }
+    }
+
+    // 4. Clic en arista para añadir nuevo nodo
     for (let i = 0; i < currentPoints.length; i++) {
         const p1 = currentPoints[i];
         const p2 = currentPoints[(i + 1) % currentPoints.length];
-        const dist = distToSegment({ x, y }, { x: p1.canvasX, y: p1.canvasY }, { x: p2.canvasX, y: p2.canvasY });
-        if (dist < 12) {
-            currentPoints.splice(i + 1, 0, { canvasX: x, canvasY: y, x: 0, y: 0 });
+        if (distToSegment({ x, y }, { x: p1.canvasX, y: p1.canvasY }, { x: p2.canvasX, y: p2.canvasY }) < 12) {
+            const newNode = { canvasX: x, canvasY: y, h1x: x, h1y: y, h2x: x, h2y: y, x: 0, y: 0 };
+            currentPoints.splice(i + 1, 0, newNode);
+            updateAllBezierHandles();
             recompute3DCoordinates();
+            selectedNode = { type: 'outer', pointIdx: i + 1 };
+            draggedElement = { type: 'point', node: newNode };
             drawVectorCanvas();
             extrude3D();
-            draggedNode = { type: 'outer', pointIdx: i + 1 };
             return;
-        }
-    }
-});
-
-processCanvas.addEventListener('dblclick', (e) => {
-    if (!isEditNodesMode) return;
-    const { x, y } = getCanvasCoords(e);
-    const hitRadius = 16;
-
-    // Borrar nodo de contorno exterior
-    for (let i = 0; i < currentPoints.length; i++) {
-        if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
-            if (currentPoints.length > 4) {
-                currentPoints.splice(i, 1);
-                recompute3DCoordinates();
-                drawVectorCanvas();
-                extrude3D();
-            }
-            return;
-        }
-    }
-
-    // Borrar nodo de hueco
-    for (let h = 0; h < innerHoles.length; h++) {
-        for (let p = 0; p < innerHoles[h].length; p++) {
-            if (Math.hypot(innerHoles[h][p].canvasX - x, innerHoles[h][p].canvasY - y) < hitRadius) {
-                if (innerHoles[h].length > 3) {
-                    innerHoles[h].splice(p, 1);
-                } else {
-                    innerHoles.splice(h, 1);
-                }
-                recompute3DCoordinates();
-                drawVectorCanvas();
-                extrude3D();
-                return;
-            }
         }
     }
 });
@@ -881,49 +828,60 @@ processCanvas.addEventListener('mousemove', (e) => {
     if (!isEditNodesMode) return;
     const { x, y } = getCanvasCoords(e);
 
-    if (draggedNode) {
-        if (draggedNode.type === 'outer') {
-            currentPoints[draggedNode.pointIdx].canvasX = x;
-            currentPoints[draggedNode.pointIdx].canvasY = y;
-        } else if (draggedNode.type === 'hole') {
-            innerHoles[draggedNode.holeIdx][draggedNode.pointIdx].canvasX = x;
-            innerHoles[draggedNode.holeIdx][draggedNode.pointIdx].canvasY = y;
+    if (draggedElement) {
+        if (draggedElement.type === 'point') {
+            const dx = x - draggedElement.node.canvasX;
+            const dy = y - draggedElement.node.canvasY;
+            draggedElement.node.canvasX = x;
+            draggedElement.node.canvasY = y;
+            draggedElement.node.h1x += dx;
+            draggedElement.node.h1y += dy;
+            draggedElement.node.h2x += dx;
+            draggedElement.node.h2y += dy;
+        } else if (draggedElement.type === 'h1') {
+            draggedElement.node.h1x = x;
+            draggedElement.node.h1y = y;
+            const dx = x - draggedElement.node.canvasX;
+            const dy = y - draggedElement.node.canvasY;
+            draggedElement.node.h2x = draggedElement.node.canvasX - dx;
+            draggedElement.node.h2y = draggedElement.node.canvasY - dy;
+        } else if (draggedElement.type === 'h2') {
+            draggedElement.node.h2x = x;
+            draggedElement.node.h2y = y;
+            const dx = x - draggedElement.node.canvasX;
+            const dy = y - draggedElement.node.canvasY;
+            draggedElement.node.h1x = draggedElement.node.canvasX - dx;
+            draggedElement.node.h1y = draggedElement.node.canvasY - dy;
         }
 
         recompute3DCoordinates();
         drawVectorCanvas();
         extrude3D();
-    } else {
-        const hitRadius = 16;
-        let found = null;
-
-        for (let i = 0; i < currentPoints.length; i++) {
-            if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
-                found = { type: 'outer', pointIdx: i };
-                break;
-            }
-        }
-        if (!found) {
-            for (let h = 0; h < innerHoles.length; h++) {
-                for (let p = 0; p < innerHoles[h].length; p++) {
-                    if (Math.hypot(innerHoles[h][p].canvasX - x, innerHoles[h][p].canvasY - y) < hitRadius) {
-                        found = { type: 'hole', holeIdx: h, pointIdx: p };
-                        break;
-                    }
-                }
-                if (found) break;
-            }
-        }
-
-        if (found !== hoveredNode) {
-            hoveredNode = found;
-            drawVectorCanvas();
-        }
     }
 });
 
 window.addEventListener('mouseup', () => {
-    draggedNode = null;
+    draggedElement = null;
+});
+
+processCanvas.addEventListener('dblclick', (e) => {
+    if (!isEditNodesMode) return;
+    const { x, y } = getCanvasCoords(e);
+    const hitRadius = 14;
+
+    for (let i = 0; i < currentPoints.length; i++) {
+        if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
+            if (currentPoints.length > 4) {
+                currentPoints.splice(i, 1);
+                selectedNode = null;
+                updateAllBezierHandles();
+                recompute3DCoordinates();
+                drawVectorCanvas();
+                extrude3D();
+            }
+            return;
+        }
+    }
 });
 
 function distToSegment(p, v, w) {
@@ -934,28 +892,21 @@ function distToSegment(p, v, w) {
     return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
 }
 
-// -------------------------------------------------------------
-// EXTRUSIÃ“N 3D ROBUSTA (CALADO Y SÃ“LIDO TOTALMENTE ESTABLES)
-// -------------------------------------------------------------
+// EXTRUSION 3D
 function extrude3D() {
     if (!currentPoints || currentPoints.length < 3) return;
 
     try {
         if (threePlaceholder) threePlaceholder.classList.add('hidden');
-
         if (currentMesh) {
             scene.remove(currentMesh);
             if (currentMesh.geometry) currentMesh.geometry.dispose();
             currentMesh = null;
         }
 
-        // 1. Puntos del Contorno Exterior
         let outerPts = [...currentPoints];
-        if (getSignedArea(outerPts) < 0) {
-            outerPts.reverse();
-        }
+        if (getSignedArea(outerPts) < 0) outerPts.reverse();
 
-        // Si curveLevel > 0, interpolar curva suave Catmull-Rom para 3D
         let final3DPts = outerPts;
         if (curveLevel > 0) {
             const vec3List = outerPts.map(p => new THREE.Vector3(p.x, p.y, 0));
@@ -965,19 +916,14 @@ function extrude3D() {
 
         const shape = new THREE.Shape();
         shape.moveTo(final3DPts[0].x, final3DPts[0].y);
-        for (let i = 1; i < final3DPts.length; i++) {
-            shape.lineTo(final3DPts[i].x, final3DPts[i].y);
-        }
+        for (let i = 1; i < final3DPts.length; i++) shape.lineTo(final3DPts[i].x, final3DPts[i].y);
         shape.closePath();
 
-        // 2. Huecos Interiores con ValidaciÃ³n Individual
         if (extrusionMode === 'calado' && innerHoles.length > 0) {
             innerHoles.forEach((holePts) => {
                 if (holePts.length < 3) return;
                 let hCopy = [...holePts];
-                if (getSignedArea(hCopy) > 0) {
-                    hCopy.reverse(); // Los huecos deben ser horarios (CW)
-                }
+                if (getSignedArea(hCopy) > 0) hCopy.reverse();
 
                 let finalHolePts = hCopy;
                 if (curveLevel > 0) {
@@ -988,19 +934,16 @@ function extrude3D() {
 
                 const holePath = new THREE.Path();
                 holePath.moveTo(finalHolePts[0].x, finalHolePts[0].y);
-                for (let i = 1; i < finalHolePts.length; i++) {
-                    holePath.lineTo(finalHolePts[i].x, finalHolePts[i].y);
-                }
+                for (let i = 1; i < finalHolePts.length; i++) holePath.lineTo(finalHolePts[i].x, finalHolePts[i].y);
                 holePath.closePath();
                 shape.holes.push(holePath);
             });
         }
 
-        // 3. Ojal de Llavero si estÃ¡ marcado
         if (checkHole && checkHole.checked) {
-            const ojalPath = new THREE.Path();
-            ojalPath.absarc(0, 20, 2.5, 0, Math.PI * 2, true);
-            shape.holes.push(ojalPath);
+            const ojal = new THREE.Path();
+            ojal.absarc(0, 20, 2.5, 0, Math.PI * 2, true);
+            shape.holes.push(ojal);
         }
 
         const depth = parseFloat(dimZInput?.value) || 10;
@@ -1013,12 +956,10 @@ function extrude3D() {
             bevelSegments: 2
         };
 
-        // Generar GeometrÃ­a con Fallback Inteligente si algÃºn hueco colisiona
         let geometry;
         try {
             geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
         } catch (extrudeErr) {
-            console.warn('GeometrÃ­a con huecos presentÃ³ conflicto topolÃ³gico, extrayendo silueta sÃ³lida:', extrudeErr);
             shape.holes = [];
             geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
         }
@@ -1036,15 +977,13 @@ function extrude3D() {
         const material = new THREE.MeshStandardMaterial({
             color: 0x06b6d4,
             roughness: 0.35,
-            metalness: 0.2,
-            wireframe: false
+            metalness: 0.2
         });
 
         currentMesh = new THREE.Mesh(geometry, material);
         currentMesh.position.z = depth / 2;
         scene.add(currentMesh);
 
-        // Actualizar estadÃ­sticas de fabricaciÃ³n
         const estVolCm3 = (safeDimX * safeDimY * depth * 0.52) / 1000;
         const weightGrams = Math.max(2, Math.round(estVolCm3 * 1.24 * 0.7));
         const estFabCoins = Math.max(3, Math.round(weightGrams * 0.28));
@@ -1052,86 +991,33 @@ function extrude3D() {
         if (dimInfo) dimInfo.innerText = safeDimX + 'x' + safeDimY + 'x' + depth + 'mm';
         if (volInfo) volInfo.innerText = '~' + weightGrams + 'g PLA';
         if (costInfo) costInfo.innerText = estFabCoins + ' FC';
-
-        buildSvgString();
     } catch (err) {
         console.error('Error en extrude3D:', err);
     }
 }
 
-// -------------------------------------------------------------
-// CONSTRUCCIÃ“N DE SVG
-// -------------------------------------------------------------
-function buildSvgString() {
-    if (currentPoints.length < 3) return;
-
-    let pathOuter = 'M ' + (currentPoints[0].x + 25) + ' ' + (-currentPoints[0].y + 25) + ' ';
-    for (let i = 1; i < currentPoints.length; i++) {
-        pathOuter += 'L ' + (currentPoints[i].x + 25) + ' ' + (-currentPoints[i].y + 25) + ' ';
+// EXPORTACION STL CON THREE.STLExporter (CONSERVA 100% DE HUECOS Y FACES)
+function getValidStlString() {
+    if (!currentMesh) return '';
+    try {
+        if (THREE.STLExporter) {
+            const exporter = new THREE.STLExporter();
+            return exporter.parse(currentMesh);
+        }
+    } catch (e) {
+        console.warn('STLExporter fallback:', e);
     }
-    pathOuter += 'Z ';
-
-    let pathHoles = '';
-    if (extrusionMode === 'calado' && innerHoles.length > 0) {
-        innerHoles.forEach(hole => {
-            if (hole.length < 3) return;
-            pathHoles += 'M ' + (hole[0].x + 25) + ' ' + (-hole[0].y + 25) + ' ';
-            for (let i = 1; i < hole.length; i++) {
-                pathHoles += 'L ' + (hole[i].x + 25) + ' ' + (-hole[i].y + 25) + ' ';
-            }
-            pathHoles += 'Z ';
-        });
-    }
-
-    let ojalSvg = (checkHole && checkHole.checked) ? '<circle cx=\"25\" cy=\"5\" r=\"2.5\" stroke=\"#ff0000\" stroke-width=\"0.1\" fill=\"none\"/>' : '';
-
-    currentSvgString = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 50 50\" width=\"' + targetDimX + 'mm\" height=\"' + targetDimY + 'mm\">\\n' +
-        '<path d=\"' + pathOuter + pathHoles + '\" fill-rule=\"evenodd\" stroke=\"#ff0000\" stroke-width=\"0.1\" fill=\"#000000\" />\\n' +
-        ojalSvg + '\\n</svg>';
+    return '';
 }
 
-function generateAsciiStl(mesh) {
-    if (!mesh || !mesh.geometry) return '';
-    const geom = mesh.geometry.clone();
-    geom.applyMatrix4(mesh.matrixWorld);
-    const pos = geom.attributes.position;
-    if (!pos) return '';
-
-    let stl = 'solid makerdu_art_toy\\n';
-    for (let i = 0; i < pos.count; i += 3) {
-        const ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
-        const bx = pos.getX(i + 1), by = pos.getY(i + 1), bz = pos.getZ(i + 1);
-        const cx = pos.getX(i + 2), cy = pos.getY(i + 2), cz = pos.getZ(i + 2);
-
-        const ux = bx - ax, uy = by - ay, uz = bz - az;
-        const vx = cx - ax, vy = cy - ay, vz = cz - az;
-        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
-        const len = Math.hypot(nx, ny, nz);
-        if (len > 0) { nx /= len; ny /= len; nz /= len; }
-
-        stl += '  facet normal ' + nx.toFixed(4) + ' ' + ny.toFixed(4) + ' ' + nz.toFixed(4) + '\\n';
-        stl += '    outer loop\\n';
-        stl += '      vertex ' + ax.toFixed(3) + ' ' + ay.toFixed(3) + ' ' + az.toFixed(3) + '\\n';
-        stl += '      vertex ' + bx.toFixed(3) + ' ' + by.toFixed(3) + ' ' + bz.toFixed(3) + '\\n';
-        stl += '      vertex ' + cx.toFixed(3) + ' ' + cy.toFixed(3) + ' ' + cz.toFixed(3) + '\\n';
-        stl += '    endloop\\n';
-        stl += '  endfacet\\n';
-    }
-    stl += 'endsolid makerdu_art_toy\\n';
-    return stl;
-}
-
-// -------------------------------------------------------------
-// ENVÃO A BITÃCORA LMS CON CAPTURA RENDER 3D
-// -------------------------------------------------------------
+// ENVIO A BITACORA LMS
 btnSendToLms.addEventListener('click', () => {
     if (!currentMesh || currentPoints.length < 3) {
-        alert('Por favor vectoriza un boceto antes de enviar a la bitÃ¡cora.');
+        alert('Por favor vectoriza un boceto antes de enviar a la bitacora.');
         return;
     }
 
-    buildSvgString();
-    const stlString = generateAsciiStl(currentMesh);
+    const stlString = getValidStlString();
 
     let renderSnapshot = '';
     try {
@@ -1147,7 +1033,6 @@ btnSendToLms.addEventListener('click', () => {
         fileType: 'stl',
         fileName: 'art_toy_2.5d.stl',
         stlContent: stlString,
-        content: currentSvgString,
         image_snapshot: renderSnapshot,
         depth_mm: targetDimZ,
         dim_x: targetDimX,
@@ -1166,19 +1051,9 @@ btnSendToLms.addEventListener('click', () => {
     }
 });
 
-btnDownloadSvg.addEventListener('click', () => {
-    buildSvgString();
-    if (!currentSvgString) { alert('Dibuja o captura un boceto primero.'); return; }
-    const blob = new Blob([currentSvgString], { type: 'image/svg+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'makerdu_vector.svg';
-    a.click();
-});
-
 btnDownloadStl.addEventListener('click', () => {
     if (!currentMesh) { alert('Genera un modelo 3D primero.'); return; }
-    const stlString = generateAsciiStl(currentMesh);
+    const stlString = getValidStlString();
     const blob = new Blob([stlString], { type: 'model/stl' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

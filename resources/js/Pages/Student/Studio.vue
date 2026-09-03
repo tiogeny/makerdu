@@ -139,7 +139,13 @@ const mission2Evidence = computed(() => {
 
 // Progreso General del Reto Estilo Videojuego
 const completedMissionsCount = computed(() => {
-    return (props.bitacoras || []).filter(b => b.status === 'approved').length;
+    const approvedLevelIds = new Set(
+        (props.bitacoras || [])
+            .filter(b => b.status === 'approved')
+            .map(b => b.level_id)
+    );
+    const total = props.project.levels?.length || 5;
+    return Math.min(total, approvedLevelIds.size);
 });
 
 const progressPercentage = computed(() => {
@@ -887,25 +893,30 @@ const changeRole = (newRole) => {
                                 <span 
                                     :class="[
                                         'w-8 h-8 rounded-xl font-mono text-xs font-black flex items-center justify-center shrink-0 transition',
-                                        mission.is_completed
-                                            ? 'bg-emerald-500 text-white'
-                                            : (selectedMissionIndex === idx
-                                                ? 'bg-cyan-500 text-slate-950 font-black shadow-md'
-                                                : (isDarkTheme ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-700'))
+                                        selectedMissionIndex === idx
+                                            ? 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 font-black shadow-lg shadow-cyan-500/20'
+                                            : (mission.is_completed
+                                                ? 'bg-slate-900 border border-slate-700 text-emerald-400 font-bold'
+                                                : (isDarkTheme ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-600'))
                                     ]"
                                 >
-                                    <Check v-if="mission.is_completed" class="w-4 h-4 stroke-[3]" />
+                                    <Check v-if="mission.is_completed && selectedMissionIndex !== idx" class="w-4 h-4 stroke-[2.5]" />
                                     <span v-else>{{ idx + 1 }}</span>
                                 </span>
 
                                 <div>
-                                    <h4 
-                                        class="text-xs font-bold leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition"
-                                        :class="selectedMissionIndex === idx ? (isDarkTheme ? 'text-white' : 'text-slate-900 font-black') : ''"
-                                    >
-                                        {{ mission.title }}
-                                    </h4>
-                                    <span class="text-[10px] font-mono text-slate-400 block mt-0.5">
+                                    <div class="flex items-center gap-2">
+                                        <h4 
+                                            class="text-xs font-bold leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition"
+                                            :class="selectedMissionIndex === idx ? (isDarkTheme ? 'text-white font-black' : 'text-slate-900 font-black') : (mission.is_completed ? 'text-slate-400' : 'text-slate-500')"
+                                        >
+                                            {{ mission.title }}
+                                        </h4>
+                                        <span v-if="mission.is_completed && selectedMissionIndex !== idx" class="text-[9px] font-mono font-bold text-emerald-500 bg-emerald-950/40 border border-emerald-800/40 px-1.5 py-0.2 rounded-md">
+                                            Superada
+                                        </span>
+                                    </div>
+                                    <span class="text-[10px] font-mono text-slate-500 block mt-0.5">
                                         ⚡ +{{ mission.xp_reward }} PM · 🪙 {{ mission.fabcoins_cost || 0 }} FC
                                     </span>
                                 </div>
@@ -945,22 +956,37 @@ const changeRole = (newRole) => {
                         </h2>
                     </div>
 
-                    <!-- Indicador de Fases Dinámico -->
-                    <div class="flex items-center gap-1.5 text-[11px] font-mono font-bold">
-                        <span 
-                            :class="currentPhase >= 1 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-200 text-slate-500'"
-                            class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                        >1</span>
-                        <span class="text-slate-300">➔</span>
-                        <span 
-                            :class="currentPhase >= 2 ? 'bg-purple-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
-                            class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                        >2</span>
-                        <span class="text-slate-300">➔</span>
-                        <span 
-                            :class="currentPhase >= 3 ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
-                            class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                        >3</span>
+                    <!-- Stepper Interactivo de Fases Maker (Insumo ➔ Taller ➔ Validación) -->
+                    <div class="hidden sm:flex items-center gap-1 p-1 bg-slate-950/80 rounded-2xl border border-slate-800 text-xs">
+                        <button 
+                            type="button"
+                            @click="unlockPhase(1, 'phase-1')"
+                            :class="currentPhase === 1 ? 'bg-cyan-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                        >
+                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">1</span>
+                            <span class="text-[11px] font-bold">Insumos & Guía</span>
+                        </button>
+                        <span class="text-slate-600 text-xs font-mono">›</span>
+                        <button 
+                            type="button"
+                            @click="unlockPhase(2, 'phase-2')"
+                            :class="currentPhase === 2 ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                        >
+                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">2</span>
+                            <span class="text-[11px] font-bold">Taller & Herramientas</span>
+                        </button>
+                        <span class="text-slate-600 text-xs font-mono">›</span>
+                        <button 
+                            type="button"
+                            @click="unlockPhase(3, 'phase-3')"
+                            :class="currentPhase === 3 ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                        >
+                            <span class="w-4 h-4 rounded-full bg-slate-950/20 text-[10px] font-black flex items-center justify-center">3</span>
+                            <span class="text-[11px] font-bold">Validación IA & Entrega</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1199,6 +1225,13 @@ const changeRole = (newRole) => {
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
+                            <button
+                                type="button"
+                                @click="openMicroAppModal(props.microApps.find(a => a.slug === 'slicer-3d') || { slug: 'slicer-3d', name: 'Simulador de Laminado 3D & Relleno' }, mission2Evidence.file_url)"
+                                class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer"
+                            >
+                                <span>🍰 Simular Laminado & Relleno</span>
+                            </button>
                             <a 
                                 :href="mission2Evidence.file_url" 
                                 download 

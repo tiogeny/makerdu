@@ -1,14 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Makerdu Vectorizer & 3D Extruder</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Space Grotesk', sans-serif; }
@@ -20,16 +19,16 @@
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col selection:bg-amber-500 selection:text-black select-none">
 
-    <!-- TOPBAR COMPACTO (ESTILO TINKERCAD) -->
+    <!-- TOPBAR COMPACTA (ESTILO TINKERCAD) -->
     <header class="h-12 bg-slate-900/90 border-b border-slate-800 px-3 flex items-center justify-between shrink-0 z-40">
         <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-amber-500 flex items-center justify-center text-slate-950 font-black text-xs shadow-md shadow-cyan-500/20">
-                âš¡
+                ⚡
             </div>
             <div>
                 <h1 class="font-black text-xs text-white tracking-tight flex items-center gap-1.5">
                     <span>VECTORIZADOR & EXTRUSOR 2.5D</span>
-                    <span class="text-[8px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/40">Taller Maker</span>
+                    <span class="text-[8px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/40">Taller Maker</span>
                 </h1>
             </div>
         </div>
@@ -38,80 +37,80 @@
             <!-- Selector de Vistas: Dividida vs Pantalla Completa 2D vs 3D -->
             <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px]">
                 <button id="btnViewSplit" class="px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 bg-cyan-500 text-slate-950 shadow">
-                    <span>ðŸ”² Dividida</span>
+                    <span>Dividida</span>
                 </button>
                 <button id="btnView2D" class="px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 text-slate-400 hover:text-white">
-                    <span>âœï¸ Nodos 2D</span>
+                    <span>Nodos 2D</span>
                 </button>
                 <button id="btnView3D" class="px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 text-slate-400 hover:text-white">
-                    <span>ðŸ§Š Visor 3D</span>
+                    <span>Visor 3D</span>
                 </button>
             </div>
 
-            <!-- BotÃ³n LMS Guardar en BitÃ¡cora -->
+            <!-- Botón LMS Guardar en Bitácora -->
             <button
                 id="btnSendToLms"
                 class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse cursor-pointer"
             >
-                <span>ðŸ’¾ ENVIAR A BITÃCORA</span>
+                <span>GUARDAR EN BITACORA</span>
             </button>
         </div>
     </header>
 
-    <!-- ÃREA PRINCIPAL: PANTALLA ÃšNICA SIN SCROLL -->
+    <!-- AREA PRINCIPAL: PANTALLA UNICA SIN SCROLL -->
     <main class="flex-1 min-h-0 grid grid-cols-12 gap-2.5 p-2.5 overflow-hidden">
         
-        <!-- PANEL IZQUIERDO: LIENZO 2D & EDICIÃ“N DE NODOS BÃ‰ZIER (7 COLS) -->
+        <!-- PANEL IZQUIERDO: LIENZO 2D & EDICION DE NODOS BEZIER (7 COLS) -->
         <section id="col2D" class="col-span-12 lg:col-span-7 flex flex-col h-full min-h-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 overflow-hidden shadow-xl">
             
             <!-- Barra superior del lienzo 2D -->
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 shrink-0 gap-2">
                 <div class="flex items-center gap-1.5">
                     <button id="btnStartCamera" class="px-2 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 text-[10px] font-bold hover:bg-cyan-900 transition">
-                        ðŸ“· CÃ¡mara
+                        Camara
                     </button>
                     <label class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold hover:bg-slate-700 cursor-pointer transition">
-                        ðŸ“ Subir Foto
+                        Subir Foto
                         <input type="file" id="fileInput" accept="image/*" class="hidden" />
                     </label>
                 </div>
 
                 <div class="flex items-center gap-1.5">
                     <button id="btnToggleOverlay" class="px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold transition">
-                        ðŸ‘ï¸ Capa
+                        Capa Vectorial
                     </button>
                     <button id="btnEditNodes" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-[10px] font-bold transition">
-                        âœï¸ Nodos & Curvas
+                        Modo Nodos & Curvas
                     </button>
                 </div>
             </div>
 
-            <!-- Ayuda Visual de EdiciÃ³n -->
-            <div id="nodeEditHelp" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] font-mono px-2 py-0.5 rounded-lg flex items-center justify-between shrink-0 my-1">
-                <span>ðŸ–±ï¸ <b>Arrastra:</b> Mueve nodo</span>
-                <span>âž• <b>Clic en lÃ­nea:</b> AÃ±ade</span>
-                <span>ðŸ—‘ï¸ <b>Doble clic:</b> Borra</span>
+            <!-- Ayuda Visual de Edicion de Nodos y Tiradores -->
+            <div id="nodeEditHelp" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] font-mono px-2 py-1 rounded-lg flex items-center justify-between shrink-0 my-1">
+                <span><b>Clic en nodo:</b> Muestra tiradores de curvatura</span>
+                <span><b>Arrastra tirador:</b> Modifica la curva</span>
+                <span><b>Doble clic:</b> Borra nodo</span>
             </div>
 
-            <!-- LIENZO DE TRABAJO 2D (OCUPA TODO EL ALTO DISPONIBLE) -->
+            <!-- LIENZO DE TRABAJO 2D -->
             <div id="canvasWrapper" class="flex-1 min-h-0 relative w-full bg-slate-950 rounded-xl border border-slate-800/90 overflow-hidden flex items-center justify-center my-1.5">
                 <video id="videoFeed" autoplay playsinline class="hidden w-full h-full object-cover"></video>
                 <canvas id="processCanvas" class="w-full h-full cursor-crosshair"></canvas>
                 
                 <div id="cameraPrompt" class="text-center p-3 space-y-1 pointer-events-none">
                     <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-lg text-slate-400">
-                        âœï¸
+                        ✍️
                     </div>
-                    <p class="text-xs font-bold text-slate-300">Boceto con plumÃ³n negro sobre papel blanco</p>
-                    <p class="text-[9px] text-slate-500">Sube una foto o activa la cÃ¡mara para digitalizar</p>
+                    <p class="text-xs font-bold text-slate-300">Boceto con plumon negro sobre papel blanco</p>
+                    <p class="text-[9px] text-slate-500">Sube una foto o activa la camara para digitalizar</p>
                 </div>
 
                 <button id="btnSnap" class="hidden absolute bottom-3 px-3 py-1.5 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs shadow-xl cursor-pointer">
-                    ðŸ“¸ CAPTURAR
+                    CAPTURAR
                 </button>
             </div>
 
-            <!-- BARRA DE CONTROLES INFERIOR (COMPACTA) -->
+            <!-- BARRA DE CONTROLES INFERIOR -->
             <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 shrink-0 text-xs">
                 <!-- Control de Umbral B/N -->
                 <div class="bg-slate-950 p-1.5 rounded-xl border border-slate-800 flex flex-col justify-center">
@@ -122,22 +121,22 @@
                     <input type="range" id="thresholdSlider" min="10" max="245" value="128" class="w-full accent-cyan-400 cursor-pointer h-1.5" />
                 </div>
 
-                <!-- Control de Curvatura BÃ©zier -->
+                <!-- Control de Curvatura Global -->
                 <div class="bg-slate-950 p-1.5 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <div class="flex justify-between text-[10px] mb-0.5">
-                        <span class="text-slate-400 font-bold">Curvatura BÃ©zier:</span>
+                        <span class="text-slate-400 font-bold">Tension de Curvas:</span>
                         <span id="curveVal" class="font-mono text-amber-300 font-bold">Media</span>
                     </div>
                     <input type="range" id="curveSlider" min="0" max="4" value="2" class="w-full accent-amber-400 cursor-pointer h-1.5" />
                 </div>
 
-                <!-- Modo Calado / SÃ³lido -->
+                <!-- Modo Calado / Solido -->
                 <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center justify-around gap-1">
                     <button id="btnModeHoles" class="flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition bg-cyan-500 text-slate-950 shadow text-center truncate">
-                        ðŸ”² Calado
+                        Con Huecos
                     </button>
                     <button id="btnModeSolid" class="flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition text-slate-400 bg-slate-900 hover:text-white text-center truncate">
-                        â¬› SÃ³lido
+                        Solido
                     </button>
                 </div>
             </div>
@@ -151,22 +150,22 @@
             <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 shrink-0">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <h2 class="text-xs font-black uppercase tracking-wider text-white">Visor 3D (Giro Manual con RatÃ³n):</h2>
+                    <h2 class="text-xs font-black uppercase tracking-wider text-white">Visor 3D (Giro Manual con Raton):</h2>
                 </div>
                 <button id="btnResetCamera" class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300 hover:text-white transition">
-                    ðŸ”„ Reset CÃ¡mara
+                    Reset Camara
                 </button>
             </div>
 
-            <!-- CONTENEDOR 3D THREE.JS (OCUPA TODO EL ALTO DISPONIBLE) -->
+            <!-- CONTENEDOR 3D THREE.JS -->
             <div id="threeContainer" class="flex-1 min-h-0 relative w-full bg-slate-950 rounded-xl border border-slate-800/90 overflow-hidden flex items-center justify-center my-1.5">
                 <div id="threePlaceholder" class="text-center p-4 space-y-1 pointer-events-none">
-                    <div class="text-3xl text-slate-600">ðŸ§Š</div>
-                    <p class="text-xs font-bold text-slate-500">AquÃ­ aparecerÃ¡ tu Art Toy extruido en 3D</p>
+                    <div class="text-3xl text-slate-600">🧊</div>
+                    <p class="text-xs font-bold text-slate-500">Aqui aparecera tu Art Toy extruido en 3D</p>
                 </div>
             </div>
 
-            <!-- PARÃMETROS DE FABRICACIÃ“N Y STATS INFERIORES -->
+            <!-- PARAMETROS DE FABRICACION Y STATS -->
             <div class="space-y-1.5 pt-1 border-t border-slate-800/80 shrink-0 text-xs">
                 <div class="grid grid-cols-4 gap-1.5 items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800">
                     <div>
@@ -198,7 +197,7 @@
                     </div>
                 </div>
 
-                <!-- DATOS TÃ‰CNICOS & DESCARGAS -->
+                <!-- STATS & DESCARGA STL (ENFOCADO 100% A 3D) -->
                 <div class="grid grid-cols-4 gap-1.5 text-center">
                     <div class="bg-slate-950 p-1 rounded-xl border border-slate-800">
                         <p class="text-[8px] uppercase font-bold text-slate-500">Medidas</p>
@@ -212,12 +211,9 @@
                         <p class="text-[8px] uppercase font-bold text-slate-500">FabCoins</p>
                         <p id="costInfo" class="font-mono text-[11px] font-bold text-purple-300">4 FC</p>
                     </div>
-                    <div class="flex items-center justify-center gap-1">
-                        <button id="btnDownloadSvg" title="Descargar SVG" class="px-2 py-1.5 rounded-lg bg-purple-950 text-purple-300 border border-purple-800 hover:bg-purple-900 text-[10px] font-bold transition">
-                            SVG
-                        </button>
-                        <button id="btnDownloadStl" title="Descargar STL 3D" class="px-2 py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 hover:bg-cyan-900 text-[10px] font-bold transition">
-                            STL
+                    <div class="flex items-center justify-center">
+                        <button id="btnDownloadStl" class="w-full py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 hover:bg-cyan-900 text-xs font-black transition shadow-sm">
+                            Descargar STL 3D
                         </button>
                     </div>
                 </div>
@@ -227,7 +223,6 @@
 
     </main>
 
-    <!-- SCRIPTS -->
-    <script src="app.js?v=4.8"></script>
+    <script src="app.js?v=5.0"></script>
 </body>
 </html>

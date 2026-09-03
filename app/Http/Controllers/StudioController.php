@@ -342,12 +342,28 @@ class StudioController extends Controller
             $fileUrl = Storage::url($path);
         }
 
+        $snapshotUrl = null;
+        if ($request->filled('image_snapshot') && str_starts_with($request->input('image_snapshot'), 'data:image')) {
+            try {
+                $base64Data = explode(',', $request->input('image_snapshot'))[1] ?? '';
+                if ($base64Data) {
+                    $snapContent = base64_decode($base64Data);
+                    $snapFilename = 'bitacoras/snapshot_' . $squad->id . '_' . $level->id . '_' . time() . '.png';
+                    Storage::disk('public')->put($snapFilename, $snapContent);
+                    $snapshotUrl = Storage::url($snapFilename);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Error guardando snapshot 3D: ' . $e->getMessage());
+            }
+        }
+
         BitacoraEntry::create([
             'squad_id' => $squad->id,
             'level_id' => $level->id,
             'active_role_user_id' => $activeStudentId,
             'content_text' => $request->content_text,
             'file_url' => $fileUrl,
+            'snapshot_url' => $snapshotUrl,
             'ai_score' => true,
             'ai_feedback' => 'Evidencia registrada exitosamente por la escuadra.',
             'status' => 'approved',

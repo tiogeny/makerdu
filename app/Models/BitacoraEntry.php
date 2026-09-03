@@ -15,6 +15,7 @@ class BitacoraEntry extends Model
         'active_role_user_id',
         'content_text',
         'file_url',
+        'snapshot_url',
         'ai_score',
         'ai_feedback',
         'status',
