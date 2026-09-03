@@ -22,39 +22,34 @@ try {
     echo "[!] Error al migrar (puede que ya existan las tablas): " . $e->getMessage() . "\n";
 }
 
-echo "--- [2/5] RESTAURANDO PROYECTO MAESTRO ART TOYS SI FALTA ---\n";
+echo "--- [2/5] SINCRONIZANDO LAS 5 MISIONES OFICIALES DEL PROYECTO MAESTRO ---\n";
 Schema::disableForeignKeyConstraints();
 
-$project = Project::with('levels')->first();
-if (!$project || $project->levels->count() === 0) {
-    echo " -> Proyecto maestro no encontrado o sin niveles. Restaurando desde default_project_data.json...\n";
-    $jsonFile = __DIR__ . '/default_project_data.json';
-    if (file_exists($jsonFile)) {
-        $data = json_decode(file_get_contents($jsonFile), true);
-        if ($data) {
-            $project = Project::updateOrCreate(
-                ['id' => $data['id'] ?? 1],
-                [
-                    'title_json' => $data['title_json'],
-                    'description_json' => $data['description_json'],
-                    'type' => $data['type'] ?? 'individual',
-                    'total_levels' => $data['total_levels'] ?? 5,
-                    'is_active' => true,
-                    'briefing_json' => $data['briefing_json'] ?? null,
-                ]
-            );
+$jsonFile = __DIR__ . '/default_project_data.json';
+if (file_exists($jsonFile)) {
+    $data = json_decode(file_get_contents($jsonFile), true);
+    if ($data) {
+        $project = Project::updateOrCreate(
+            ['id' => $data['id'] ?? 1],
+            [
+                'title_json' => $data['title_json'],
+                'description_json' => $data['description_json'],
+                'type' => $data['type'] ?? 'individual',
+                'total_levels' => 5,
+                'is_active' => true,
+                'briefing_json' => $data['briefing_json'] ?? null,
+            ]
+        );
 
-            ProjectLevel::where('project_id', $project->id)->delete();
-            foreach ($data['levels'] as $lvl) {
-                unset($lvl['id']);
-                $lvl['project_id'] = $project->id;
-                ProjectLevel::create($lvl);
-            }
-            echo "[✔] Proyecto maestro restaurado con 5 misiones completas.\n";
+        // Borrar niveles antiguos y registrar exactamente las 5 misiones oficiales
+        ProjectLevel::where('project_id', $project->id)->delete();
+        foreach ($data['levels'] as $lvl) {
+            unset($lvl['id']);
+            $lvl['project_id'] = $project->id;
+            ProjectLevel::create($lvl);
         }
+        echo "[✔] Proyecto maestro (ID: {$project->id}) sincronizado con las 5 misiones completas.\n";
     }
-} else {
-    echo "[✔] Proyecto maestro ya existe (ID: {$project->id}) con {$project->levels->count()} misiones.\n";
 }
 
 echo "--- [3/5] LIMPIANDO BITÁCORAS Y EVIDENCIAS ANTERIORES ---\n";
