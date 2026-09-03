@@ -57,40 +57,50 @@
             <!-- SELECTOR DE MODO -->
             <div class="grid grid-cols-2 gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
                 <button id="tabCamera" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-md">
-                    📷 Cámara / Foto B/N
+                    📷 Boceto B/N & Vectores
                 </button>
                 <button id="tabBezier" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
-                    ✒️ Editor Bézier 2D
+                    ✒️ Trazador Bézier Libre
                 </button>
             </div>
 
-            <!-- PANEL MODO 1: CÁMARA / SUBIDA DE FOTO -->
-            <div id="panelCamera" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4 shadow-xl">
+            <!-- PANEL MODO 1: CÁMARA / SUBIDA DE FOTO CON CAPA VECTORIAL -->
+            <div id="panelCamera" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
                 
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-300">Captura o Carga tu Boceto:</span>
+                    <span class="text-xs font-bold text-slate-300">Boceto & Nodos Vectoriales:</span>
                     <div class="flex gap-1.5">
                         <button id="btnStartCamera" class="px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 text-[11px] font-bold hover:bg-cyan-900 transition">
-                            Activar Cámara
+                            Cámara
                         </button>
                         <label class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-bold hover:bg-slate-700 cursor-pointer transition">
-                            Subir Archivo
+                            Subir Foto
                             <input type="file" id="fileInput" accept="image/*" class="hidden" />
                         </label>
                     </div>
                 </div>
 
-                <!-- Visor Cámara / Canvas de Procesamiento -->
+                <!-- BARRA DE HERRAMIENTAS DE VECTORIZADO -->
+                <div class="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+                    <button id="btnToggleOverlay" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold flex items-center gap-1 transition">
+                        <span>👁️ Capa Vectorial</span>
+                    </button>
+                    <button id="btnEditNodes" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white text-[11px] font-bold flex items-center gap-1 transition">
+                        <span>✏️ Modo Editar Nodos</span>
+                    </button>
+                </div>
+
+                <!-- Visor Cámara / Canvas con Superposición Vectorial Interactiva -->
                 <div class="relative w-full aspect-square bg-slate-950 rounded-2xl border-2 border-dashed border-slate-800 overflow-hidden flex items-center justify-center">
                     <video id="videoFeed" autoplay playsinline class="hidden w-full h-full object-cover"></video>
-                    <canvas id="processCanvas" class="w-full h-full object-contain"></canvas>
+                    <canvas id="processCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
                     
                     <div id="cameraPrompt" class="text-center p-4 space-y-2 pointer-events-none">
                         <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-xl text-slate-400">
                             🎨
                         </div>
                         <p class="text-xs font-bold text-slate-400">Dibuja un boceto con plumón negro sobre papel blanco</p>
-                        <p class="text-[10px] text-slate-600">Activa la cámara o sube una foto para vectorizar</p>
+                        <p class="text-[10px] text-slate-600">Sube una foto o activa la cámara para vectorizar</p>
                     </div>
 
                     <!-- Botón Flotante Disparar Foto -->
@@ -99,15 +109,42 @@
                     </button>
                 </div>
 
-                <!-- Deslizador de Umbral B/N -->
-                <div class="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-400 font-bold">Umbral de Contraste B/N:</span>
-                        <span id="thresholdVal" class="font-mono text-cyan-300 font-bold">128</span>
+                <!-- MODOS DE EXTRUSIÓN ESTILO 3D BUILDER -->
+                <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Modo de Extrusión:</span>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="btnModeHoles" class="py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 bg-cyan-500 text-slate-950 shadow-md">
+                            <span>🔲 Calado (Con Huecos)</span>
+                        </button>
+                        <button id="btnModeSolid" class="py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 text-slate-400 bg-slate-900 hover:text-white border border-slate-800">
+                            <span>⬛ Silueta Sólida</span>
+                        </button>
                     </div>
-                    <input type="range" id="thresholdSlider" min="10" max="245" value="128" class="w-full accent-cyan-400 cursor-pointer" />
-                    <p class="text-[9px] text-slate-500">Mueve el deslizador hasta que el dibujo se vea completamente nítido en negro y blanco puro.</p>
                 </div>
+
+                <!-- DESLIZADORES: SUAVIZADO & CONTRASTE B/N -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <!-- Suavizado (Smooth) -->
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-bold">Suavizado:</span>
+                            <span id="smoothVal" class="font-mono text-cyan-300 font-bold">Nivel 4</span>
+                        </div>
+                        <input type="range" id="smoothSlider" min="1" max="10" value="4" class="w-full accent-cyan-400 cursor-pointer" />
+                        <p class="text-[8px] text-slate-500">1: Angular • 10: Redondeado orgánico</p>
+                    </div>
+
+                    <!-- Umbral B/N -->
+                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-bold">Umbral B/N:</span>
+                            <span id="thresholdVal" class="font-mono text-cyan-300 font-bold">128</span>
+                        </div>
+                        <input type="range" id="thresholdSlider" min="10" max="245" value="128" class="w-full accent-cyan-400 cursor-pointer" />
+                        <p class="text-[8px] text-slate-500">Calibra contraste de papel y plumón</p>
+                    </div>
+                </div>
+
             </div>
 
             <!-- PANEL MODO 2: EDITOR BÉZIER 2D -->
@@ -128,22 +165,46 @@
                 </p>
             </div>
 
-            <!-- AJUSTES DE EXTRUSIÓN 3D & CORTE LÁSER -->
+            <!-- PARÁMETROS DE FABRICACIÓN (DIMENSIONES EXACTAS EN MM) -->
             <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3 shadow-xl">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Parámetros de Fabricación:</h3>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Dimensiones de Fabricación (mm):</h3>
                 
+                <div class="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 items-center">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Ancho (X)</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" id="dimXInput" value="50" min="15" max="150" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan-400" />
+                            <span class="text-[10px] text-slate-500 font-mono">mm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Largo (Y)</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" id="dimYInput" value="50" min="15" max="150" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan-400" />
+                            <span class="text-[10px] text-slate-500 font-mono">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 flex justify-center">
+                        <button id="btnLockRatio" title="Bloquear proporción" class="px-2.5 py-1 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-300 text-[10px] font-bold hover:bg-cyan-900 transition flex items-center gap-1">
+                            <span>🔒 1:1</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-400">Altura / Espesor:</span>
-                            <span id="heightVal" class="font-mono text-amber-300 font-bold">5 mm</span>
+                            <span class="text-slate-400">Espesor (Z):</span>
+                            <span id="heightVal" class="font-mono text-amber-300 font-bold">10 mm</span>
                         </div>
-                        <input type="range" id="heightSlider" min="2" max="20" value="5" class="w-full accent-amber-400 cursor-pointer" />
+                        <input type="range" id="heightSlider" min="2" max="25" value="10" class="w-full accent-amber-400 cursor-pointer" />
                     </div>
 
                     <label class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="checkHole" class="w-4 h-4 rounded text-cyan-400 focus:ring-0" />
-                        <span class="text-[11px] text-slate-300 font-bold">Ojal de Enganche (Dije / Llavero)</span>
+                        <span class="text-[11px] text-slate-300 font-bold">Ojal Llavero (Dije)</span>
                     </label>
                 </div>
             </div>
@@ -160,7 +221,15 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                         <h2 class="text-xs font-bold uppercase tracking-wider text-white">Previsualización 3D en Tiempo Real:</h2>
                     </div>
-                    <span class="text-[10px] font-mono text-slate-400">Gira con clic • Zoom con rueda</span>
+                    <div class="flex items-center gap-2">
+                        <button id="btnToggleRotate" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition flex items-center gap-1">
+                            <span id="rotateIcon">⏸️</span>
+                            <span id="rotateText">Pausar Giro</span>
+                        </button>
+                        <button id="btnResetCamera" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition">
+                            🔄 Reset
+                        </button>
+                    </div>
                 </div>
 
                 <div id="threeContainer" class="w-full flex-1 min-h-[340px] bg-slate-950 rounded-2xl border border-slate-800/80 relative overflow-hidden flex items-center justify-center">
@@ -174,11 +243,11 @@
                 <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800 text-center">
                     <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/60">
                         <p class="text-[9px] uppercase font-bold text-slate-500">Dimensiones</p>
-                        <p id="dimInfo" class="font-mono text-xs font-bold text-cyan-300">50 x 50 mm</p>
+                        <p id="dimInfo" class="font-mono text-xs font-bold text-cyan-300">50 x 50 x 10 mm</p>
                     </div>
                     <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/60">
                         <p class="text-[9px] uppercase font-bold text-slate-500">Volumen Est.</p>
-                        <p id="volInfo" class="font-mono text-xs font-bold text-amber-300">12.5 cm³</p>
+                        <p id="volInfo" class="font-mono text-xs font-bold text-amber-300">14.2 cm³</p>
                     </div>
                     <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/60">
                         <p class="text-[9px] uppercase font-bold text-slate-500">FabCoins</p>
