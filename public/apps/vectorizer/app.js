@@ -1,4 +1,4 @@
-﻿// Makerdu Vectorizer & 3D Extruder Engine v4.5 (Studio Precision Edition)
+﻿// Makerdu Vectorizer & 3D Extruder Engine v4.7 (Full Canvas & Robust Extrusion)
 
 // -------------------------------------------------------------
 // STATE & CONFIGURATION
@@ -6,23 +6,24 @@
 let extrusionMode = 'calado'; // 'calado' (con huecos) or 'solido'
 let showVectorOverlay = true;
 let isEditNodesMode = false;
-let isAutoRotating = false; // Desactivado por defecto segÃºn solicitud del usuario
+let isAutoRotating = false; // Desactivado por defecto
 let isRatioLocked = true;
+let currentViewMode = 'split'; // 'split', '2d', '3d'
 let currentSvgString = '';
 let currentMesh = null;
 let videoStream = null;
 let originalImg = null;
 let baseAspectRatio = 1.0;
 
-// Geometria Vectorial 2D (canvasX, canvasY son la verdad de la silueta)
+// GeometrÃ­a Vectorial 2D
 let currentPoints = []; // Contorno exterior [{canvasX, canvasY, x, y}]
 let innerHoles = [];    // Array de huecos [[{canvasX, canvasY, x, y}], ...]
 
-// Interaccion de Nodos
-let draggedNode = null; // { type: 'outer'|'hole', holeIdx: number, pointIdx: number }
+// InteracciÃ³n de Nodos
+let draggedNode = null;
 let hoveredNode = null;
 
-// Parametros de Fabricacion
+// ParÃ¡metros de FabricaciÃ³n
 let targetDimX = 50;
 let targetDimY = 50;
 let targetDimZ = 10;
@@ -30,6 +31,17 @@ let targetDimZ = 10;
 // -------------------------------------------------------------
 // DOM ELEMENTS
 // -------------------------------------------------------------
+const col2D = document.getElementById('col2D');
+const col3D = document.getElementById('col3D');
+const canvasWrapper = document.getElementById('canvasWrapper');
+const threeWrapper = document.getElementById('threeWrapper');
+
+// Vistas
+const btnViewSplit = document.getElementById('btnViewSplit');
+const btnView2D = document.getElementById('btnView2D');
+const btnView3D = document.getElementById('btnView3D');
+
+// Captura / Archivo
 const videoFeed = document.getElementById('videoFeed');
 const processCanvas = document.getElementById('processCanvas');
 const cameraPrompt = document.getElementById('cameraPrompt');
@@ -69,10 +81,49 @@ const dimInfo = document.getElementById('dimInfo');
 const volInfo = document.getElementById('volInfo');
 const costInfo = document.getElementById('costInfo');
 
-// Botones de Accion
+// Botones de AcciÃ³n
 const btnSendToLms = document.getElementById('btnSendToLms');
 const btnDownloadSvg = document.getElementById('btnDownloadSvg');
 const btnDownloadStl = document.getElementById('btnDownloadStl');
+
+// -------------------------------------------------------------
+// CONTROL DE VISTAS (PANTALLA COMPLETA 2D / 3D / DIVIDIDA)
+// -------------------------------------------------------------
+function setViewMode(mode) {
+    currentViewMode = mode;
+
+    if (btnViewSplit) btnViewSplit.className = 'px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] ' + (mode === 'split' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
+    if (btnView2D) btnView2D.className = 'px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] ' + (mode === '2d' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
+    if (btnView3D) btnView3D.className = 'px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] ' + (mode === '3d' ? 'bg-cyan-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white');
+
+    if (mode === '2d') {
+        col2D.className = 'lg:col-span-12 flex flex-col gap-3 w-full';
+        col3D.classList.add('hidden');
+        if (canvasWrapper) canvasWrapper.className = 'relative w-full h-[620px] bg-slate-950 rounded-2xl border-2 border-slate-800 overflow-hidden flex items-center justify-center';
+    } else if (mode === '3d') {
+        col2D.classList.add('hidden');
+        col3D.className = 'lg:col-span-12 flex flex-col gap-4 w-full';
+        col3D.classList.remove('hidden');
+        if (threeContainer) threeContainer.style.minHeight = '620px';
+    } else {
+        // Modo split normal (2D dominante)
+        col2D.className = 'lg:col-span-7 flex flex-col gap-3';
+        col2D.classList.remove('hidden');
+        col3D.className = 'lg:col-span-5 flex flex-col gap-4';
+        col3D.classList.remove('hidden');
+        if (canvasWrapper) canvasWrapper.className = 'relative w-full h-[480px] sm:h-[540px] bg-slate-950 rounded-2xl border-2 border-slate-800 overflow-hidden flex items-center justify-center';
+        if (threeContainer) threeContainer.style.minHeight = '360px';
+    }
+
+    setTimeout(() => {
+        onResizeThree();
+        drawVectorCanvas();
+    }, 50);
+}
+
+if (btnViewSplit) btnViewSplit.addEventListener('click', () => setViewMode('split'));
+if (btnView2D) btnView2D.addEventListener('click', () => setViewMode('2d'));
+if (btnView3D) btnView3D.addEventListener('click', () => setViewMode('3d'));
 
 // -------------------------------------------------------------
 // THREE.JS SETUP
@@ -80,7 +131,7 @@ const btnDownloadStl = document.getElementById('btnDownloadStl');
 let scene, camera, renderer, controls;
 function initThree() {
     const width = threeContainer.clientWidth || 400;
-    const height = threeContainer.clientHeight || 340;
+    const height = threeContainer.clientHeight || 360;
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
@@ -123,18 +174,21 @@ function initThree() {
     }
     animate();
 
-    window.addEventListener('resize', () => {
-        const w = threeContainer.clientWidth;
-        const h = threeContainer.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-    });
+    window.addEventListener('resize', onResizeThree);
+}
+
+function onResizeThree() {
+    if (!renderer || !camera || !threeContainer) return;
+    const w = threeContainer.clientWidth || 400;
+    const h = threeContainer.clientHeight || 360;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
 }
 initThree();
 
 // -------------------------------------------------------------
-// CONTROL DE GIRO 3D & CAMARA
+// CONTROL DE GIRO 3D & CÃMARA
 // -------------------------------------------------------------
 btnToggleRotate.addEventListener('click', () => {
     isAutoRotating = !isAutoRotating;
@@ -152,7 +206,7 @@ btnResetCamera.addEventListener('click', () => {
 });
 
 // -------------------------------------------------------------
-// MODOS DE EXTRUSION & CONTROLES
+// MODOS DE EXTRUSIÃ“N & CONTROLES
 // -------------------------------------------------------------
 btnModeHoles.addEventListener('click', () => {
     extrusionMode = 'calado';
@@ -210,7 +264,6 @@ checkHole.addEventListener('change', () => {
     extrude3D();
 });
 
-// Control de Dimensiones Proporcionales
 btnLockRatio.addEventListener('click', () => {
     isRatioLocked = !isRatioLocked;
     btnLockRatio.innerHTML = isRatioLocked ? '<span>ðŸ”’ 1:1</span>' : '<span>ðŸ”“ Libre</span>';
@@ -238,7 +291,7 @@ dimYInput.addEventListener('input', () => {
 });
 
 // -------------------------------------------------------------
-// CARGA DE IMAGENES & CAMARA
+// CARGA DE IMÃGENES & CÃMARA
 // -------------------------------------------------------------
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -268,13 +321,13 @@ btnStartCamera.addEventListener('click', async () => {
         if (cameraPrompt) cameraPrompt.classList.add('hidden');
         btnSnap.classList.remove('hidden');
     } catch (err) {
-        alert('No se pudo acceder a la camara. Por favor permite los permisos o sube una foto.');
+        alert('No se pudo acceder a la cÃ¡mara. Por favor permite los permisos o sube una foto.');
     }
 });
 
 btnSnap.addEventListener('click', () => {
-    processCanvas.width = videoFeed.videoWidth || 400;
-    processCanvas.height = videoFeed.videoHeight || 400;
+    processCanvas.width = videoFeed.videoWidth || 600;
+    processCanvas.height = videoFeed.videoHeight || 600;
     const ctx = processCanvas.getContext('2d');
     ctx.drawImage(videoFeed, 0, 0, processCanvas.width, processCanvas.height);
 
@@ -290,7 +343,7 @@ btnSnap.addEventListener('click', () => {
     img.src = processCanvas.toDataURL('image/png');
 });
 
-// Soporte de precarga automatica desde Makerdu Studio (Mision 1 -> Mision 2)
+// Soporte de precarga automÃ¡tica desde Makerdu Studio (MisiÃ³n 1 -> MisiÃ³n 2)
 const urlParams = new URLSearchParams(window.location.search);
 const initialImageUrl = urlParams.get('image_url');
 if (initialImageUrl) {
@@ -308,7 +361,7 @@ if (initialImageUrl) {
 }
 
 // -------------------------------------------------------------
-// RECOMPUTACION BIDIRECCIONAL CONGRUENTE 2D <-> 3D
+// RECOMPUTACIÃ“N BIDIRECCIONAL CONGRUENTE 2D <-> 3D
 // -------------------------------------------------------------
 function recompute3DCoordinates() {
     if (currentPoints.length < 3) return;
@@ -343,13 +396,13 @@ function recompute3DCoordinates() {
 }
 
 // -------------------------------------------------------------
-// ALGORITMO DE VECTORIZACION
+// ALGORITMO ROBUSTO DE VECTORIZACIÃ“N (DETECCIÃ“N DEL DIBUJO PRINCIPAL)
 // -------------------------------------------------------------
 function applyThresholdAndVectorize() {
     if (!originalImg) return;
 
     const workCanvas = document.createElement('canvas');
-    const maxDim = 320;
+    const maxDim = 380;
     const scaleFactor = Math.min(1, maxDim / Math.max(originalImg.width, originalImg.height));
     const w = Math.round(originalImg.width * scaleFactor);
     const h = Math.round(originalImg.height * scaleFactor);
@@ -363,13 +416,14 @@ function applyThresholdAndVectorize() {
     const data = imgData.data;
     const threshold = parseInt(thresholdSlider.value);
 
+    // Matriz binaria: 1 = trazo oscuro, 0 = fondo claro
     const grid = new Uint8Array(w * h);
     for (let i = 0; i < data.length; i += 4) {
         const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
         grid[i / 4] = brightness < threshold ? 1 : 0;
     }
 
-    // 1. Deteccion de fondo exterior mediante Flood Fill
+    // 1. DetecciÃ³n de fondo exterior mediante Flood Fill desde los 4 bordes
     const visited = new Uint8Array(w * h);
     const queue = [];
 
@@ -403,25 +457,57 @@ function applyThresholdAndVectorize() {
         }
     }
 
-    // 2. Trazado del Contorno Exterior Principal
-    let startX = -1, startY = -1;
+    // 2. BUSCAR EL COMPONENTE NEGRO MÃS GRANDE (Para ignorar motas de polvo o sombras de papel)
+    const darkVisited = new Uint8Array(w * h);
+    let bestComponent = [];
+    let bestStartX = -1, bestStartY = -1;
+
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            if (grid[y * w + x] === 1) {
-                startX = x;
-                startY = y;
-                break;
+            const idx = y * w + x;
+            if (grid[idx] === 1 && darkVisited[idx] === 0) {
+                const comp = [];
+                const cQueue = [idx];
+                darkVisited[idx] = 1;
+                let cHead = 0;
+
+                while (cHead < cQueue.length) {
+                    const cIdx = cQueue[cHead++];
+                    comp.push(cIdx);
+                    const kx = cIdx % w;
+                    const ky = Math.floor(cIdx / w);
+
+                    const kNeigh = [[kx + 1, ky], [kx - 1, ky], [kx, ky + 1], [kx, ky - 1]];
+                    for (const [nx, ny] of kNeigh) {
+                        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                            const knIdx = ny * w + nx;
+                            if (grid[knIdx] === 1 && darkVisited[knIdx] === 0) {
+                                darkVisited[knIdx] = 1;
+                                cQueue.push(knIdx);
+                            }
+                        }
+                    }
+                }
+
+                if (comp.length > bestComponent.length) {
+                    bestComponent = comp;
+                    bestStartX = x;
+                    bestStartY = y;
+                }
             }
         }
-        if (startX !== -1) break;
     }
 
-    if (startX === -1) return;
+    if (bestComponent.length < 30 || bestStartX === -1) {
+        console.warn('No se detectÃ³ un dibujo con suficiente contraste.');
+        return;
+    }
 
-    const rawOuterContour = tracePerimeter(grid, w, h, startX, startY, 1);
-    if (rawOuterContour.length < 8) return;
+    // Trazar el perÃ­metro del componente principal
+    const rawOuterContour = tracePerimeter(grid, w, h, bestStartX, bestStartY, 1);
+    if (rawOuterContour.length < 6) return;
 
-    // 3. Deteccion de Huecos Interiores
+    // 3. DetecciÃ³n de Huecos Interiores (Islas blancas cerradas dentro de la silueta)
     const detectedHoles = [];
     const holeVisited = new Uint8Array(w * h);
 
@@ -432,8 +518,10 @@ function applyThresholdAndVectorize() {
                 const holePixels = [];
                 const hQueue = [idx];
                 holeVisited[idx] = 1;
-
                 let hHead = 0;
+
+                let holeBorderX = -1, holeBorderY = -1;
+
                 while (hHead < hQueue.length) {
                     const cur = hQueue[hHead++];
                     holePixels.push(cur);
@@ -447,16 +535,16 @@ function applyThresholdAndVectorize() {
                             if (grid[hnIdx] === 0 && visited[hnIdx] !== 2 && holeVisited[hnIdx] === 0) {
                                 holeVisited[hnIdx] = 1;
                                 hQueue.push(hnIdx);
+                            } else if (grid[hnIdx] === 1 && holeBorderX === -1) {
+                                holeBorderX = hx;
+                                holeBorderY = hy;
                             }
                         }
                     }
                 }
 
-                if (holePixels.length > 70) {
-                    const hStart = holePixels[0];
-                    const hsX = hStart % w;
-                    const hsY = Math.floor(hStart / w);
-                    const rawHole = tracePerimeter(grid, w, h, hsX, hsY, 0);
+                if (holePixels.length > 50 && holeBorderX !== -1) {
+                    const rawHole = tracePerimeter(grid, w, h, holeBorderX, holeBorderY, 0);
                     if (rawHole.length >= 6) {
                         detectedHoles.push(rawHole);
                     }
@@ -622,9 +710,9 @@ function drawVectorCanvas() {
     }
     ctx.closePath();
     ctx.strokeStyle = '#06b6d4';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.18)';
     ctx.fill();
 
     // Huecos interiores
@@ -638,9 +726,9 @@ function drawVectorCanvas() {
             }
             ctx.closePath();
             ctx.strokeStyle = '#f59e0b';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
-            ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
             ctx.fill();
         });
     }
@@ -649,11 +737,11 @@ function drawVectorCanvas() {
     if (isEditNodesMode) {
         currentPoints.forEach((p, idx) => {
             ctx.beginPath();
-            ctx.arc(p.canvasX, p.canvasY, 5, 0, Math.PI * 2);
+            ctx.arc(p.canvasX, p.canvasY, 5.5, 0, Math.PI * 2);
             ctx.fillStyle = (hoveredNode && hoveredNode.type === 'outer' && hoveredNode.pointIdx === idx) ? '#38bdf8' : '#06b6d4';
             ctx.fill();
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 2;
             ctx.stroke();
         });
 
@@ -661,7 +749,7 @@ function drawVectorCanvas() {
             innerHoles.forEach((hole, hIdx) => {
                 hole.forEach((p, pIdx) => {
                     ctx.beginPath();
-                    ctx.arc(p.canvasX, p.canvasY, 4.5, 0, Math.PI * 2);
+                    ctx.arc(p.canvasX, p.canvasY, 5, 0, Math.PI * 2);
                     ctx.fillStyle = (hoveredNode && hoveredNode.type === 'hole' && hoveredNode.holeIdx === hIdx && hoveredNode.pointIdx === pIdx) ? '#fde047' : '#f59e0b';
                     ctx.fill();
                     ctx.strokeStyle = '#ffffff';
@@ -674,7 +762,7 @@ function drawVectorCanvas() {
 }
 
 // -------------------------------------------------------------
-// INTERACCION DE RATON: ARRASTRE, ADICION Y BORRADO DE NODOS
+// INTERACCIÃ“N DE RATÃ“N: ARRASTRE, ADICIÃ“N Y BORRADO DE NODOS
 // -------------------------------------------------------------
 function getCanvasCoords(e) {
     const rect = processCanvas.getBoundingClientRect();
@@ -689,7 +777,7 @@ function getCanvasCoords(e) {
 processCanvas.addEventListener('mousedown', (e) => {
     if (!isEditNodesMode) return;
     const { x, y } = getCanvasCoords(e);
-    const hitRadius = 12 * (processCanvas.width / processCanvas.clientWidth);
+    const hitRadius = 14 * (processCanvas.width / processCanvas.clientWidth);
 
     for (let i = 0; i < currentPoints.length; i++) {
         if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
@@ -707,12 +795,12 @@ processCanvas.addEventListener('mousedown', (e) => {
         }
     }
 
-    // Clic en linea para agregar nodo
+    // Clic en lÃ­nea para agregar nodo
     for (let i = 0; i < currentPoints.length; i++) {
         const p1 = currentPoints[i];
         const p2 = currentPoints[(i + 1) % currentPoints.length];
         const dist = distToSegment({ x, y }, { x: p1.canvasX, y: p1.canvasY }, { x: p2.canvasX, y: p2.canvasY });
-        if (dist < 8 * (processCanvas.width / processCanvas.clientWidth)) {
+        if (dist < 10 * (processCanvas.width / processCanvas.clientWidth)) {
             currentPoints.splice(i + 1, 0, { canvasX: x, canvasY: y, x: 0, y: 0 });
             recompute3DCoordinates();
             drawVectorCanvas();
@@ -726,7 +814,7 @@ processCanvas.addEventListener('mousedown', (e) => {
 processCanvas.addEventListener('dblclick', (e) => {
     if (!isEditNodesMode) return;
     const { x, y } = getCanvasCoords(e);
-    const hitRadius = 12 * (processCanvas.width / processCanvas.clientWidth);
+    const hitRadius = 14 * (processCanvas.width / processCanvas.clientWidth);
 
     for (let i = 0; i < currentPoints.length; i++) {
         if (Math.hypot(currentPoints[i].canvasX - x, currentPoints[i].canvasY - y) < hitRadius) {
@@ -774,7 +862,7 @@ processCanvas.addEventListener('mousemove', (e) => {
         drawVectorCanvas();
         extrude3D();
     } else {
-        const hitRadius = 12 * (processCanvas.width / processCanvas.clientWidth);
+        const hitRadius = 14 * (processCanvas.width / processCanvas.clientWidth);
         let found = null;
 
         for (let i = 0; i < currentPoints.length; i++) {
@@ -815,102 +903,115 @@ function distToSegment(p, v, w) {
 }
 
 // -------------------------------------------------------------
-// EXTRUSION 3D WEBGL
+// EXTRUSIÃ“N 3D WEBGL (CON GARANTÃA TOTAL ANTI-CRASH)
 // -------------------------------------------------------------
 function extrude3D() {
-    if (currentPoints.length < 3) return;
+    if (!currentPoints || currentPoints.length < 3) return;
 
-    if (threePlaceholder) threePlaceholder.classList.add('hidden');
+    try {
+        if (threePlaceholder) threePlaceholder.classList.add('hidden');
 
-    if (currentMesh) {
-        scene.remove(currentMesh);
-    }
+        if (currentMesh) {
+            scene.remove(currentMesh);
+            if (currentMesh.geometry) currentMesh.geometry.dispose();
+            currentMesh = null;
+        }
 
-    // Contorno Exterior Counter-Clockwise (CCW)
-    let outerPoints = [...currentPoints];
-    if (getSignedArea(outerPoints) < 0) {
-        outerPoints.reverse();
-    }
+        // 1. Contorno Exterior garantizado Counter-Clockwise (CCW)
+        let outerPoints = [...currentPoints];
+        if (getSignedArea(outerPoints) < 0) {
+            outerPoints.reverse();
+        }
 
-    const shape = new THREE.Shape();
-    shape.moveTo(outerPoints[0].x, outerPoints[0].y);
-    for (let i = 1; i < outerPoints.length; i++) {
-        shape.lineTo(outerPoints[i].x, outerPoints[i].y);
-    }
-    shape.closePath();
+        const shape = new THREE.Shape();
+        shape.moveTo(outerPoints[0].x, outerPoints[0].y);
+        for (let i = 1; i < outerPoints.length; i++) {
+            shape.lineTo(outerPoints[i].x, outerPoints[i].y);
+        }
+        shape.closePath();
 
-    // Huecos Interiores Clockwise (CW)
-    if (extrusionMode === 'calado' && innerHoles.length > 0) {
-        innerHoles.forEach((holePts) => {
-            if (holePts.length < 3) return;
-            let hCopy = [...holePts];
-            if (getSignedArea(hCopy) > 0) {
-                hCopy.reverse();
-            }
-            const holePath = new THREE.Path();
-            holePath.moveTo(holeCopy[0].x, holeCopy[0].y);
-            for (let i = 1; i < holeCopy.length; i++) {
-                holePath.lineTo(holeCopy[i].x, holeCopy[i].y);
-            }
-            holePath.closePath();
-            shape.holes.push(holePath);
+        // 2. Huecos Interiores garantizados Clockwise (CW)
+        if (extrusionMode === 'calado' && innerHoles.length > 0) {
+            innerHoles.forEach((holePts) => {
+                if (holePts.length < 3) return;
+                let hCopy = [...holePts];
+                if (getSignedArea(hCopy) > 0) {
+                    hCopy.reverse();
+                }
+                const holePath = new THREE.Path();
+                holePath.moveTo(hCopy[0].x, holeCopy[0].y);
+                for (let i = 1; i < hCopy.length; i++) {
+                    holePath.lineTo(hCopy[i].x, hCopy[i].y);
+                }
+                holePath.closePath();
+                shape.holes.push(holePath);
+            });
+        }
+
+        // 3. Ojal de Llavero si estÃ¡ marcado
+        if (checkHole && checkHole.checked) {
+            const ojalPath = new THREE.Path();
+            ojalPath.absarc(0, 20, 2.5, 0, Math.PI * 2, true);
+            shape.holes.push(ojalPath);
+        }
+
+        const depth = parseFloat(heightSlider?.value) || 10;
+        const extrudeSettings = {
+            steps: 1,
+            depth: depth,
+            bevelEnabled: true,
+            bevelThickness: 0.5,
+            bevelSize: 0.35,
+            bevelSegments: 2
+        };
+
+        let geometry;
+        try {
+            geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        } catch (extrudeErr) {
+            console.warn('ExtrudeGeometry con huecos fallÃ³, generando silueta sÃ³lida sin conflicto:', extrudeErr);
+            shape.holes = [];
+            geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        }
+
+        geometry.center();
+        geometry.computeBoundingBox();
+        const bbox = geometry.boundingBox;
+        const currentW = Math.max(0.1, bbox.max.x - bbox.min.x);
+        const currentH = Math.max(0.1, bbox.max.y - bbox.min.y);
+
+        const safeDimX = Math.max(10, parseFloat(dimXInput?.value) || targetDimX || 50);
+        const safeDimY = Math.max(10, parseFloat(dimYInput?.value) || targetDimY || 50);
+        geometry.scale(safeDimX / currentW, safeDimY / currentH, 1);
+
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x06b6d4,
+            roughness: 0.35,
+            metalness: 0.2,
+            wireframe: false
         });
+
+        currentMesh = new THREE.Mesh(geometry, material);
+        currentMesh.position.z = depth / 2;
+        scene.add(currentMesh);
+
+        // CÃ¡lculos de FabricaciÃ³n
+        const estVolCm3 = (safeDimX * safeDimY * depth * 0.52) / 1000;
+        const weightGrams = Math.max(2, Math.round(estVolCm3 * 1.24 * 0.7));
+        const estFabCoins = Math.max(3, Math.round(weightGrams * 0.28));
+
+        if (dimInfo) dimInfo.innerText = safeDimX + ' x ' + safeDimY + ' x ' + depth + ' mm';
+        if (volInfo) volInfo.innerText = '~' + weightGrams + 'g PLA';
+        if (costInfo) costInfo.innerText = estFabCoins + ' FC';
+
+        buildSvgString();
+    } catch (err) {
+        console.error('Error en extrude3D:', err);
     }
-
-    // Ojal de Llavero si esta marcado
-    if (checkHole.checked) {
-        const ojalPath = new THREE.Path();
-        ojalPath.absarc(0, 20, 2.5, 0, Math.PI * 2, true);
-        shape.holes.push(ojalPath);
-    }
-
-    const depth = parseFloat(heightSlider.value) || 10;
-    const extrudeSettings = {
-        steps: 1,
-        depth: depth,
-        bevelEnabled: true,
-        bevelThickness: 0.5,
-        bevelSize: 0.35,
-        bevelSegments: 2
-    };
-
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geometry.center();
-
-    geometry.computeBoundingBox();
-    const bbox = geometry.boundingBox;
-    const currentW = Math.max(0.1, bbox.max.x - bbox.min.x);
-    const currentH = Math.max(0.1, bbox.max.y - bbox.min.y);
-
-    const scaleX = targetDimX / currentW;
-    const scaleY = targetDimY / currentH;
-    geometry.scale(scaleX, scaleY, 1);
-
-    const material = new THREE.MeshStandardMaterial({
-        color: 0x06b6d4,
-        roughness: 0.35,
-        metalness: 0.2,
-        wireframe: false
-    });
-
-    currentMesh = new THREE.Mesh(geometry, material);
-    currentMesh.position.z = depth / 2;
-    scene.add(currentMesh);
-
-    // Calculos de Fabricacion
-    const estVolCm3 = (targetDimX * targetDimY * targetDimZ * 0.52) / 1000;
-    const weightGrams = Math.max(2, Math.round(estVolCm3 * 1.24 * 0.7));
-    const estFabCoins = Math.max(3, Math.round(weightGrams * 0.28));
-
-    if (dimInfo) dimInfo.innerText = targetDimX + ' x ' + targetDimY + ' x ' + targetDimZ + ' mm';
-    if (volInfo) volInfo.innerText = '~' + weightGrams + 'g PLA';
-    if (costInfo) costInfo.innerText = estFabCoins + ' FC';
-
-    buildSvgString();
 }
 
 // -------------------------------------------------------------
-// CONSTRUCCION DE SVG
+// CONSTRUCCIÃ“N DE SVG
 // -------------------------------------------------------------
 function buildSvgString() {
     if (currentPoints.length < 3) return;
@@ -933,7 +1034,7 @@ function buildSvgString() {
         });
     }
 
-    let ojalSvg = checkHole.checked ? '<circle cx=\"25\" cy=\"5\" r=\"2.5\" stroke=\"#ff0000\" stroke-width=\"0.1\" fill=\"none\"/>' : '';
+    let ojalSvg = (checkHole && checkHole.checked) ? '<circle cx=\"25\" cy=\"5\" r=\"2.5\" stroke=\"#ff0000\" stroke-width=\"0.1\" fill=\"none\"/>' : '';
 
     currentSvgString = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 50 50\" width=\"' + targetDimX + 'mm\" height=\"' + targetDimY + 'mm\">\\n' +
         '<path d=\"' + pathOuter + pathHoles + '\" fill-rule=\"evenodd\" stroke=\"#ff0000\" stroke-width=\"0.1\" fill=\"#000000\" />\\n' +
@@ -972,11 +1073,11 @@ function generateAsciiStl(mesh) {
 }
 
 // -------------------------------------------------------------
-// ENVIO A BITACORA LMS CON CAPTURA RENDER 3D
+// ENVÃO A BITÃCORA LMS CON CAPTURA RENDER 3D
 // -------------------------------------------------------------
 btnSendToLms.addEventListener('click', () => {
     if (!currentMesh || currentPoints.length < 3) {
-        alert('Por favor vectoriza un boceto antes de enviar a la bitacora.');
+        alert('Por favor vectoriza un boceto antes de enviar a la bitÃ¡cora.');
         return;
     }
 
@@ -1002,7 +1103,7 @@ btnSendToLms.addEventListener('click', () => {
         depth_mm: targetDimZ,
         dim_x: targetDimX,
         dim_y: targetDimY,
-        has_hook_hole: checkHole.checked,
+        has_hook_hole: (checkHole && checkHole.checked),
     };
 
     if (window.parent && window.parent !== window) {

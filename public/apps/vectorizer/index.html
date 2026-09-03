@@ -38,7 +38,20 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <!-- Botón LMS Guardar en Bitácora (Visible siempre, especialmente dentro de iframe) -->
+            <!-- Selector de Vistas: Dividida vs Pantalla Completa de Nodos 2D vs 3D -->
+            <div class="hidden sm:flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                <button id="btnViewSplit" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] bg-cyan-500 text-slate-950 shadow">
+                    <span>🔲 Dividida</span>
+                </button>
+                <button id="btnView2D" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] text-slate-400 hover:text-white">
+                    <span>✏️ Nodos 2D (Lienzo Grande)</span>
+                </button>
+                <button id="btnView3D" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 text-[11px] text-slate-400 hover:text-white">
+                    <span>🧊 Visor 3D</span>
+                </button>
+            </div>
+
+            <!-- Botón LMS Guardar en Bitácora -->
             <button
                 id="btnSendToLms"
                 class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 animate-pulse"
@@ -48,11 +61,11 @@
         </div>
     </header>
 
-    <!-- MAIN INTERFACE (COMPACT SINGLE SCREEN) -->
+    <!-- MAIN INTERFACE (2D DOMINANTE & EXPANDIBLE) -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
         
-        <!-- COLUMNA IZQUIERDA: BOCETO, CAPA VECTORIAL & PARÁMETROS (5 COLS) -->
-        <div class="lg:col-span-5 flex flex-col gap-3">
+        <!-- COLUMNA IZQUIERDA: BOCETO, CAPA VECTORIAL & PARÁMETROS (7 COLS) -->
+        <div id="col2D" class="lg:col-span-7 flex flex-col gap-3">
 
             <!-- PANEL PRINCIPAL: CÁMARA / SUBIDA DE FOTO CON CAPA VECTORIAL -->
             <div id="panelCamera" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 space-y-2.5 shadow-xl">
@@ -87,8 +100,8 @@
                     <span>🗑️ <b>Doble clic:</b> Borra</span>
                 </div>
 
-                <!-- Visor Cámara / Canvas con Superposición Vectorial Interactiva -->
-                <div class="relative w-full h-[220px] sm:h-[250px] bg-slate-950 rounded-xl border-2 border-dashed border-slate-800 overflow-hidden flex items-center justify-center">
+                <!-- Visor Cámara / Canvas con Superposición Vectorial Interactiva (AMPLIADO) -->
+                <div id="canvasWrapper" class="relative w-full h-[460px] sm:h-[520px] bg-slate-950 rounded-2xl border-2 border-dashed border-slate-800 overflow-hidden flex items-center justify-center shadow-inner">
                     <video id="videoFeed" autoplay playsinline class="hidden w-full h-full object-cover"></video>
                     <canvas id="processCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
                     
@@ -190,8 +203,8 @@
 
         </div>
 
-        <!-- COLUMNA DERECHA: VISOR 3D WEBGL & EXPORTACIÓN (7 COLS) -->
-        <div class="lg:col-span-7 flex flex-col gap-4">
+        <!-- COLUMNA DERECHA: VISOR 3D WEBGL & EXPORTACIÓN (5 COLS) -->
+        <div id="col3D" class="lg:col-span-5 flex flex-col gap-4">
             
             <!-- CONTENEDOR VISOR 3D THREE.JS -->
             <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl flex-1 flex flex-col relative overflow-hidden">
@@ -253,6 +266,6 @@
     </main>
 
     <!-- SCRIPTS -->
-    <script src="app.js"></script>
+    <script src="app.js?v=4.7"></script>
 </body>
 </html>

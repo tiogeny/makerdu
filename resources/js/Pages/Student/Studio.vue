@@ -144,6 +144,12 @@ const selectedMission = computed(() => {
     return props.project.levels[selectedMissionIndex.value] || props.project.levels[0];
 });
 
+watch(selectedMissionIndex, () => {
+    qualityControlResult.value = null;
+    bitacoraForm.file = null;
+    bitacoraForm.image_snapshot = null;
+});
+
 // MEMORIA DE PROGRESO POR MISIÓN:
 // Cada misión recuerda qué fase desbloqueó el estudiante (1, 2 o 3)
 const missionUnlockedPhases = ref({
@@ -193,7 +199,11 @@ const copilotAnswering = ref(false);
 
 const sendCustomQuestion = async () => {
     const text = customQuestionText.value.trim();
-    if (!text || copilotAnswering.value) return;
+    if (!text) {
+        document.getElementById('customQuestionInput')?.focus();
+        return;
+    }
+    if (copilotAnswering.value) return;
 
     if (!missionChatMessages.value[selectedMissionIndex.value]) {
         missionChatMessages.value[selectedMissionIndex.value] = [];
@@ -1175,17 +1185,18 @@ const changeRole = (newRole) => {
                         <!-- PREGUNTA LIBRE A LA IA (Escribir directamente a Gemini) -->
                         <form @submit.prevent="sendCustomQuestion" class="flex items-center gap-2 pt-3">
                             <input
+                                id="customQuestionInput"
                                 v-model="customQuestionText"
                                 type="text"
-                                placeholder="Escribe cualquier pregunta a tu Copiloto IA sobre tu diseño..."
+                                placeholder="Escribe cualquier pregunta a tu Copiloto IA (ej: ¿cómo evito que se caiga mi diseño?)..."
                                 class="flex-1 rounded-2xl border px-3.5 py-2 text-xs transition"
                                 :class="isDarkTheme ? 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500'"
                                 :disabled="copilotAnswering"
                             />
                             <button
                                 type="submit"
-                                :disabled="!customQuestionText.trim() || copilotAnswering"
-                                class="px-4 py-2 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-sm disabled:opacity-40 cursor-pointer shrink-0"
+                                :disabled="copilotAnswering"
+                                class="px-4 py-2 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 disabled:opacity-50"
                             >
                                 <RefreshCw v-if="copilotAnswering" class="w-3.5 h-3.5 animate-spin" />
                                 <Send v-else class="w-3.5 h-3.5" />
@@ -1327,13 +1338,13 @@ const changeRole = (newRole) => {
                         </button>
                     </div>
 
-                    <!-- TARJETA DE VEREDICTO DE GEMINI (En vivo o recuperado de bitácora) -->
+                    <!-- TARJETA DE VEREDICTO DE GEMINI (En vivo o recuperado de bitácora si no hay nuevo archivo subido) -->
                     <div 
-                        v-if="preflightResult || (existingEvidence && existingEvidence.ai_feedback)" 
+                        v-if="qualityControlResult || (!bitacoraForm.file && existingEvidence && existingEvidence.ai_feedback)" 
                         class="p-5 rounded-2xl border space-y-3.5 animate-fade-in" 
                         :class="isDarkTheme 
-                            ? ((preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
-                            : ((preflightResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
+                            ? ((qualityControlResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-slate-950 border-emerald-500/30' : 'bg-slate-950 border-amber-500/40') 
+                            : ((qualityControlResult?.is_valid ?? (existingEvidence?.status === 'approved')) ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/70 border-amber-200')"
                     >
                         <div class="flex items-center justify-between">
                             <span 
@@ -1387,6 +1398,20 @@ const changeRole = (newRole) => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- AVISO DE NUEVO ARCHIVO LISTO PARA AUDITAR (oculta el veredicto previo de la BD) -->
+                    <div 
+                        v-else-if="bitacoraForm.file && !qualityControlResult && !qualityControlLoading"
+                        class="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-950/20 text-center space-y-1 animate-fade-in"
+                    >
+                        <p class="text-xs font-bold text-cyan-300 flex items-center justify-center gap-1.5">
+                            <span>📄</span>
+                            <span>Nuevo archivo seleccionado: <strong class="font-mono text-white">{{ bitacoraForm.file.name }}</strong></span>
+                        </p>
+                        <p class="text-[11px] text-slate-400">
+                            Presiona el botón verde de arriba para auditarlo con Gemini IA y verificar las reglas de fabricación.
+                        </p>
                     </div>
 
                     <!-- PREGUNTA DE CIERRE REFLEXIVO (Únicamente al final del reto en Misión 5) -->
