@@ -29,6 +29,7 @@ class Project extends Model
         'total_levels',
         'is_active',
         'status',
+        'briefing_json',
     ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class Project extends Model
         'competencies_json' => 'array',
         'competencies_custom_json' => 'array',
         'skills_json' => 'array',
+        'briefing_json' => 'array',
         'total_levels' => 'integer',
         'is_active' => 'boolean',
     ];

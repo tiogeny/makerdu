@@ -15,6 +15,7 @@ import StlViewer3D from '@/Components/StlViewer3D.vue';
 import VideoTutorialPlayer from '@/Components/VideoTutorialPlayer.vue';
 import AiTutorChatModal from '@/Components/AiTutorChatModal.vue';
 import MicroAppOverlay from '@/Components/MicroAppOverlay.vue';
+import MissionBriefingModal from '@/Components/Student/MissionBriefingModal.vue';
 import { t, trans, currentLang, setLanguage } from '@/i18n.js';
 
 const props = defineProps({
@@ -110,8 +111,34 @@ const onWindowClick = (e) => {
     }
 };
 
+// Modal de Briefing Táctico del Reto (Avengers HUD)
+const showBriefingModal = ref(false);
+
+const openBriefingModal = () => {
+    showBriefingModal.value = true;
+};
+
+const onStartBriefing = () => {
+    const seenKey = 'makerdu_briefing_seen_' + (props.project?.id || 1);
+    localStorage.setItem(seenKey, 'true');
+    showBriefingModal.value = false;
+    selectedMissionIndex.value = 0;
+    currentPhase.value = 1;
+    scrollToPhase('phase-1');
+};
+
+const onCloseBriefing = () => {
+    const seenKey = 'makerdu_briefing_seen_' + (props.project?.id || 1);
+    localStorage.setItem(seenKey, 'true');
+    showBriefingModal.value = false;
+};
+
 onMounted(() => {
     window.addEventListener('click', onWindowClick);
+    const seenKey = 'makerdu_briefing_seen_' + (props.project?.id || 1);
+    if (!localStorage.getItem(seenKey)) {
+        showBriefingModal.value = true;
+    }
 });
 
 onUnmounted(() => {
@@ -754,14 +781,26 @@ const changeRole = (newRole) => {
             >
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div class="space-y-2 flex-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-cyan-400 text-slate-950 uppercase tracking-wider shadow-sm flex items-center gap-1">
-                                <Rocket class="w-3 h-3" />
-                                <span>RETO DE PRODUCTO FÍSICO</span>
-                            </span>
-                            <span class="text-xs font-mono text-slate-400 font-bold">
-                                Ciclo Maker de 5 Misiones
-                            </span>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-cyan-400 text-slate-950 uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                    <Rocket class="w-3 h-3" />
+                                    <span>RETO DE PRODUCTO FÍSICO</span>
+                                </span>
+                                <span class="text-xs font-mono text-slate-400 font-bold">
+                                    Ciclo Maker de 5 Misiones
+                                </span>
+                            </div>
+
+                            <!-- BOTÓN TÁCTICO PARA VER EL DOSSIER DEL RETO EN CUALQUIER MOMENTO -->
+                            <button
+                                type="button"
+                                @click="openBriefingModal"
+                                class="px-3 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-mono font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer hover:border-cyan-400"
+                                title="Ver Dossier Táctico de Misión"
+                            >
+                                <span>🎬 Dossier del Reto</span>
+                            </button>
                         </div>
 
                         <!-- TÍTULO ENFOCADO AL MUNDO EMPRENDEDOR -->
@@ -1771,6 +1810,17 @@ const changeRole = (newRole) => {
             :initial-image-url="initialAppImageUrl"
             @close="showMicroAppModal = false"
             @asset-generated="handleMicroAppAsset"
+        />
+
+        <!-- ================================================================= -->
+        <!-- DOSSIER TÁCTICO DE MISIÓN (AVENGERS BRIEFING EN ESPAÑOL)           -->
+        <!-- ================================================================= -->
+        <MissionBriefingModal
+            :show="showBriefingModal"
+            :project="project"
+            :active-student="activeStudent"
+            @close="onCloseBriefing"
+            @start="onStartBriefing"
         />
     </div>
 </template>

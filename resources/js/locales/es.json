@@ -178,5 +178,15 @@
     "kpi_squads": "Escuadras",
     "kpi_students": "Alumnos",
     "kpi_fabcoins": "FabCoins Circulando"
+  },
+  "briefing": {
+    "badge_alert": "ALERTA DE RETO CLASIFICADO // CUARTEL GENERAL MAKERDU",
+    "btn_view_briefing": "Dossier del Reto",
+    "btn_skip": "Saltar Briefing",
+    "btn_prev": "Anterior",
+    "btn_next": "Siguiente",
+    "btn_start": "ACEPTAR MISIÓN & ENTRAR AL TALLER",
+    "step_indicator": "Diapositiva {current} de {total}",
+    "access_level": "NIVEL DE SEGURIDAD: MAKER LEVEL 1"
   }
 }
