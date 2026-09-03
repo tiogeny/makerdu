@@ -133,8 +133,8 @@ foreach (App\Models\User::where('role_type', 'student')->get() as $s) {
 Cuando se requiera actualizar el servidor remoto desde la terminal de hosting:
 
 ```bash
-# 1. Navegar a la carpeta del proyecto
-cd /ruta/hacia/tu/makerdu
+# 1. Navegar a la carpeta del proyecto en el servidor
+cd /home/discoper/makerdu_core
 
 # 2. Descargar los últimos cambios de GitHub
 git pull origin main
