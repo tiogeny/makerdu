@@ -935,99 +935,62 @@ const changeRole = (newRole) => {
                 </div>
             </div>
 
-            <!-- TABLERO / GRID DE LAS 5 MISIONES EN TARJETAS RICAS -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- TABLERO / ROADMAP DE LAS 5 MISIONES EN FRANJA COMPACTA (1 PANTALLA) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div 
                     v-for="(mission, idx) in project.levels" 
                     :key="mission.id"
-                    class="rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:scale-[1.01]"
+                    class="rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:scale-[1.02] p-4 space-y-3"
                     :class="[
                         mission.is_completed 
-                            ? (isDarkTheme ? 'bg-slate-900/90 border-emerald-500/40 shadow-lg shadow-emerald-950/20' : 'bg-white border-emerald-300 shadow-md')
+                            ? (isDarkTheme ? 'bg-slate-900/90 border-emerald-500/40 shadow-sm' : 'bg-white border-emerald-300 shadow-xs')
                             : (idx === 0 || project.levels[idx - 1]?.is_completed 
-                                ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/30 shadow-lg shadow-cyan-950/20 hover:border-cyan-500/60' : 'bg-white border-cyan-300 shadow-md hover:border-cyan-400')
-                                : (isDarkTheme ? 'bg-slate-900/50 border-slate-800 opacity-85 hover:opacity-100' : 'bg-slate-50 border-slate-200 opacity-90 hover:opacity-100'))
+                                ? (isDarkTheme ? 'bg-slate-900 border-cyan-500/30 shadow-sm hover:border-cyan-500/60' : 'bg-white border-cyan-300 shadow-xs')
+                                : (isDarkTheme ? 'bg-slate-900/50 border-slate-800 opacity-80' : 'bg-slate-50 border-slate-200 opacity-85'))
                     ]"
                 >
-                    <!-- Portada Visual Superior de la Misión -->
-                    <div class="p-6 space-y-4 flex-1">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div 
-                                    class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-sm"
-                                    :class="mission.is_completed ? 'bg-emerald-500 text-white' : (idx === 0 ? 'bg-gradient-to-br from-cyan-400 to-teal-500 text-slate-950' : 'bg-slate-800 text-cyan-400 border border-slate-700')"
-                                >
-                                    <Check v-if="mission.is_completed" class="w-6 h-6 stroke-[3]" />
-                                    <span v-else>{{ idx + 1 }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider block" :class="mission.is_completed ? 'text-emerald-500' : 'text-cyan-500'">
-                                        ETAPA {{ idx + 1 }} DE 5
-                                    </span>
-                                    <span 
-                                        class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full inline-block mt-0.5"
-                                        :class="mission.is_completed ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'"
-                                    >
-                                        {{ mission.is_completed ? '✔ COMPLETADA' : (idx === 0 ? '⚡ EN CURSO' : 'DISPONIBLE') }}
-                                    </span>
-                                </div>
-                            </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span 
+                                class="w-7 h-7 rounded-xl flex items-center justify-center font-mono text-xs font-black shrink-0"
+                                :class="mission.is_completed ? 'bg-emerald-500 text-white' : (idx === 0 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400')"
+                            >
+                                <Check v-if="mission.is_completed" class="w-4 h-4 stroke-[3]" />
+                                <span v-else>{{ idx + 1 }}</span>
+                            </span>
 
-                            <!-- Icono o Ilustración de la Misión -->
-                            <div class="w-12 h-12 rounded-xl bg-slate-800/40 p-1 flex items-center justify-center shrink-0">
-                                <img 
-                                    v-if="idx === 0"
-                                    src="/images/digitoys/digifeliz.png" 
-                                    alt="Misión 1" 
-                                    class="w-full h-full object-contain"
-                                />
-                                <span v-else-if="idx === 1" class="text-2xl">🧊</span>
-                                <span v-else-if="idx === 2" class="text-2xl">🍰</span>
-                                <span v-else-if="idx === 3" class="text-2xl">📦</span>
-                                <span v-else class="text-2xl">🚀</span>
-                            </div>
+                            <span class="text-xl">
+                                {{ idx === 0 ? '🎨' : (idx === 1 ? '🧊' : (idx === 2 ? '🍰' : (idx === 3 ? '📦' : '🚀'))) }}
+                            </span>
                         </div>
 
-                        <!-- Título y Descripción de la Misión -->
-                        <div class="space-y-1.5 pt-1">
-                            <h3 class="text-base font-black leading-snug group-hover:text-cyan-400 transition" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                {{ idx === 0 ? 'Misión 1: Concebir — Nace tu Personaje y Marca' : mission.title }}
+                        <div>
+                            <span class="text-[9px] font-mono font-bold uppercase tracking-wider block" :class="mission.is_completed ? 'text-emerald-500' : 'text-cyan-500'">
+                                ETAPA {{ idx + 1 }}
+                            </span>
+                            <h3 class="text-xs font-black leading-snug line-clamp-2" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                                {{ mission.title }}
                             </h3>
-                            <p class="text-xs leading-relaxed line-clamp-2" :class="isDarkTheme ? 'text-slate-400' : 'text-slate-600'">
-                                {{ idx === 0 
-                                    ? 'Crea tu personaje original sobre papel o en el Lienzo Digital 2D, cuidando que su base plana sea autoportante.' 
-                                    : (mission.description || 'Prepara tu modelo con las herramientas especializadas y la validación de tu Copiloto IA.') }}
-                            </p>
                         </div>
 
-                        <!-- Badges Informativos de la Misión -->
-                        <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] font-mono">
-                            <div class="p-2 rounded-xl border flex items-center gap-1.5" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'">
-                                <span>📦</span>
-                                <span class="truncate">{{ idx === 0 ? 'Boceto B/N' : (idx === 1 ? 'STL 3D' : (idx === 2 ? 'Laminado' : 'Físico')) }}</span>
-                            </div>
-                            <div class="p-2 rounded-xl border flex items-center gap-1.5" :class="isDarkTheme ? 'bg-slate-950/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'">
-                                <span>🪙</span>
-                                <span>{{ mission.fabcoins_cost || 0 }} FC</span>
-                            </div>
+                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1 border-t" :class="isDarkTheme ? 'border-slate-800' : 'border-slate-100'">
+                            <span>🪙 {{ mission.fabcoins_cost || 0 }} FC</span>
+                            <span class="text-emerald-400">+{{ mission.xp_reward || 50 }} PM</span>
                         </div>
                     </div>
 
-                    <!-- Botón de Entrada a la Estación de Trabajo Inmersiva -->
-                    <div class="p-4 border-t" :class="isDarkTheme ? 'border-slate-800/80 bg-slate-950/40' : 'border-slate-100 bg-slate-50/50'">
-                        <Link
-                            :href="route('student.studio.mission', { level_number: mission.level_number })"
-                            class="w-full py-3 px-4 rounded-2xl font-black text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
-                            :class="mission.is_completed 
-                                ? (isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200')
-                                : (idx === 0 
-                                    ? 'bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 shadow-cyan-500/20' 
-                                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700')"
-                        >
-                            <span>{{ mission.is_completed ? 'Ver / Reabrir Estación' : (idx === 0 ? '🚀 ENTRAR A LA ESTACIÓN DE CREACIÓN' : 'ENTRAR A ESTA MISIÓN') }}</span>
-                            <ArrowRight class="w-4 h-4" />
-                        </Link>
-                    </div>
+                    <Link
+                        :href="route('student.studio.mission', { level_number: mission.level_number })"
+                        class="w-full py-2 px-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        :class="mission.is_completed 
+                            ? (isDarkTheme ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200')
+                            : (idx === 0 
+                                ? 'bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950' 
+                                : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700')"
+                    >
+                        <span>{{ mission.is_completed ? 'Revisar' : 'Entrar' }}</span>
+                        <ArrowRight class="w-3.5 h-3.5" />
+                    </Link>
                 </div>
             </div>
 
