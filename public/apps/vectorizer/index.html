@@ -48,27 +48,17 @@
         </div>
     </header>
 
-    <!-- MAIN INTERFACE -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+    <!-- MAIN INTERFACE (COMPACT SINGLE SCREEN) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
         
-        <!-- COLUMNA IZQUIERDA: CONTROLES & ENTRADA (5 COLS) -->
-        <div class="lg:col-span-5 flex flex-col gap-4">
-            
-            <!-- SELECTOR DE MODO -->
-            <div class="grid grid-cols-2 gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                <button id="tabCamera" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-md">
-                    📷 Boceto B/N & Vectores
-                </button>
-                <button id="tabBezier" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
-                    ✒️ Trazador Bézier Libre
-                </button>
-            </div>
+        <!-- COLUMNA IZQUIERDA: BOCETO, CAPA VECTORIAL & PARÁMETROS (5 COLS) -->
+        <div class="lg:col-span-5 flex flex-col gap-3">
 
-            <!-- PANEL MODO 1: CÁMARA / SUBIDA DE FOTO CON CAPA VECTORIAL -->
-            <div id="panelCamera" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
+            <!-- PANEL PRINCIPAL: CÁMARA / SUBIDA DE FOTO CON CAPA VECTORIAL -->
+            <div id="panelCamera" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 space-y-2.5 shadow-xl">
                 
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-300">Boceto & Nodos Vectoriales:</span>
+                    <span class="text-xs font-bold text-slate-200">1. Boceto & Nodos Vectoriales:</span>
                     <div class="flex gap-1.5">
                         <button id="btnStartCamera" class="px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 text-[11px] font-bold hover:bg-cyan-900 transition">
                             Cámara
@@ -81,7 +71,7 @@
                 </div>
 
                 <!-- BARRA DE HERRAMIENTAS DE VECTORIZADO -->
-                <div class="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+                <div class="flex items-center justify-between bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs">
                     <button id="btnToggleOverlay" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold flex items-center gap-1 transition">
                         <span>👁️ Capa Vectorial</span>
                     </button>
@@ -90,79 +80,68 @@
                     </button>
                 </div>
 
+                <!-- AYUDA VISUAL DE EDICIÓN DE NODOS -->
+                <div id="nodeEditHelp" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono px-2 py-1 rounded-lg flex items-center justify-between animate-fade-in">
+                    <span>🖱️ <b>Arrastra:</b> Mueve</span>
+                    <span>➕ <b>Clic en línea:</b> Añade</span>
+                    <span>🗑️ <b>Doble clic:</b> Borra</span>
+                </div>
+
                 <!-- Visor Cámara / Canvas con Superposición Vectorial Interactiva -->
-                <div class="relative w-full aspect-square bg-slate-950 rounded-2xl border-2 border-dashed border-slate-800 overflow-hidden flex items-center justify-center">
+                <div class="relative w-full h-[220px] sm:h-[250px] bg-slate-950 rounded-xl border-2 border-dashed border-slate-800 overflow-hidden flex items-center justify-center">
                     <video id="videoFeed" autoplay playsinline class="hidden w-full h-full object-cover"></video>
                     <canvas id="processCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
                     
-                    <div id="cameraPrompt" class="text-center p-4 space-y-2 pointer-events-none">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-xl text-slate-400">
+                    <div id="cameraPrompt" class="text-center p-3 space-y-1 pointer-events-none">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-lg text-slate-400">
                             🎨
                         </div>
-                        <p class="text-xs font-bold text-slate-400">Dibuja un boceto con plumón negro sobre papel blanco</p>
-                        <p class="text-[10px] text-slate-600">Sube una foto o activa la cámara para vectorizar</p>
+                        <p class="text-xs font-bold text-slate-400">Boceto con plumón negro sobre papel blanco</p>
+                        <p class="text-[9px] text-slate-600">Sube una foto o activa la cámara para vectorizar</p>
                     </div>
 
                     <!-- Botón Flotante Disparar Foto -->
-                    <button id="btnSnap" class="hidden absolute bottom-3 px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs shadow-xl transition hover:scale-105">
+                    <button id="btnSnap" class="hidden absolute bottom-2 px-3.5 py-1.5 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs shadow-xl transition hover:scale-105">
                         📸 CAPTURAR FOTO
                     </button>
                 </div>
 
                 <!-- MODOS DE EXTRUSIÓN ESTILO 3D BUILDER -->
-                <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Modo de Extrusión:</span>
+                <div class="space-y-1 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Modo de Extrusión:</span>
                     <div class="grid grid-cols-2 gap-1.5">
-                        <button id="btnModeHoles" class="py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 bg-cyan-500 text-slate-950 shadow-md">
+                        <button id="btnModeHoles" class="py-1 px-2 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1 bg-cyan-500 text-slate-950 shadow-md">
                             <span>🔲 Calado (Con Huecos)</span>
                         </button>
-                        <button id="btnModeSolid" class="py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 text-slate-400 bg-slate-900 hover:text-white border border-slate-800">
+                        <button id="btnModeSolid" class="py-1 px-2 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1 text-slate-400 bg-slate-900 hover:text-white border border-slate-800">
                             <span>⬛ Silueta Sólida</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- DESLIZADORES: SUAVIZADO & CONTRASTE B/N -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                     <!-- Suavizado (Smooth) -->
-                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                        <div class="flex justify-between text-xs">
+                    <div class="space-y-0.5 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-[11px]">
                             <span class="text-slate-400 font-bold">Suavizado:</span>
                             <span id="smoothVal" class="font-mono text-cyan-300 font-bold">Nivel 4</span>
                         </div>
-                        <input type="range" id="smoothSlider" min="1" max="10" value="4" class="w-full accent-cyan-400 cursor-pointer" />
-                        <p class="text-[8px] text-slate-500">1: Angular • 10: Redondeado orgánico</p>
+                        <input type="range" id="smoothSlider" min="1" max="10" value="4" class="w-full accent-cyan-400 cursor-pointer h-1.5" />
+                        <p class="text-[8px] text-slate-500">1: Fiel • 10: Curvas suaves</p>
                     </div>
 
                     <!-- Umbral B/N -->
-                    <div class="space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                        <div class="flex justify-between text-xs">
+                    <div class="space-y-0.5 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-[11px]">
                             <span class="text-slate-400 font-bold">Umbral B/N:</span>
                             <span id="thresholdVal" class="font-mono text-cyan-300 font-bold">128</span>
                         </div>
-                        <input type="range" id="thresholdSlider" min="10" max="245" value="128" class="w-full accent-cyan-400 cursor-pointer" />
-                        <p class="text-[8px] text-slate-500">Calibra contraste de papel y plumón</p>
+                        <input type="range" id="thresholdSlider" min="10" max="245" value="128" class="w-full accent-cyan-400 cursor-pointer h-1.5" />
+                        <p class="text-[8px] text-slate-500">Contraste papel/plumón</p>
                     </div>
                 </div>
 
-            </div>
-
-            <!-- PANEL MODO 2: EDITOR BÉZIER 2D -->
-            <div id="panelBezier" class="hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4 shadow-xl">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-300">Lienzo de Nodos Bézier:</span>
-                    <button id="btnClearBezier" class="px-2.5 py-1 rounded-lg bg-rose-950/60 text-rose-300 border border-rose-800 text-[11px] font-bold hover:bg-rose-900 transition">
-                        Limpiar Trazo
-                    </button>
-                </div>
-
-                <div class="relative w-full aspect-square bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
-                    <canvas id="bezierCanvas" class="w-full h-full cursor-crosshair"></canvas>
-                </div>
-
-                <p class="text-[10px] text-slate-400">
-                    Haz clic en el lienzo para colocar puntos. Haz clic en el primer punto verde para <strong>Cerrar la Figura</strong> y extruirla en 3D.
-                </p>
             </div>
 
             <!-- PARÁMETROS DE FABRICACIÓN (DIMENSIONES EXACTAS EN MM) -->
@@ -223,8 +202,8 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button id="btnToggleRotate" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition flex items-center gap-1">
-                            <span id="rotateIcon">⏸️</span>
-                            <span id="rotateText">Pausar Giro</span>
+                            <span id="rotateIcon">▶️</span>
+                            <span id="rotateText">Girar 3D</span>
                         </button>
                         <button id="btnResetCamera" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition">
                             🔄 Reset
@@ -232,7 +211,7 @@
                     </div>
                 </div>
 
-                <div id="threeContainer" class="w-full flex-1 min-h-[340px] bg-slate-950 rounded-2xl border border-slate-800/80 relative overflow-hidden flex items-center justify-center">
+                <div id="threeContainer" class="w-full flex-1 min-h-[300px] sm:min-h-[340px] bg-slate-950 rounded-2xl border border-slate-800/80 relative overflow-hidden flex items-center justify-center">
                     <div id="threePlaceholder" class="text-center p-6 space-y-2 pointer-events-none">
                         <div class="text-3xl text-slate-600">🧊</div>
                         <p class="text-xs font-bold text-slate-500">Aquí aparecerá tu modelo 3D extruido automáticamente</p>
@@ -246,12 +225,12 @@
                         <p id="dimInfo" class="font-mono text-xs font-bold text-cyan-300">50 x 50 x 10 mm</p>
                     </div>
                     <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/60">
-                        <p class="text-[9px] uppercase font-bold text-slate-500">Volumen Est.</p>
-                        <p id="volInfo" class="font-mono text-xs font-bold text-amber-300">14.2 cm³</p>
+                        <p class="text-[9px] uppercase font-bold text-slate-500">Peso Aprox.</p>
+                        <p id="volInfo" class="font-mono text-xs font-bold text-amber-300">~14g PLA</p>
                     </div>
                     <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/60">
                         <p class="text-[9px] uppercase font-bold text-slate-500">FabCoins</p>
-                        <p id="costInfo" class="font-mono text-xs font-bold text-purple-300">15 FC</p>
+                        <p id="costInfo" class="font-mono text-xs font-bold text-purple-300">4 FC</p>
                     </div>
                 </div>
             </div>

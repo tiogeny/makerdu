@@ -359,6 +359,7 @@ const askSocraticQuestion = (item) => {
 const bitacoraForm = useForm({
     content_text: '',
     file: null,
+    image_snapshot: null,
     reflection_text: '',
     allow_iteration: true,
 });
@@ -385,6 +386,9 @@ const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     bitacoraForm.file = file;
+
+    // Limpiar de inmediato el resultado previo de la IA al seleccionar un nuevo archivo
+    qualityControlResult.value = null;
 
     if (!missionChatMessages.value[selectedMissionIndex.value]) {
         missionChatMessages.value[selectedMissionIndex.value] = [];
@@ -507,6 +511,9 @@ const handleMicroAppAsset = (asset) => {
     const file = new File([blob], fileName, { type: mimeType });
     
     bitacoraForm.file = file;
+    if (asset.image_snapshot) {
+        bitacoraForm.image_snapshot = asset.image_snapshot;
+    }
 
     // Desbloquear Fase 3 de entrega
     unlockPhase(3, 'phase-3');
@@ -687,15 +694,12 @@ const changeRole = (newRole) => {
         <!-- ================================================================= -->
         <section class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2">
             <div 
-                :class="isDarkTheme 
-                    ? 'bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 border-slate-800' 
-                    : 'bg-white border-slate-200 shadow-sm'"
-                class="rounded-3xl border p-5 sm:p-6 transition-all duration-300 relative overflow-hidden"
+                class="rounded-3xl border p-5 sm:p-6 transition-all duration-300 relative overflow-hidden bg-slate-950 border-slate-800 text-white shadow-xl ring-1 ring-cyan-500/20"
             >
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div class="space-y-2 flex-1">
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <span class="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-cyan-400 text-slate-950 uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <Rocket class="w-3 h-3" />
                                 <span>RETO DE PRODUCTO FÍSICO</span>
                             </span>
@@ -705,12 +709,12 @@ const changeRole = (newRole) => {
                         </div>
 
                         <!-- TÍTULO ENFOCADO AL MUNDO EMPRENDEDOR -->
-                        <h1 class="text-xl sm:text-2xl font-black tracking-tight" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white">
                             {{ squad.classroom?.custom_title || 'Lanza tu Colección de Art Toys 2.5D' }}
                         </h1>
 
                         <!-- DESCRIPCIÓN CONCISA Y MOTIVADORA -->
-                        <p class="text-xs sm:text-sm leading-relaxed max-w-2xl" :class="isDarkTheme ? 'text-slate-300' : 'text-slate-600'">
+                        <p class="text-xs sm:text-sm leading-relaxed max-w-2xl text-slate-300">
                             Diseña tu personaje de autor en papel, dale volumen digital y fabrícala en el taller para tener tu primer producto coleccionable de pie en tu escritorio.
                         </p>
 
@@ -1240,9 +1244,17 @@ const changeRole = (newRole) => {
                             accept=".stl,.svg,.jpg,.jpeg,.png,.webp"
                             class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                         />
-                        <!-- Estado A: Archivo recién seleccionado por el usuario -->
-                        <div v-if="bitacoraForm.file" class="space-y-1">
-                            <CheckCircle2 class="w-7 h-7 text-emerald-500 mx-auto" />
+                        <!-- Estado A: Archivo recién seleccionado por el usuario o exportado desde el vectorizador -->
+                        <div v-if="bitacoraForm.file" class="space-y-2">
+                            <div v-if="bitacoraForm.image_snapshot" class="relative inline-block">
+                                <img :src="bitacoraForm.image_snapshot" alt="Render 3D de tu Art Toy" class="max-h-36 mx-auto rounded-xl border-2 border-cyan-500/50 shadow-lg object-contain bg-slate-950 p-1" />
+                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-mono text-[9px] font-black shadow">
+                                    🧊 MODELO 3D EXTRUIDO
+                                </span>
+                            </div>
+                            <div v-else>
+                                <CheckCircle2 class="w-7 h-7 text-emerald-500 mx-auto" />
+                            </div>
                             <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
                                 {{ bitacoraForm.file.name }}
                             </p>
@@ -1253,10 +1265,10 @@ const changeRole = (newRole) => {
 
                         <!-- Estado B: Evidencia ya guardada en base de datos previamente -->
                         <div v-else-if="existingEvidence" class="space-y-2 py-1">
-                            <div v-if="isImageFile(existingEvidence.file_url)" class="relative inline-block">
-                                <img :src="existingEvidence.file_url" alt="Evidencia Guardada" class="max-h-40 mx-auto rounded-2xl border shadow-md object-contain bg-white p-1" />
+                            <div v-if="isImageFile(existingEvidence.file_url) || existingEvidence.snapshot_url" class="relative inline-block">
+                                <img :src="existingEvidence.snapshot_url || existingEvidence.file_url" alt="Evidencia Guardada" class="max-h-40 mx-auto rounded-2xl border shadow-md object-contain bg-white dark:bg-slate-900 p-1" />
                                 <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white font-mono text-[9px] font-black shadow">
-                                    ✓ GUARDADA
+                                    {{ selectedMissionIndex === 1 ? '✓ MODELO 3D REGISTRADO' : '✓ GUARDADA' }}
                                 </span>
                             </div>
                             <div v-else class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-400">
@@ -1370,8 +1382,8 @@ const changeRole = (newRole) => {
                                 <strong class="font-mono text-[10px] uppercase tracking-wider block text-amber-600 dark:text-amber-400">
                                     💡 Sugerencia del Mentor Maker:
                                 </strong>
-                                <p class="leading-relaxed">
-                                    {{ preflightResult?.dashboard?.pedagogical_tip || (existingEvidence?.status === 'approved' ? '¡Tu silueta cumple las reglas maker y está lista para fabricar!' : 'Asegúrate de seguir las 4 reglas del boceto.') }}
+                                <p class="leading-relaxed whitespace-pre-line">
+                                    {{ qualityControlResult?.dashboard?.pedagogical_tip || preflightResult?.dashboard?.pedagogical_tip || (existingEvidence?.status === 'approved' ? '¡Tu silueta cumple las reglas maker y está lista para fabricar!' : 'Asegúrate de seguir las 4 reglas del boceto.') }}
                                 </p>
                             </div>
                         </div>

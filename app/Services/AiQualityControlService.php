@@ -219,38 +219,35 @@ class AiQualityControlService
         if ($apiKey) {
             if ($isImageDrawing) {
                 $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu. "
-                    . "Tu misión es auditar rigurosamente si el boceto 2D ('{$fileName}') es apto para fabricarse como un Art Toy 2.5D autoportante en PLA de 10 mm. "
-                    . "REGLAS CRÍTICAS DE RECHAZO (Si incumple CUALQUIERA, el veredicto OBLIGATORIO es 'is_valid': false): "
-                    . "1. REGLA DE ESTARCIDO E ISLAS FLOTANTES (ANILLOS CONCÉNTRICOS / EFECTO DIANA): "
-                    . "   - Revisa minuciosamente el interior de la silueta. Si hay CUALQUIER elemento negro (un aro concéntrico, un punto central, una estrella, una cruz, una pupila o un detalle) que esté rodeado completamente por un canal blanco continuo sin puentes de unión físicos que lo conecten a la masa exterior: ¡ES UNA ISLA FLOTANTE! Se desprenderá y caerá al piso al calar o extruir. "
-                    . "   - CASO CRÍTICO DE DIANA / CÍRCULOS CONCÉNTRICOS: Círculos concéntricos que alternan negro-blanco-negro. El aro negro interior y el punto central NO están conectados al cuerpo a menos que tengan radios o puentes que crucen los canales blancos. "
-                    . "   - SI DETECTAS ISLAS FLOTANTES O ANILLOS CONCÉNTRICOS SUELTOS: Define OBLIGATORIAMENTE 'is_valid': false, 'verdict_title': 'REQUIERE AJUSTES (ISLAS FLOTANTES / DIANA DESCONECTADA)', en 'violations' detalla las piezas sueltas, y en 'pedagogical_tip' debes dar las dos soluciones claras: '1) Dibuja puentes radiales con plumón cruzando los canales blancos para unir el centro con el exterior (como radios de rueda o mira telescópica). 2) O rellena completamente de negro para hacer una forma sólida.' "
-                    . "2. REGLA DE ESTABILIDAD AUTOPORTANTE Y CENTRO DE GRAVEDAD: "
-                    . "   - El juguete debe mantenerse de pie solo sobre el escritorio sin soportes ni pegamento. "
-                    . "   - Si el personaje es un poste o cilindro excesivamente alto y angosto (altura desproporcionada comparada con el ancho, o patas muy finas para un torso muy largo), el centro de gravedad es demasiado alto y SE VOLCARÁ al menor toque. "
-                    . "   - SI ES INESTABLE: Define 'is_valid': false, 'verdict_title': 'REQUIERE AJUSTES (FIGURA INESTABLE / SE CAERÁ)', y en 'pedagogical_tip' recomienda ensanchar la base inferior o hacer el torso más compacto. "
-                    . "3. REGLA DE SILUETA CERRADA: "
-                    . "   - El contorno exterior debe estar 100% cerrado sin fugas. Si está abierto, 'is_valid': false. "
-                    . "4. APROBACIÓN: "
-                    . "   - SOLO si la silueta está 100% cerrada, NO tiene ninguna isla flotante (ni dianas desconectadas) y su base es amplia y estable, defines 'is_valid': true y 'verdict_title': '¡SILUETA APROBADA!'. "
+                    . "Tu misión es auditar si el boceto 2D ('{$fileName}') es apto para fabricarse como un Art Toy 2.5D autoportante en PLA de 10 mm. "
+                    . "CRITERIOS MAKER CLAVE (Aplica criterio real de taller, no seas excesivamente quisquilloso): "
+                    . "1. SILUETA CERRADA VS FORMAS ARTÍSTICAS CON HENDIDURAS: "
+                    . "   - ¡IMPORTANTE! Diseños estilizados, rostros asimétricos o monstruos con cabezas partidas, bocas abiertas, hendiduras en U/V, tentáculos o cuernos SON SILUETAS CERRADAS si el trazo de tinta es continuo. Una hendidura profunda o boca NO significa 'abierto'. Si el trazo encierra un área sólida continua, la silueta está CERRADA y es 100% fabricable e imprimible en 3D. "
+                    . "   - Solo marca 'abierto' si el estudiante literalmente dejó de dibujar y hay una fuga abierta por falta de tinta. "
+                    . "2. ISLAS FLOTANTES DESCONECTADAS (EFECTO DIANA): "
+                    . "   - Si hay un punto, cruz, estrella o anillo negro totalmente rodeado de blanco sin ningún puente físico que lo una al cuerpo, es una isla flotante. "
+                    . "   - Si los elementos negros están unidos a la masa (por ejemplo cayendo desde arriba o pegados al borde), NO son flotantes, están conectados. "
+                    . "3. ESTABILIDAD AUTOPORTANTE: "
+                    . "   - Como el juguete tiene 10 mm de espesor en el eje Z, se para de pie fácilmente si tiene pies o una base plana inferior. Solo rechaza si la figura es un hilo o poste vertical ultra estrecho que desafía la física. "
+                    . "4. SUGERENCIAS DEL MENTOR: "
+                    . "   - Si hay sugerencias de mejora, preséntalas en líneas separadas numeradas (1, 2). "
+                    . "   - Recuerda siempre al estudiante que puede hacer ajustes con plumón en el papel o continuar a la Misión 2 donde podrá editar los nodos vectoriales y ensanchar la figura directamente en la computadora. "
                     . "Devuelve ÚNICAMENTE un objeto JSON válido con esta estructura: "
                     . json_encode([
-                        'is_valid' => false,
-                        'verdict_title' => 'REQUIERE AJUSTES (ISLAS FLOTANTES / DIANA DESCONECTADA)',
-                        'headline' => 'Criatura con anillos concéntricos desprendidos y torso excesivamente alto',
+                        'is_valid' => true,
+                        'verdict_title' => '¡SILUETA APROBADA!',
+                        'headline' => 'Rostro estilizado con silueta continua y buena área de extrusión',
                         'strengths' => [
-                            'Trazo en plumón nítido de buen contraste'
+                            'Trazo en plumón nítido y cerrado',
+                            'Espacio interior y rasgos faciales bien definidos para calado'
                         ],
-                        'violations' => [
-                            'Anillos concéntricos interiores y pupila central flotando sin puentes de unión físicos.',
-                            'Proporción excesivamente alta y delgada con riesgo de volcarse fácilmente.'
-                        ],
+                        'violations' => [],
                         'slicing_recommendations' => [
                             'tecnica' => 'Extrusión 2.5D a 10 mm',
-                            'base_estabilidad' => 'Requiere ensanchar la base o reducir la altura'
+                            'base_estabilidad' => 'Base autoportante estable con espesor Z de 10 mm'
                         ],
-                        'pedagogical_tip' => 'Tienes 2 opciones para solucionar los anillos de la cabeza: 1) Traza 3 o 4 puentes con plumón que crucen desde el centro hasta el borde exterior (como una mira telescópica). 2) O rellena el ojo de negro sólido. Además, ensancha los pies para que el juguete no se caiga.',
-                        'text_summary' => 'Tu personaje tiene una silueta interesante, pero los aros interiores se caerán al extruir y la figura es tan alta que se volcará. ¡Haz esos dos ajustes con plumón!'
+                        'pedagogical_tip' => "1. Tu silueta está cerrada y es apta para extrusión en 3D.\n2. Si deseas afinar la base o suavizar la hendidura superior, puedes hacerlo con plumón o directamente en la Misión 2 con el editor de nodos del Vectorizador.",
+                        'text_summary' => '¡Excelente boceto! El diseño es creativo y cumplirá perfectamente las reglas de impresión 3D.'
                     ]);
             } else {
                 $promptText = "Eres el Ingeniero Jefe de Fabricación Digital y Control de Calidad de Makerdu. "
