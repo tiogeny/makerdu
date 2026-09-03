@@ -130,6 +130,42 @@ const mission1Evidence = computed(() => {
     return (props.bitacoras || []).find(b => b.level_id === m1.id && b.file_url);
 });
 
+// Modelo 3D aprobado de la Misión 2 (para Misión 3)
+const mission2Evidence = computed(() => {
+    const m2 = props.project.levels[1];
+    if (!m2) return null;
+    return (props.bitacoras || []).find(b => b.level_id === m2.id && b.file_url);
+});
+
+// Progreso General del Reto Estilo Videojuego
+const completedMissionsCount = computed(() => {
+    return (props.bitacoras || []).filter(b => b.status === 'approved').length;
+});
+
+const progressPercentage = computed(() => {
+    const total = props.project.levels?.length || 5;
+    return Math.min(100, Math.round((completedMissionsCount.value / total) * 100));
+});
+
+const gamerRank = computed(() => {
+    const count = completedMissionsCount.value;
+    if (count >= 5) return { title: 'MAKER MASTER LEGEND', color: 'from-amber-400 to-yellow-500', icon: '👑' };
+    if (count >= 3) return { title: 'INGENIERO DE FABRICACIÓN', color: 'from-purple-400 to-indigo-500', icon: '⚡' };
+    if (count >= 1) return { title: 'DISEÑADOR EXPLORADOR', color: 'from-cyan-400 to-blue-500', icon: '🚀' };
+    return { title: 'MAKER APRENDIZ', color: 'from-emerald-400 to-teal-500', icon: '🌱' };
+});
+
+const resetEvidence = () => {
+    bitacoraForm.file = null;
+    bitacoraForm.image_snapshot = null;
+    bitacoraForm.content_text = '';
+    qualityControlResult.value = null;
+    if (evidenceFileInput.value) {
+        evidenceFileInput.value.value = '';
+    }
+    evidenceFileInput.value?.click();
+};
+
 const openMicroAppModal = (app, imageUrl = null) => {
     activeTestingApp.value = app;
     initialAppImageUrl.value = imageUrl;
@@ -148,6 +184,10 @@ watch(selectedMissionIndex, () => {
     qualityControlResult.value = null;
     bitacoraForm.file = null;
     bitacoraForm.image_snapshot = null;
+    bitacoraForm.content_text = '';
+    if (evidenceFileInput.value) {
+        evidenceFileInput.value.value = '';
+    }
 });
 
 // MEMORIA DE PROGRESO POR MISIÓN:
@@ -763,6 +803,36 @@ const changeRole = (newRole) => {
                         </div>
                     </div>
                 </div>
+
+                <!-- BARRA DE PROGRESO DE QUEST / RETO ESTILO VIDEOJUEGO -->
+                <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xl">{{ gamerRank.icon }}</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-black text-[10px] tracking-wider text-cyan-400 uppercase">
+                                    {{ gamerRank.title }}
+                                </span>
+                                <span class="text-slate-600">·</span>
+                                <span class="text-[11px] font-bold text-slate-300">
+                                    {{ completedMissionsCount }} de {{ project.levels.length }} misiones superadas
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 flex-1 max-w-xs">
+                        <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800 relative shadow-inner">
+                            <div 
+                                class="bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 h-full rounded-full transition-all duration-700 shadow-sm shadow-cyan-500/50"
+                                :style="{ width: progressPercentage + '%' }"
+                            ></div>
+                        </div>
+                        <span class="font-mono font-black text-xs text-cyan-300 shrink-0">
+                            {{ progressPercentage }}%
+                        </span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1099,6 +1169,55 @@ const changeRole = (newRole) => {
                         </button>
                     </div>
 
+                    <!-- TARJETA DE INSUMO: MODELO 3D EXTRUIDO EN MISIÓN 2 (Para Misión 3) -->
+                    <div 
+                        v-if="selectedMissionIndex === 2 && mission2Evidence" 
+                        class="p-4 rounded-2xl border bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4"
+                    >
+                        <div class="flex items-center gap-3.5">
+                            <div class="relative">
+                                <img 
+                                    :src="mission2Evidence.snapshot_url || mission2Evidence.file_url || '/images/digitoys/digifeliz.png'" 
+                                    class="w-14 h-14 rounded-xl object-contain bg-slate-950 border border-emerald-400 shadow-md p-1" 
+                                    alt="Modelo 3D M2" 
+                                />
+                                <span class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[8px] font-mono shadow">
+                                    M2
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400 block">
+                                    Insumo Digital de Misión 2 Listo:
+                                </span>
+                                <strong class="text-xs text-slate-900 dark:text-white block">
+                                    {{ mission2Evidence.file_name || 'art_toy_2.5d.stl' }}
+                                </strong>
+                                <span class="text-[10px] text-slate-400">
+                                    Espesor: 10 mm · Costo: ~4 FabCoins · Imprimir plano sobre la cama magnética (sin soportes).
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <a 
+                                :href="mission2Evidence.file_url" 
+                                download 
+                                class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-cyan-300 font-bold text-xs transition flex items-center gap-1.5 shadow-sm"
+                            >
+                                <Download class="w-3.5 h-3.5" />
+                                <span>Descargar STL</span>
+                            </a>
+                            <button
+                                type="button"
+                                @click="unlockPhase(3, 'phase-3')"
+                                class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
+                            >
+                                <Check class="w-3.5 h-3.5" />
+                                <span>Auditar Costeo & Imprimir</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- BOTONES DE MICRO-APPS DIGITALES -->
                     <div v-if="selectedMission.process?.mode === 'micro_app'" class="space-y-2.5">
                         <span class="text-[11px] font-bold text-slate-400 block uppercase font-mono">
@@ -1291,7 +1410,7 @@ const changeRole = (newRole) => {
                             <div class="pt-2">
                                 <button
                                     type="button"
-                                    @click="evidenceFileInput?.click()"
+                                    @click.stop="resetEvidence()"
                                     class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-cyan-400 hover:bg-slate-800 text-xs font-bold transition inline-flex items-center gap-2 cursor-pointer shadow-sm"
                                 >
                                     <RefreshCw class="w-3.5 h-3.5" />
