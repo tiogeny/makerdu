@@ -44,7 +44,7 @@ const emit = defineEmits(['close', 'start']);
 
 const currentSlide = ref(0);
 
-// Extraer el briefing en español del proyecto
+// Extraer el briefing en español del proyecto con fallback garantizado
 const briefingData = computed(() => {
     let raw = props.project?.briefing_json;
     if (typeof raw === 'string') {
@@ -53,47 +53,43 @@ const briefingData = computed(() => {
     if (raw && raw.es && Array.isArray(raw.es.slides) && raw.es.slides.length > 0) return raw.es;
     if (raw && Array.isArray(raw.slides) && raw.slides.length > 0) return raw;
 
-    // Fallback completo y garantizado de 4 láminas
     return {
         codename: 'EXPEDIENTE: COLECCIÓN ART TOYS 2.5D',
-        access_level: 'NIVEL DE SEGURIDAD: MAKER LEVEL 1',
+        access_level: 'NIVEL INICIAL · SIN EXPERIENCIA PREVIA',
         slides: [
             {
                 id: 'goal',
-                phase_number: '01',
                 tag: 'PROPÓSITO DEL RETO',
                 title: 'Funda tu Marca y Lanza tu Colección de Art Toys',
                 headline: 'Crea una criatura original, aprende a costearla y llévala al mercado.',
-                description: 'Llegó el momento de convertirte en creador y emprendedor: diseñarás una figura coleccionable con identidad propia, dominarás la fabricación digital en el taller y presentarás tu producto terminado ante la comunidad.',
+                description: 'Aprenderás los fundamentos de la fabricación digital en este taller de nivel inicial: diseñarás una figura coleccionable con identidad propia, aprenderás a presupuestar su producción y presentarás tu primer producto terminado ante la comunidad.',
                 product_image: '/images/digitoys/digifeliz.png',
                 specs: [
                     { label: 'Espesor Z', value: '10 mm' },
                     { label: 'Estructura', value: 'Base Autoportante' },
                     { label: 'Material', value: 'PLA Ecológico' }
                 ],
-                badge: 'RETO DE EMPRENDIMIENTO & FABRICACIÓN'
+                badge: 'TALLER NIVEL INICIAL · EXPLORADOR'
             },
             {
                 id: 'arsenal',
-                phase_number: '02',
                 tag: 'EQUIPAMIENTO ASIGNADO',
-                title: 'Tu Arsenal Tecnológico de Grado Maker',
-                headline: 'Todo el poder del laboratorio a tu entera disposición.',
-                description: 'Para este reto cuentas con equipamiento industrial, presupuesto real y asistencia inteligente en cada paso:',
+                title: 'Tu Arsenal Tecnológico en el Taller',
+                headline: 'Herramientas y presupuesto asignado para tu aprendizaje.',
+                description: 'Para este reto cuentas con herramientas guiadas paso a paso, presupuesto real y asistencia de inteligencia artificial:',
                 items: [
-                    { icon: '🪙', name: 'Bolsa de 400 FabCoins', desc: 'Presupuesto de producción para insumos, energía y tiempo de máquina.' },
+                    { icon: '🪙', name: 'Bolsa de 12 FabCoins (FC)', desc: 'Tu presupuesto de fabricación. Te alcanza para producir 4 personajes de 5 cm de alto o 2 de 10 cm.' },
                     { icon: '🤖', name: 'Copiloto Maker IA (Gemini)', desc: 'Tutor socrático en vivo que audita tus bocetos, estarcido y reglas físicas.' },
-                    { icon: '⚡', name: 'Vectorizador 2.5D & Curvas Bézier', desc: 'Digitalización milimétrica con tiradores tipo Inkscape y extrusor 3D.' },
-                    { icon: '🖨️', name: 'Simulador de Laminado & Impresoras', desc: 'Inspección de capas, relleno giroide/rejilla y boquilla a 205°C.' }
+                    { icon: '⚡', name: 'Vectorizador 2.5D & Curvas Bézier', desc: 'Digitalización sencilla e intuitiva con tiradores y extrusor 3D.' },
+                    { icon: '🖨️', name: 'Simulador de Laminado & Impresoras', desc: 'Inspección de capas, relleno interno y boquilla a 205°C.' }
                 ]
             },
             {
                 id: 'roadmap',
-                phase_number: '03',
                 tag: 'LAS 5 MISIONES',
                 title: 'La Ruta de los Entregables Clave',
-                headline: 'Cada misión superada desbloquea una etapa clave de tu producto comercial.',
-                description: 'Avanzarás por el ciclo completo de creación de producto, desde el papel hasta el lanzamiento:',
+                headline: 'Cada misión superada desbloquea una etapa de tu producto comercial.',
+                description: 'Avanzarás paso a paso por el ciclo de diseño y producción, desde el papel hasta la pieza física:',
                 deliverables: [
                     { mission: 'Misión 1', title: 'Concebir', deliverable: 'Boceto de Autor con Plumón Negro', icon: '✍️', format: 'Papel & Tinta' },
                     { mission: 'Misión 2', title: 'Ingeniería', deliverable: 'Modelo 3D Extruido (10 mm)', icon: '🧊', format: 'Archivo STL Malla' },
@@ -104,14 +100,13 @@ const briefingData = computed(() => {
             },
             {
                 id: 'launch',
-                phase_number: '04',
                 tag: 'AUTORIZACIÓN OPERATIVA',
                 title: 'Todo Listo para el Despegue',
-                headline: 'Las máquinas están calibradas y la bitácora lista para registrar tu avance.',
-                description: 'Al superar las 5 misiones obtendrás tu certificación oficial, puntos de experiencia para subir de rango y tu Art Toy tangible en el escritorio.',
+                headline: 'Las herramientas están listas y la bitácora preparada para registrar tu avance.',
+                description: 'Al superar las 5 misiones obtendrás tu certificación de nivel inicial, puntos de experiencia para subir de rango y tu Art Toy tangible en el escritorio.',
                 rewards: [
                     { icon: '🏆', title: '+300 Puntos Maker', desc: 'Escala al rango Maker Master Legend' },
-                    { icon: '📜', title: 'Certificado de Diseñador 3D', desc: 'Acreditación de competencias STEAM' },
+                    { icon: '📜', title: 'Certificado Nivel Inicial', desc: 'Acreditación de competencias STEAM' },
                     { icon: '🧸', title: 'Tu Art Toy Físico', desc: 'El producto real en tus manos' }
                 ],
                 cta_text: 'ACEPTAR RETO & COMENZAR PASO 1'
@@ -248,7 +243,9 @@ onUnmounted(() => {
                                     : (idx < currentSlide ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white')
                             ]"
                         >
-                            <span>{{ slide.phase_number }}</span>
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black" :class="currentSlide === idx ? 'bg-slate-950 text-cyan-300' : 'bg-slate-800 text-slate-400'">
+                                {{ idx + 1 }}
+                            </span>
                             <span class="hidden md:inline">{{ slide.tag }}</span>
                         </button>
                     </div>
@@ -268,16 +265,16 @@ onUnmounted(() => {
                 <!-- CUERPO DE LA DIAPOSITIVA -->
                 <div class="flex-1 min-h-0 relative overflow-y-auto p-5 sm:p-8 flex flex-col justify-between">
                     
-                    <!-- ========================================================= -->
-                    <!-- LÁMINA 1: PROPÓSITO DEL RETO & VITRINA DEL ART TOY         -->
-                    <!-- ========================================================= -->
+                    <!-- LÁMINA 1: PROPÓSITO DEL RETO & VITRINA DEL ART TOY -->
                     <div v-if="currentSlide === 0" class="space-y-5 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                                 <Target class="w-3.5 h-3.5 text-cyan-400" />
                                 <span>{{ activeSlideData.tag }}</span>
                             </span>
-                            <span class="text-xs font-mono text-slate-500 font-bold">FASE 01 DE 04</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 font-mono text-[10px] font-bold">
+                                {{ activeSlideData.badge || 'TALLER NIVEL INICIAL' }}
+                            </span>
                         </div>
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
@@ -329,16 +326,13 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- ========================================================= -->
-                    <!-- LÁMINA 2: ARSENAL TECNOLÓGICO ASIGNADO                    -->
-                    <!-- ========================================================= -->
+                    <!-- LÁMINA 2: ARSENAL TECNOLÓGICO ASIGNADO -->
                     <div v-else-if="currentSlide === 1" class="space-y-6 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                                 <Zap class="w-3.5 h-3.5 text-amber-400" />
                                 <span>{{ activeSlideData.tag }}</span>
                             </span>
-                            <span class="text-xs font-mono text-slate-500 font-bold">FASE 02 DE 04</span>
                         </div>
 
                         <div class="space-y-1.5 max-w-3xl">
@@ -372,16 +366,13 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- ========================================================= -->
-                    <!-- LÁMINA 3: LAS 5 MISIONES (RUTA DE ENTREGABLES)            -->
-                    <!-- ========================================================= -->
+                    <!-- LÁMINA 3: LAS 5 MISIONES (RUTA DE ENTREGABLES) -->
                     <div v-else-if="currentSlide === 2" class="space-y-6 my-auto animate-fade-in">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                                 <Compass class="w-3.5 h-3.5 text-emerald-400" />
                                 <span>{{ activeSlideData.tag }}</span>
                             </span>
-                            <span class="text-xs font-mono text-slate-500 font-bold">FASE 03 DE 04</span>
                         </div>
 
                         <div class="space-y-1.5 max-w-3xl">
@@ -421,9 +412,7 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- ========================================================= -->
-                    <!-- LÁMINA 4: AUTORIZACIÓN OPERATIVA & DESPEGUE               -->
-                    <!-- ========================================================= -->
+                    <!-- LÁMINA 4: AUTORIZACIÓN OPERATIVA & DESPEGUE -->
                     <div v-else-if="currentSlide === 3" class="space-y-6 my-auto animate-fade-in text-center max-w-2xl mx-auto">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-black uppercase tracking-wider">
                             <Sparkles class="w-3.5 h-3.5 text-cyan-400" />
