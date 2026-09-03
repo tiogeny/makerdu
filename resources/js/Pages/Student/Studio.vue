@@ -862,7 +862,7 @@ const changeRole = (newRole) => {
                                 RUTA DEL RETO
                             </span>
                             <h2 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                Misiones Maker
+                                Misiones del Reto
                             </h2>
                         </div>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold" :class="isDarkTheme ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'">
@@ -1027,7 +1027,7 @@ const changeRole = (newRole) => {
                                     INICIO & BRIEFING
                                 </span>
                                 <h3 class="text-sm font-black" :class="isDarkTheme ? 'text-white' : 'text-slate-900'">
-                                    📖 Paso 1: Guía y Requisitos de Fabricación
+                                    📖 Paso 1: Guía & Requisitos del Reto
                                 </h3>
                             </div>
                         </div>

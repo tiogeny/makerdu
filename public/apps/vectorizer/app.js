@@ -17,6 +17,35 @@ let isPanning = false;
 let panStartX = 0;
 let panStartY = 0;
 
+// Tema
+let isDarkMode = true;
+const btnThemeToggle = document.getElementById('btnThemeToggle');
+const themeIcon = document.getElementById('themeIcon');
+
+function setTheme(dark) {
+    isDarkMode = dark;
+    if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+        if (themeIcon) themeIcon.innerText = '☀️';
+        if (scene) scene.background = new THREE.Color(0x020617);
+    } else {
+        document.documentElement.classList.remove('dark');
+        if (themeIcon) themeIcon.innerText = '🌙';
+        if (scene) scene.background = new THREE.Color(0xf1f5f9);
+    }
+    if (typeof drawVectorCanvas === 'function') drawVectorCanvas();
+}
+
+if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => setTheme(!isDarkMode));
+}
+
+try {
+    if (window.parent && window.parent.document && window.parent.document.documentElement.classList.contains('dark') !== undefined) {
+        setTheme(window.parent.document.documentElement.classList.contains('dark'));
+    }
+} catch (e) {}
+
 // Geometría normalizada (0.0 a 1.0 relativo a originalImg)
 // Cada nodo: { u: float, v: float, h1u: float, h1v: float, h2u: float, h2v: float, isCorner: boolean }
 let currentPoints = [];
